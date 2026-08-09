@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Membership {
+  id             String        @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String
+  createdAt      DateTime      @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  tenantId  String?
+  userId    String?
+  type      String
+  severity  String
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model EventOutbox {
+  id          String    @id @default(cuid())
+  type        String
+  payload     Json
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+}
+
+model FileObject {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  filename   String
+  mimeType   String
+  size       Int
+  storageKey String   @unique
+  url        String?
+  createdAt  DateTime @default(now())
+}

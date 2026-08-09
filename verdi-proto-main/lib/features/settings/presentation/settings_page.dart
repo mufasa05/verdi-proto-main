@@ -1,0 +1,840 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../auth/state/auth_state.dart';
+import '../../../state/app_state.dart';
+
+class SettingsPage extends ConsumerStatefulWidget {
+  const SettingsPage({super.key});
+
+  static const green = Color(0xFF16A34A);
+  static const dark = Color(0xFF0F172A);
+  static const muted = Color(0xFF64748B);
+  static const orange = Color(0xFFF97316);
+  static const red = Color(0xFFEF4444);
+  static const blue = Color(0xFF3B82F6);
+  static const background = Color(0xFFF8FAFC);
+
+  @override
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final role = ref.watch(appStateProvider).role;
+    final isAdmin = role == UserRole.admin;
+
+    if (!isAdmin) {
+      return Scaffold(
+        backgroundColor: SettingsPage.background,
+        appBar: AppBar(
+          title: Text(
+            'Administration Console',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: _GeneralSettingsTab(),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: SettingsPage.background,
+      appBar: AppBar(
+        title: Text(
+          'Access & Administration Console',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: SettingsPage.green,
+              unselectedLabelColor: SettingsPage.muted,
+              indicatorColor: SettingsPage.green,
+              tabs: const [
+                Tab(text: 'Access Control'),
+                Tab(text: 'General Settings'),
+              ],
+            ),
+          ),
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          const _AccessControlTab(),
+          _GeneralSettingsTab(),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACCESS CONTROL TAB
+// ─────────────────────────────────────────────────────────────────────────────
+class _AccessControlTab extends StatelessWidget {
+  const _AccessControlTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: ListView(
+            padding: MediaQuery.of(context).size.width < 600 ? const EdgeInsets.all(12) : const EdgeInsets.all(24),
+            children: [
+              // Spatial context banner
+              _SpatialBanner(),
+              const SizedBox(height: 16),
+
+              // AI Access Risk Alert Card
+              _AiAccessRiskCard(),
+              const SizedBox(height: 16),
+
+              // User list
+              Text('Active Users & Scope', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: SettingsPage.dark)),
+              const SizedBox(height: 10),
+              ..._users.map((u) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _UserAccessCard(user: u),
+              )),
+              const SizedBox(height: 20),
+
+              // Module Access Matrix
+              _AccessMatrixCard(),
+              const SizedBox(height: 20),
+
+              // Temporary Passkey Console
+              _PasskeyConsoleCard(),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static final List<_UserScope> _users = const [
+    _UserScope(name: 'Inspector Moyo', role: 'Government Auditor', scope: 'Mashonaland Central Schemes', permission: 'Read/Write Reports', activeGrants: 2),
+    _UserScope(name: 'Farmer John', role: 'Farm Operator', scope: 'Mvurwi North (Zone 1-4)', permission: 'Remote Irrigation Command', activeGrants: 1),
+    _UserScope(name: 'Scout Ndlovu', role: 'Technician/Inspector', scope: 'Gutu Block and Drone Fleet', permission: 'Read-only Findings', activeGrants: 0),
+  ];
+}
+
+class _SpatialBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3B82F6).withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.shield_outlined, color: Color(0xFF3B82F6), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Permissions are strictly bound to organization, farm, scheme, field, and zone scopes. Auditable immutable logs updated automatically.',
+              style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w600, color: SettingsPage.dark),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AiAccessRiskCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [SettingsPage.orange.withOpacity(0.06), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: SettingsPage.orange.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 10,
+            runSpacing: 6,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: SettingsPage.orange, borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.smart_toy, color: Colors.white, size: 14),
+                    SizedBox(width: 4),
+                    Text('AI ACCESS RISK DETECTED', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Text('Confidence: ', style: TextStyle(color: SettingsPage.muted, fontSize: 12)),
+                  Text('91%', style: TextStyle(color: SettingsPage.orange, fontWeight: FontWeight.bold, fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text('Unused high-level administrative permission detected for "Scout Ndlovu" node.', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: SettingsPage.dark)),
+          const SizedBox(height: 6),
+          Text('Why this matters: Scout Ndlovu has read-write access to Mvurwi Scheme valves, but has not published an execution command in 30 days. Access role mismatch risk exists. Recommend cleanup to "Read-only Findings" scope.', style: GoogleFonts.inter(fontSize: 12.5, color: SettingsPage.muted)),
+          const Divider(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 360;
+              final btnDismiss = OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  minimumSize: isNarrow ? const Size(double.infinity, 40) : null,
+                ),
+                child: const Text('Dismiss Alert', style: TextStyle(fontSize: 12, color: SettingsPage.muted)),
+              );
+              final btnConfirm = ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: SettingsPage.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  minimumSize: isNarrow ? const Size(double.infinity, 40) : null,
+                ),
+                child: const Text('Confirm Cleanup Suggestion', style: TextStyle(fontSize: 12)),
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    btnDismiss,
+                    const SizedBox(height: 8),
+                    btnConfirm,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  btnDismiss,
+                  const Spacer(),
+                  btnConfirm,
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UserAccessCard extends StatelessWidget {
+  final _UserScope user;
+  const _UserAccessCard({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.black12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: SettingsPage.green.withOpacity(0.1),
+                child: const Icon(Icons.person_outline, color: SettingsPage.green),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user.name, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: SettingsPage.dark)),
+                    Text(user.role, style: const TextStyle(color: SettingsPage.muted, fontSize: 12)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
+                child: Text('${user.activeGrants} Active Grants', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const Divider(height: 20),
+          Row(children: [
+            const Text('Scope: ', style: TextStyle(color: SettingsPage.muted, fontSize: 12)),
+            Expanded(child: Text(user.scope, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+          ]),
+          const SizedBox(height: 4),
+          Row(children: [
+            const Text('Permission: ', style: TextStyle(color: SettingsPage.muted, fontSize: 12)),
+            Expanded(child: Text(user.permission, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: SettingsPage.blue))),
+          ]),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  child: const Text('Edit Scope', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text('Revoke Permissions'),
+                        content: Text('Are you sure you want to revoke all active grants for ${user.name}? This action is auditable.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Revoked permissions for ${user.name}. Logged.')));
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: SettingsPage.red, foregroundColor: Colors.white),
+                            child: const Text('Revoke'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: SettingsPage.red.withOpacity(0.1), foregroundColor: SettingsPage.red, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  child: const Text('Revoke Access', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccessMatrixCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.black12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('Module Access Matrix', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: SettingsPage.dark)),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: const [
+                Expanded(flex: 3, child: Text('Module', style: TextStyle(fontSize: 11, color: SettingsPage.muted, fontWeight: FontWeight.w700))),
+                Expanded(child: Center(child: Text('Farmer', style: TextStyle(fontSize: 11, color: SettingsPage.muted, fontWeight: FontWeight.w700)))),
+                Expanded(child: Center(child: Text('Govt', style: TextStyle(fontSize: 11, color: SettingsPage.muted, fontWeight: FontWeight.w700)))),
+                Expanded(child: Center(child: Text('Scout', style: TextStyle(fontSize: 11, color: SettingsPage.muted, fontWeight: FontWeight.w700)))),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          _MatrixRow(module: 'Crop Health Dashboard', farmer: true, govt: true, scout: true),
+          _MatrixRow(module: 'Satellite Intelligence', farmer: true, govt: true, scout: false),
+          _MatrixRow(module: 'Drone Inspection Workspace', farmer: true, govt: false, scout: true),
+          _MatrixRow(module: 'Irrigation Command Centre', farmer: true, govt: true, scout: false),
+          _MatrixRow(module: 'Reports & Compliance Workspace', farmer: false, govt: true, scout: false),
+          _MatrixRow(module: 'Access Control Console', farmer: false, govt: false, scout: false),
+        ],
+      ),
+    );
+  }
+}
+
+class _MatrixRow extends StatelessWidget {
+  final String module;
+  final bool farmer;
+  final bool govt;
+  final bool scout;
+
+  const _MatrixRow({required this.module, required this.farmer, required this.govt, required this.scout});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Expanded(flex: 3, child: Text(module, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold))),
+          Expanded(child: Icon(farmer ? Icons.check_circle : Icons.cancel, color: farmer ? SettingsPage.green : SettingsPage.red, size: 18)),
+          Expanded(child: Icon(govt ? Icons.check_circle : Icons.cancel, color: govt ? SettingsPage.green : SettingsPage.red, size: 18)),
+          Expanded(child: Icon(scout ? Icons.check_circle : Icons.cancel, color: scout ? SettingsPage.green : SettingsPage.red, size: 18)),
+        ],
+      ),
+    );
+  }
+}
+
+class _PasskeyConsoleCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.black12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Temporary Passkey Grants', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: SettingsPage.dark)),
+          const SizedBox(height: 6),
+          const Text('Generate safe passkeys to unlock specific schemes or projects for temporary roles without exposing organization data.', style: TextStyle(color: SettingsPage.muted, fontSize: 12)),
+          const Divider(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 340;
+              final btnGenerate = ElevatedButton.icon(
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Generate Temp Passkey'),
+                      content: const Text('Passkey valid for 4 hours will be generated for the Odzi canal upgrade crew.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Temporary passkey [VERDI-9988-X] generated and logged.')));
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: SettingsPage.green, foregroundColor: Colors.white),
+                          child: const Text('Generate'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.vpn_key_outlined, size: 16),
+                label: const Text('Generate Key', style: TextStyle(fontSize: 12)),
+                style: ElevatedButton.styleFrom(backgroundColor: SettingsPage.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              );
+              final btnActive = OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                child: const Text('Active Keys (1)', style: TextStyle(fontSize: 12)),
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    btnGenerate,
+                    const SizedBox(height: 8),
+                    btnActive,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: btnGenerate),
+                  const SizedBox(width: 8),
+                  Expanded(child: btnActive),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GENERAL SETTINGS TAB
+// ─────────────────────────────────────────────────────────────────────────────
+class _GeneralSettingsTab extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(appStateProvider).role;
+    final isAdmin = role == UserRole.admin;
+
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: ListView(
+            padding: MediaQuery.of(context).size.width < 600 ? const EdgeInsets.all(12) : const EdgeInsets.all(24),
+            children: [
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: ListTile(
+                  onTap: () => _showProfileEditor(context, ref),
+                  leading: const Icon(Icons.person_outline),
+                  title: const Text('Profile Preferences'),
+                  subtitle: const Text('Edit your name, phone number, and stakeholder category.'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: ListTile(
+                  onTap: () => _showLoraGatewayDialog(context),
+                  leading: const Icon(Icons.sensors_outlined),
+                  title: const Text('LoRa Telemetry Gateway'),
+                  subtitle: const Text('Configure physical soil sensors, flow-meters, and water pressure valves.'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: ListTile(
+                  onTap: () => _showLanguageLocationDialog(context),
+                  leading: const Icon(Icons.language_outlined),
+                  title: const Text('Language & Location'),
+                  subtitle: const Text('Select preferred local language (English, Shona, Ndebele).'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                ),
+              ),
+              if (!isAdmin) ...[
+                const SizedBox(height: 12),
+                Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: ListTile(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          title: const Text('Request Access Modification'),
+                          content: const Text(
+                            'To request access control changes, revoking access, or stakeholder privilege modifications, please draft an email to our support team at:\n\nsupport@verdi.ag',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    leading: const Icon(Icons.support_agent_outlined),
+                    title: const Text('Request Access Modification'),
+                    subtitle: const Text('Send a privilege upgrade or revocation request to support.'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLoraGatewayDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: const [
+                  Icon(Icons.sensors, color: SettingsPage.green),
+                  SizedBox(width: 8),
+                  Text('LoRa Telemetry Gateways'),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _gatewayStatusTile('Harare North Gateway', 'Online', true),
+                    _gatewayStatusTile('Masvingo Scheme Hub', 'Online', true),
+                    _gatewayStatusTile('Chiredzi South Node', 'Offline', false),
+                    const Divider(height: 24),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Active Sensors & Flow-meters', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 12),
+                    _sensorTile('Soil Probe A-12', 'Moisture: 38%', true, (val) {}),
+                    _sensorTile('Soil Probe A-13', 'Moisture: 42%', true, (val) {}),
+                    _sensorTile('Flow-meter F-01', 'Rate: 1.2 L/s', false, (val) {}),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _gatewayStatusTile(String name, String status, bool online) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+      subtitle: Text('Status: $status', style: TextStyle(color: online ? SettingsPage.green : SettingsPage.red, fontSize: 11)),
+      trailing: Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: online ? SettingsPage.green : SettingsPage.red,
+        ),
+      ),
+    );
+  }
+
+  Widget _sensorTile(String name, String val, bool isActive, ValueChanged<bool?> onToggle) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              Text(val, style: const TextStyle(color: SettingsPage.muted, fontSize: 11)),
+            ],
+          ),
+          Switch(
+            value: isActive,
+            onChanged: (v) {},
+            activeColor: SettingsPage.green,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLanguageLocationDialog(BuildContext context) {
+    String selectedLang = 'English';
+    String selectedRegion = 'Harare';
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Language & Location Settings'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Select Language', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: selectedLang,
+                    items: const [
+                      DropdownMenuItem(value: 'English', child: Text('English')),
+                      DropdownMenuItem(value: 'Shona', child: Text('Shona (Chishona)')),
+                      DropdownMenuItem(value: 'Ndebele', child: Text('Ndebele (IsiNdebele)')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => selectedLang = val);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Select Region', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: selectedRegion,
+                    items: const [
+                      DropdownMenuItem(value: 'Harare', child: Text('Harare')),
+                      DropdownMenuItem(value: 'Bulawayo', child: Text('Bulawayo')),
+                      DropdownMenuItem(value: 'Mutare', child: Text('Mutare')),
+                      DropdownMenuItem(value: 'Masvingo', child: Text('Masvingo')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => selectedRegion = val);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: SettingsPage.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showProfileEditor(BuildContext context, WidgetRef ref) {
+    final authState = ref.read(authStateProvider);
+    final user = authState.user;
+    if (user == null) return;
+
+    final nameController = TextEditingController(text: user.fullName);
+    final emailController = TextEditingController(text: user.email);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Edit Profile Preferences',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Full Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  hintText: 'Enter name',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Email Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  hintText: 'Enter email',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final name = nameController.text.trim();
+              final email = emailController.text.trim();
+              if (name.isEmpty || email.isEmpty) return;
+
+              Navigator.pop(context);
+              
+              await ref.read(authStateProvider.notifier).updateProfile(
+                fullName: name,
+                email: email,
+                role: user.role,
+              );
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profile updated successfully.')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA MODELS
+// ─────────────────────────────────────────────────────────────────────────────
+class _UserScope {
+  final String name;
+  final String role;
+  final String scope;
+  final String permission;
+  final int activeGrants;
+
+  const _UserScope({
+    required this.name,
+    required this.role,
+    required this.scope,
+    required this.permission,
+    required this.activeGrants,
+  });
+}
