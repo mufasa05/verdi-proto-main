@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../state/app_state.dart';
 import '../models/geospatial_models.dart';
 
 // --- MOCK INITIAL DATA ---
@@ -149,7 +150,7 @@ final _initialTasks = [
 // --- RIVERPOD STATE NOTIFIERS ---
 
 class GeoFieldsNotifier extends StateNotifier<List<GeoField>> {
-  GeoFieldsNotifier() : super(_initialFields);
+  GeoFieldsNotifier({bool isDemo = true}) : super(isDemo ? _initialFields : []);
 
   void addField(GeoField field) {
     state = [...state, field];
@@ -161,7 +162,7 @@ class GeoFieldsNotifier extends StateNotifier<List<GeoField>> {
 }
 
 class GeoZonesNotifier extends StateNotifier<List<GeoZone>> {
-  GeoZonesNotifier() : super(_initialZones);
+  GeoZonesNotifier({bool isDemo = true}) : super(isDemo ? _initialZones : []);
 
   void addZone(GeoZone zone) {
     state = [...state, zone];
@@ -173,7 +174,7 @@ class GeoZonesNotifier extends StateNotifier<List<GeoZone>> {
 }
 
 class GeoObservationsNotifier extends StateNotifier<List<GeoObservation>> {
-  GeoObservationsNotifier() : super(_initialObservations);
+  GeoObservationsNotifier({bool isDemo = true}) : super(isDemo ? _initialObservations : []);
 
   void addObservation(GeoObservation obs) {
     state = [...state, obs];
@@ -185,7 +186,7 @@ class GeoObservationsNotifier extends StateNotifier<List<GeoObservation>> {
 }
 
 class GeoTasksNotifier extends StateNotifier<List<GeoTask>> {
-  GeoTasksNotifier() : super(_initialTasks);
+  GeoTasksNotifier({bool isDemo = true}) : super(isDemo ? _initialTasks : []);
 
   void addTask(GeoTask task) {
     state = [...state, task];
@@ -222,7 +223,7 @@ class GeoLayerSettingsNotifier extends StateNotifier<GeoLayerSettings> {
 }
 
 class SelectedFieldIdNotifier extends StateNotifier<String?> {
-  SelectedFieldIdNotifier() : super('FLD-01'); // default to FLD-01
+  SelectedFieldIdNotifier({bool isDemo = true}) : super(isDemo ? 'FLD-01' : null);
 
   void select(String? id) => state = id;
 }
@@ -230,19 +231,19 @@ class SelectedFieldIdNotifier extends StateNotifier<String?> {
 // --- PROVIDER DEFINITIONS ---
 
 final geoFieldsProvider = StateNotifierProvider<GeoFieldsNotifier, List<GeoField>>((ref) {
-  return GeoFieldsNotifier();
+  return GeoFieldsNotifier(isDemo: ref.watch(isDemoModeProvider));
 });
 
 final geoZonesProvider = StateNotifierProvider<GeoZonesNotifier, List<GeoZone>>((ref) {
-  return GeoZonesNotifier();
+  return GeoZonesNotifier(isDemo: ref.watch(isDemoModeProvider));
 });
 
 final geoObservationsProvider = StateNotifierProvider<GeoObservationsNotifier, List<GeoObservation>>((ref) {
-  return GeoObservationsNotifier();
+  return GeoObservationsNotifier(isDemo: ref.watch(isDemoModeProvider));
 });
 
 final geoTasksProvider = StateNotifierProvider<GeoTasksNotifier, List<GeoTask>>((ref) {
-  return GeoTasksNotifier();
+  return GeoTasksNotifier(isDemo: ref.watch(isDemoModeProvider));
 });
 
 final geoLayerSettingsProvider = StateNotifierProvider<GeoLayerSettingsNotifier, GeoLayerSettings>((ref) {
@@ -250,7 +251,7 @@ final geoLayerSettingsProvider = StateNotifierProvider<GeoLayerSettingsNotifier,
 });
 
 final selectedFieldIdProvider = StateNotifierProvider<SelectedFieldIdNotifier, String?>((ref) {
-  return SelectedFieldIdNotifier();
+  return SelectedFieldIdNotifier(isDemo: ref.watch(isDemoModeProvider));
 });
 
 // --- IRRIGATION SCHEMES ---
@@ -327,7 +328,7 @@ final _initialSchemes = [
 ];
 
 class IrrigationSchemesNotifier extends StateNotifier<List<IrrigationScheme>> {
-  IrrigationSchemesNotifier() : super(_initialSchemes);
+  IrrigationSchemesNotifier({bool isDemo = true}) : super(isDemo ? _initialSchemes : []);
 
   void addScheme(IrrigationScheme scheme) {
     state = [...state, scheme];
@@ -336,5 +337,5 @@ class IrrigationSchemesNotifier extends StateNotifier<List<IrrigationScheme>> {
 
 final irrigationSchemesProvider =
     StateNotifierProvider<IrrigationSchemesNotifier, List<IrrigationScheme>>((ref) {
-  return IrrigationSchemesNotifier();
+  return IrrigationSchemesNotifier(isDemo: ref.watch(isDemoModeProvider));
 });

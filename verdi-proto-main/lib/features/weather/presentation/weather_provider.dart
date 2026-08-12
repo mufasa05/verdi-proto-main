@@ -14,13 +14,13 @@ class WeatherProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
-  Future<void> loadWeather() async {
+  Future<void> loadWeather({bool isDemo = true}) async {
     isLoading = true;
     error = null;
     notifyListeners();
 
     try {
-      weather = await repository.fetchWeather();
+      weather = await repository.fetchWeather(isDemo: isDemo);
     } catch (e) {
       error = e.toString();
       weather = null;

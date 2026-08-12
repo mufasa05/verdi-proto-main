@@ -349,15 +349,27 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   // Step 1: Logistics Selection
   bool _needTransport = false;
   int _selectedTransportIndex = 0;
-  int _selectedDestinationIndex = 0;
 
-  final List<Map<String, dynamic>> _destinations = const [
+  final TextEditingController _customDestinationController = TextEditingController(text: 'Harare Market');
+  double _customDistanceKm = 80.0;
+
+  final List<Map<String, dynamic>> _majorMarketSuggestions = const [
     {'name': 'Harare Market', 'distance': 80.0},
     {'name': 'Bulawayo Hub', 'distance': 430.0},
     {'name': 'Masvingo Depot', 'distance': 290.0},
     {'name': 'Mutare Center', 'distance': 260.0},
     {'name': 'Gweru Hub', 'distance': 280.0},
+    {'name': 'Chinhoyi Hub', 'distance': 115.0},
+    {'name': 'Kwekwe Depot', 'distance': 210.0},
+    {'name': 'Marondera Market', 'distance': 70.0},
+    {'name': 'Victoria Falls Depot', 'distance': 870.0},
   ];
+
+  @override
+  void dispose() {
+    _customDestinationController.dispose();
+    super.dispose();
+  }
 
   // Step 2: Payment Selection
   String _selectedPaymentMethod = 'Ecocash';
@@ -370,12 +382,197 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     'Pay Onsite - Cash'
   ];
 
+  String get _destinationName {
+    final text = _customDestinationController.text.trim();
+    return text.isNotEmpty ? text : 'Harare Market';
+  }
+
+  void _updateLocationSuggestion(String name, double distance) {
+    setState(() {
+      _customDestinationController.text = name;
+      _customDistanceKm = distance;
+    });
+  }
+
+  void _showMapPickerModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String tempSelected = _destinationName;
+        double tempDist = _customDistanceKm;
+
+        return StatefulBuilder(
+          builder: (context, setMapState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Container(
+                width: 600,
+                height: 520,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.map_outlined, color: Color(0xFF16A34A), size: 24),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Select Delivery Area from Map',
+                            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Tap any market node on the Interactive GIS Map below to select your exact delivery corridor.',
+                      style: GoogleFonts.inter(fontSize: 12.5, color: const Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 14),
+                    // Simulated Map Container
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white12),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            // Background Map Grid / Pattern
+                            Positioned.fill(
+                              child: Opacity(
+                                opacity: 0.15,
+                                child: CustomPaint(
+                                  painter: _MapGridPainter(),
+                                ),
+                              ),
+                            ),
+                            // Map Label Banner
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
+                                    const SizedBox(width: 6),
+                                    Text('ZIMBABWE GIS AGRI-MAP', style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // Interactive Map Pins
+                            ..._majorMarketSuggestions.asMap().entries.map((entry) {
+                              final idx = entry.key;
+                              final item = entry.value;
+                              final name = item['name'] as String;
+                              final dist = item['distance'] as double;
+                              final isSelected = tempSelected == name;
+
+                              // Calculate position on map grid
+                              final double topPos = 40.0 + (idx % 4) * 90.0 + (idx / 4) * 20.0;
+                              final double leftPos = 40.0 + (idx * 55) % 360;
+
+                              return Positioned(
+                                top: topPos,
+                                left: leftPos,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setMapState(() {
+                                      tempSelected = name;
+                                      tempDist = dist;
+                                    });
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? const Color(0xFF16A34A) : const Color(0xFF334155),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isSelected ? Colors.white : const Color(0xFF64748B),
+                                        width: isSelected ? 2 : 1,
+                                      ),
+                                      boxShadow: isSelected
+                                          ? [BoxShadow(color: const Color(0xFF16A34A).withValues(alpha: 0.6), blurRadius: 10, spreadRadius: 2)]
+                                          : null,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.location_on, size: 14, color: isSelected ? Colors.white : const Color(0xFF10B981)),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '$name (${dist.toInt()} km)',
+                                          style: GoogleFonts.inter(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Selected Area: $tempSelected (${tempDist.toInt()} km)',
+                            style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF16A34A)),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            _updateLocationSuggestion(tempSelected, tempDist);
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF16A34A),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('Confirm Map Area'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
     final trucks = ref.watch(trucksListProvider);
     final subtotal = cart.total;
-    final distance = _destinations[_selectedDestinationIndex]['distance'] as double;
+    final distance = _customDistanceKm;
     final rate = (trucks.isNotEmpty && _selectedTransportIndex < trucks.length) ? trucks[_selectedTransportIndex].costPerKm : 0.20;
     final transportCost = _needTransport ? (distance * rate) : 0.0;
     final total = subtotal + transportCost;
@@ -384,7 +581,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: Colors.white,
       child: Container(
-        width: 500,
+        width: 540,
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -561,31 +758,87 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
           ),
           if (_needTransport) ...[
             const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Delivery Area / Destination',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF64748B)),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _showMapPickerModal(context),
+                  icon: const Icon(Icons.map_outlined, size: 14),
+                  label: const Text('Select from Map', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF16A34A),
+                    side: const BorderSide(color: Color(0xFF16A34A)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Flexible Custom Area Text Field
+            TextField(
+              controller: _customDestinationController,
+              decoration: InputDecoration(
+                labelText: 'Write down custom city or area name',
+                hintText: 'e.g. Ruwa Growth Point, Epworth Market, Chiredzi Depot',
+                prefixIcon: const Icon(Icons.location_city_outlined, size: 20),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear, size: 18),
+                  onPressed: () {
+                    _customDestinationController.clear();
+                    setState(() {});
+                  },
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+              onChanged: (val) {
+                // Find matching market or calculate heuristic distance
+                final match = _majorMarketSuggestions.firstWhere(
+                  (m) => (m['name'] as String).toLowerCase().contains(val.toLowerCase()),
+                  orElse: () => {'name': val, 'distance': 150.0},
+                );
+                setState(() {
+                  _customDistanceKm = (match['distance'] as num).toDouble();
+                });
+              },
+            ),
+            const SizedBox(height: 8),
             Text(
-              'Select Destination',
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF64748B)),
+              'Quick market suggestions (click to set):',
+              style: GoogleFonts.inter(fontSize: 11.5, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
-            DropdownButtonFormField<int>(
-              value: _selectedDestinationIndex,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            // Market Suggestion Chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _majorMarketSuggestions.map((item) {
+                  final name = item['name'] as String;
+                  final dist = item['distance'] as double;
+                  final isSelected = _destinationName.toLowerCase() == name.toLowerCase();
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      label: Text(name, style: TextStyle(fontSize: 11.5, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                      selected: isSelected,
+                      selectedColor: const Color(0xFF16A34A).withValues(alpha: 0.15),
+                      labelStyle: TextStyle(color: isSelected ? const Color(0xFF16A34A) : const Color(0xFF0F172A)),
+                      onSelected: (selected) {
+                        if (selected) {
+                          _updateLocationSuggestion(name, dist);
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
               ),
-              items: List.generate(_destinations.length, (i) {
-                final dest = _destinations[i];
-                return DropdownMenuItem<int>(
-                  value: i,
-                  child: Text('${dest['name']} (${dest['distance'].toStringAsFixed(0)} km)'),
-                );
-              }),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() {
-                    _selectedDestinationIndex = val;
-                  });
-                }
-              },
             ),
             const SizedBox(height: 16),
             Text(
@@ -596,7 +849,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
             ...List.generate(trucks.length, (index) {
               final opt = trucks[index];
               final selected = _selectedTransportIndex == index;
-              final dist = _destinations[_selectedDestinationIndex]['distance'] as double;
+              final dist = _customDistanceKm;
               final cost = dist * opt.costPerKm;
 
               return Container(
@@ -615,7 +868,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                     child: Icon(Icons.local_shipping_outlined, color: selected ? const Color(0xFF16A34A) : Colors.grey),
                   ),
                   title: Text('${opt.driver} • ${opt.vehicle}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('ETA: ${opt.eta} • \$${opt.costPerKm.toStringAsFixed(2)}/km'),
+                  subtitle: Text('ETA: ${opt.eta} • \$${opt.costPerKm.toStringAsFixed(2)}/km (${dist.toInt()} km)'),
                   trailing: Text(
                     '\$${cost.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -1092,7 +1345,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
               buyer: buyerName,
               product: productsString,
               quantity: quantitiesString,
-              destination: _needTransport ? _destinations[_selectedDestinationIndex]['name'] as String : 'Chiredzi',
+              destination: _needTransport ? _destinationName : 'Chiredzi',
               status: _needTransport ? 'Confirmed' : 'Delivered',
               payment: 'Paid',
               total: 'US\$ ${total.toStringAsFixed(0)}',
@@ -1177,7 +1430,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                 product: productsString,
                 quantity: quantitiesString,
                 from: opt.from,
-                to: _destinations[_selectedDestinationIndex]['name'] as String,
+                to: _destinationName,
                 status: 'Pending',
                 driver: opt.driver,
                 vehicle: opt.vehicle,
@@ -1189,7 +1442,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                 exceptionType: 'None',
                 proofStatus: 'Pending review',
                 temperature: '18°C',
-                distanceRemaining: '38 km',
+                distanceRemaining: '${_customDistanceKm.toInt()} km',
                 timeline: const ['Order placed', 'Driver assigned', 'Awaiting pickup'],
               ),
             );
@@ -1201,4 +1454,23 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
       setState(() => _currentStep = 2);
     }
   }
+}
+
+class _MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white24
+      ..strokeWidth = 1.0;
+
+    for (double i = 0; i < size.width; i += 30) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+    for (double i = 0; i < size.height; i += 30) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

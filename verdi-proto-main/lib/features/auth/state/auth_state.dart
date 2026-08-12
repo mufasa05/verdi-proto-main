@@ -11,12 +11,14 @@ class AppUser {
   final String id;
   final String fullName;
   final String email;
+  final String phone;
   final UserRole role;
 
   const AppUser({
     required this.id,
     required this.fullName,
     required this.email,
+    this.phone = '',
     required this.role,
   });
 
@@ -25,6 +27,7 @@ class AppUser {
       'id': id,
       'fullName': fullName,
       'email': email,
+      'phone': phone,
       'role': role.name,
     };
   }
@@ -34,6 +37,7 @@ class AppUser {
       id: json['id']?.toString() ?? '',
       fullName: json['fullName']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
       role: UserRole.values.byName(json['role']?.toString() ?? 'farmer'),
     );
   }
@@ -76,6 +80,7 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   static const _sessionKey = 'verdi.auth.session';
+  static const _registeredUsersKey = 'verdi.auth.registered_users_db_v2';
 
   final Ref? _ref;
   final ProviderContainer? _container;
@@ -169,25 +174,62 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-
-
   Future<String?> getLastEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('verdi.auth.last_email');
   }
 
-  Future<bool> signIn({required String email, required String password}) async {
+  // ───────────────────────────────────────────────────────────────────────────
+  // LOCAL REGISTERED USERS PERSISTENCE HELPERS
+  // ───────────────────────────────────────────────────────────────────────────
+  Future<List<Map<String, dynamic>>> _getRegisteredUsers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_registeredUsersKey);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final List list = jsonDecode(raw);
+      return list.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _saveRegisteredUser(Map<String, dynamic> userRecord) async {
+    final prefs = await SharedPreferences.getInstance();
+    final users = await _getRegisteredUsers();
+    final newId = userRecord['identifier'].toString().toLowerCase().replaceAll(' ', '');
+    users.removeWhere((u) => u['identifier'].toString().toLowerCase().replaceAll(' ', '') == newId);
+    users.add(userRecord);
+    await prefs.setString(_registeredUsersKey, jsonEncode(users));
+  }
+
+  // Clear all saved logins & sessions
+  Future<void> clearAllSavedLogins() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_sessionKey);
+    await prefs.remove('verdi.auth.token');
+    await prefs.remove('verdi.auth.last_email');
+    state = AuthState.initial;
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // SIGN IN & SIGN UP (WITH STRICT REGISTRATION GUARD & NO UNREGISTERED LOGIN)
+  // ───────────────────────────────────────────────────────────────────────────
+  Future<bool> signIn({required String emailOrPhone, required String password}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
+
+    final cleanId = emailOrPhone.trim().toLowerCase().replaceAll(' ', '');
+    final cleanPass = password;
 
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email.trim(),
+          'email': emailOrPhone.trim(),
           'password': password,
         }),
-      ).timeout(const Duration(milliseconds: 3000));
+      ).timeout(const Duration(milliseconds: 2500));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -198,13 +240,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           id: userJson['id']?.toString() ?? '',
           fullName: userJson['fullName']?.toString() ?? '',
           email: userJson['email']?.toString() ?? '',
+          phone: userJson['phone']?.toString() ?? '',
           role: UserRole.values.byName(userJson['role']?.toString() ?? 'farmer'),
         );
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
         await prefs.setString('verdi.auth.token', token);
-        await prefs.setString('verdi.auth.last_email', email.trim());
+        await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
 
         _setRole(user.role);
         state = state.copyWith(
@@ -215,25 +258,59 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
         return true;
       } else {
-        String msg = 'Invalid email or password.';
+        String msg = 'Invalid credentials.';
         try {
           final errBody = jsonDecode(response.body);
           if (errBody['message'] != null) {
             msg = errBody['message'].toString();
           }
         } catch (_) {}
+        state = state.copyWith(isLoading: false, errorMessage: msg);
+        return false;
+      }
+    } catch (_) {
+      // Backend unavailable -> Authenticate against local registered users database
+      final users = await _getRegisteredUsers();
+      final match = users.firstWhere(
+        (u) => u['identifier'].toString().toLowerCase().replaceAll(' ', '') == cleanId,
+        orElse: () => {},
+      );
+
+      if (match.isEmpty) {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: msg,
+          errorMessage: 'No account found with this email or phone number. Please register for an account first.',
         );
         return false;
       }
-    } catch (e) {
-      // Auto-fallback to Offline Demo Mode if local backend is unreachable
-      enterOfflineDemoMode(
-        email: email.trim(),
-        fullName: email.contains('@') ? email.split('@').first : 'Operator',
-        role: UserRole.farmer,
+
+      if (match['password'].toString() != cleanPass) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Incorrect password. Please verify your password and try again.',
+        );
+        return false;
+      }
+
+      // Successful local login
+      final user = AppUser(
+        id: match['id']?.toString() ?? 'usr_${DateTime.now().millisecondsSinceEpoch}',
+        fullName: match['fullName']?.toString() ?? cleanId,
+        email: cleanId.contains('@') ? cleanId : '$cleanId@verdi.ag',
+        phone: cleanId.contains('@') ? '' : cleanId,
+        role: UserRole.values.byName(match['role']?.toString() ?? 'farmer'),
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
+      await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
+
+      _setRole(user.role);
+      state = state.copyWith(
+        user: user,
+        isAuthenticated: true,
+        isLoading: false,
+        errorMessage: null,
       );
       return true;
     }
@@ -241,11 +318,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<bool> signUp({
     required String fullName,
-    required String email,
+    required String emailOrPhone,
     required String password,
     required UserRole role,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
+
+    final cleanId = emailOrPhone.trim().toLowerCase().replaceAll(' ', '');
+
+    final newUserRecord = {
+      'id': 'usr_${DateTime.now().millisecondsSinceEpoch}',
+      'fullName': fullName.trim(),
+      'identifier': cleanId,
+      'password': password,
+      'role': role.name,
+    };
+
+    // Save locally to persistent SharedPreferences store
+    await _saveRegisteredUser(newUserRecord);
 
     try {
       final response = await http.post(
@@ -253,11 +343,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'fullName': fullName.trim(),
-          'email': email.trim(),
+          'email': emailOrPhone.trim(),
           'password': password,
           'role': role.name,
         }),
-      ).timeout(const Duration(milliseconds: 3000));
+      ).timeout(const Duration(milliseconds: 2500));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -268,13 +358,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           id: userJson['id']?.toString() ?? '',
           fullName: userJson['fullName']?.toString() ?? '',
           email: userJson['email']?.toString() ?? '',
+          phone: userJson['phone']?.toString() ?? '',
           role: UserRole.values.byName(userJson['role']?.toString() ?? 'farmer'),
         );
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
         await prefs.setString('verdi.auth.token', token);
-        await prefs.setString('verdi.auth.last_email', email.trim());
+        await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
 
         _setRole(user.role);
         state = state.copyWith(
@@ -284,29 +375,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
           errorMessage: null,
         );
         return true;
-      } else {
-        String msg = 'Registration failed.';
-        try {
-          final errBody = jsonDecode(response.body);
-          if (errBody['message'] != null) {
-            msg = errBody['message'].toString();
-          }
-        } catch (_) {}
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: msg,
-        );
-        return false;
       }
-    } catch (e) {
-      // Auto-fallback to Offline Demo Mode if local backend is unreachable
-      enterOfflineDemoMode(
-        email: email.trim(),
-        fullName: fullName.trim(),
-        role: role,
-      );
-      return true;
+    } catch (_) {
+      // Backend offline -> Complete sign up via local database
     }
+
+    final user = AppUser(
+      id: newUserRecord['id']!,
+      fullName: fullName.trim(),
+      email: cleanId.contains('@') ? cleanId : '$cleanId@verdi.ag',
+      phone: cleanId.contains('@') ? '' : cleanId,
+      role: role,
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
+    await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
+
+    _setRole(role);
+    state = state.copyWith(
+      user: user,
+      isAuthenticated: true,
+      isLoading: false,
+      errorMessage: null,
+    );
+    return true;
   }
 
   void authenticateUser(AppUser user) {
@@ -329,6 +422,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         id: state.user!.id,
         fullName: fullName.trim(),
         email: email.trim(),
+        phone: state.user!.phone,
         role: role,
       );
 

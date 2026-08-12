@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../state/app_state.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EXPORT PAGE — Intelligent Export & Global Trade Layer
@@ -7,7 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 //         Cold Chain Telemetry, Border Delay Intelligence, Compliance & HS Codes
 // ─────────────────────────────────────────────────────────────────────────────
 
-class ExportPage extends StatefulWidget {
+class ExportPage extends ConsumerStatefulWidget {
   const ExportPage({super.key});
 
   static const green = Color(0xFF16A34A);
@@ -21,11 +23,15 @@ class ExportPage extends StatefulWidget {
   static const background = Color(0xFFF1F5F9);
 
   @override
-  State<ExportPage> createState() => _ExportPageState();
+  ConsumerState<ExportPage> createState() => _ExportPageState();
 }
 
-class _ExportPageState extends State<ExportPage> with TickerProviderStateMixin {
+class _ExportPageState extends ConsumerState<ExportPage> with TickerProviderStateMixin {
   late TabController _tabController;
+
+  List<Map<String, dynamic>> get activeExporters => ref.watch(isDemoModeProvider) ? _exporters : [];
+  List<Map<String, dynamic>> get activeConsignments => ref.watch(isDemoModeProvider) ? _consignments : [];
+  List<Map<String, dynamic>> get activeBorderAlerts => ref.watch(isDemoModeProvider) ? _borderAlerts : [];
 
   // ── EXPORTERS REGISTRY ──────────────────────────────────────────────────────
   final List<Map<String, dynamic>> _exporters = [

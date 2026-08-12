@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'app_state.dart';
 
 class ChatMessage {
   final String text;
@@ -41,35 +42,39 @@ class ChatState {
 }
 
 class ChatNotifier extends StateNotifier<ChatState> {
-  ChatNotifier()
+  final bool isDemo;
+  static final List<ChatThread> _userThreads = [];
+  static final List<ChatThread> _mockThreads = [
+    ChatThread(
+      title: 'Farm Planning',
+      subtitle: 'Plan tomorrow’s planting schedule',
+      messages: [
+        ChatMessage(text: 'Good morning Sir Mufasa, how can I help today?', isUser: false),
+        ChatMessage(text: 'Create a planting plan for tomatoes and maize.', isUser: true),
+        ChatMessage(text: 'I can do that. How many hectares are you using?', isUser: false),
+      ],
+    ),
+    ChatThread(
+      title: 'Market Pricing',
+      subtitle: 'Compare today’s crop prices',
+      messages: [
+        ChatMessage(text: 'Track tomato, maize, and onion prices.', isUser: true),
+        ChatMessage(text: 'Tomatoes are trending up, maize is stable, onions are slightly lower.', isUser: false),
+      ],
+    ),
+    ChatThread(
+      title: 'Delivery Support',
+      subtitle: 'Check transport availability',
+      messages: [
+        ChatMessage(text: 'Which trucks are available near Chiredzi?', isUser: true),
+        ChatMessage(text: 'Two trucks are available within 10 km and one is ready now.', isUser: false),
+      ],
+    ),
+  ];
+
+  ChatNotifier({required this.isDemo})
       : super(ChatState(
-          threads: [
-            ChatThread(
-              title: 'Farm Planning',
-              subtitle: 'Plan tomorrow’s planting schedule',
-              messages: [
-                ChatMessage(text: 'Good morning Sir Mufasa, how can I help today?', isUser: false),
-                ChatMessage(text: 'Create a planting plan for tomatoes and maize.', isUser: true),
-                ChatMessage(text: 'I can do that. How many hectares are you using?', isUser: false),
-              ],
-            ),
-            ChatThread(
-              title: 'Market Pricing',
-              subtitle: 'Compare today’s crop prices',
-              messages: [
-                ChatMessage(text: 'Track tomato, maize, and onion prices.', isUser: true),
-                ChatMessage(text: 'Tomatoes are trending up, maize is stable, onions are slightly lower.', isUser: false),
-              ],
-            ),
-            ChatThread(
-              title: 'Delivery Support',
-              subtitle: 'Check transport availability',
-              messages: [
-                ChatMessage(text: 'Which trucks are available near Chiredzi?', isUser: true),
-                ChatMessage(text: 'Two trucks are available within 10 km and one is ready now.', isUser: false),
-              ],
-            ),
-          ],
+          threads: isDemo ? [..._userThreads, ..._mockThreads] : [..._userThreads],
           selectedIndex: 0,
         ));
 
@@ -78,6 +83,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   void sendMessage(String text) {
+    if (state.threads.isEmpty) return;
     final thread = state.threads[state.selectedIndex];
     final updatedMessages = [...thread.messages, ChatMessage(text: text, isUser: true)];
     final updatedThread = ChatThread(
@@ -94,6 +100,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   void receiveMessage(String text) {
+    if (state.threads.isEmpty) return;
     final thread = state.threads[state.selectedIndex];
     final updatedMessages = [...thread.messages, ChatMessage(text: text, isUser: false)];
     final updatedThread = ChatThread(
@@ -128,15 +135,19 @@ class ChatNotifier extends StateNotifier<ChatState> {
       participantB: participantB,
     );
 
+    _userThreads.add(newThread);
+    final allThreads = isDemo ? [..._userThreads, ..._mockThreads] : [..._userThreads];
+
     state = state.copyWith(
-      threads: [...state.threads, newThread],
-      selectedIndex: state.threads.length,
+      threads: allThreads,
+      selectedIndex: allThreads.length - 1,
     );
   }
 }
 
 final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
-  return ChatNotifier();
+  final isDemo = ref.watch(isDemoModeProvider);
+  return ChatNotifier(isDemo: isDemo);
 });
 
 class VerdiAiChatNotifier extends StateNotifier<ChatThread> {

@@ -20,7 +20,7 @@ void main() {
 
       final success = await notifier.signUp(
         fullName: 'Ava Green',
-        email: 'ava@example.com',
+        emailOrPhone: 'ava@example.com',
         password: 'secret123',
         role: UserRole.buyer,
       );
@@ -38,7 +38,7 @@ void main() {
       await notifier.initialize();
 
       final success = await notifier.signIn(
-        email: 'farmer@verdi.com',
+        emailOrPhone: 'farmer@verdi.com',
         password: 'password123',
       );
 

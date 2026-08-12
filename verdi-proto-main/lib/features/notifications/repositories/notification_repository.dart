@@ -16,14 +16,14 @@ class NotificationRepository {
   final List<OrderItem> orderItems;
   final List<PaymentItem> paymentItems;
 
-  Future<List<PlatformNotification>> loadNotifications() async {
+  Future<List<PlatformNotification>> loadNotifications({bool isDemo = true}) async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final notifications = <PlatformNotification>[];
 
-    if (weatherRepository != null) {
+    if (isDemo && weatherRepository != null) {
       try {
-        final weather = await weatherRepository.fetchWeather();
+        final weather = await weatherRepository.fetchWeather(isDemo: isDemo);
         if (weather.alerts.isNotEmpty) {
           notifications.add(_buildWeatherNotification(weather));
         }
@@ -32,7 +32,7 @@ class NotificationRepository {
       }
     }
 
-    if (cropHealthSnapshot != null) {
+    if (isDemo && cropHealthSnapshot != null) {
       final highStressFields = cropHealthSnapshot!.fields.where((field) => field.stressLevel >= 0.6).toList();
       if (highStressFields.isNotEmpty) {
         notifications.add(_buildCropHealthNotification(highStressFields.first));
@@ -51,7 +51,7 @@ class NotificationRepository {
       }
     }
 
-    if (notifications.isEmpty) {
+    if (isDemo && notifications.isEmpty) {
       notifications.addAll(_fallbackNotifications());
     }
 

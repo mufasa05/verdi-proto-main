@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:verdi/core/services/verdi_api_service.dart';
+import '../../../state/app_state.dart';
 import '../../admin/presentation/ai_backbone_control_page.dart';
 import '../../admin/presentation/infrastructure_modules_control_page.dart';
 import '../../admin/presentation/marketplace_trade_oversight_page.dart';
@@ -46,6 +47,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _activeSubPageTitle = widget.initialSubPageTitle;
     _activeSubPageWidget = widget.initialSubPageWidget;
     _fetchAuditLogs();
@@ -206,19 +210,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
               const SizedBox(height: 24),
 
               // --- Tab View Content ---
-              SizedBox(
-                height: 3800,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildAllPrivilegesTab(),
-                    _buildCriticalControlsTab(),
-                    _buildRoleComparisonTab(),
-                    _buildAuditTrailTab(),
-                    _buildGovernancePolicyTab(),
-                  ],
-                ),
-              ),
+              switch (_tabController.index) {
+                0 => _buildAllPrivilegesTab(),
+                1 => _buildCriticalControlsTab(),
+                2 => _buildRoleComparisonTab(),
+                3 => _buildAuditTrailTab(),
+                4 => _buildGovernancePolicyTab(),
+                _ => _buildAllPrivilegesTab(),
+              },
             ],
           ),
         ),
@@ -229,7 +228,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   // --- Header Sovereignty Banner Widget ---
   Widget _buildHeaderBanner() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardDark,
         borderRadius: BorderRadius.circular(16),
@@ -238,6 +237,74 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Top Return Navigation Action Bar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Return / Back Button to Home
+              ElevatedButton.icon(
+                onPressed: () {
+                  if (_activeSubPageTitle != null) {
+                    _closeSubPage();
+                  } else if (Navigator.of(context).canPop()) {
+                    Navigator.pop(context);
+                  } else {
+                    ref.read(appStateProvider.notifier).setNavIndex(0); // Return to Home
+                  }
+                },
+                icon: const Icon(Icons.arrow_back, size: 16),
+                label: Text(
+                  _activeSubPageTitle != null ? 'Return to Admin Hub' : 'Return to Home',
+                  style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E293B),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  side: const BorderSide(color: Color(0xFF334155)),
+                ),
+              ),
+              // Access Other Options Quick Jump Dropdown
+              PopupMenuButton<int>(
+                icon: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: accentGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: accentGreen.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.apps_outlined, size: 16, color: accentGreen),
+                      const SizedBox(width: 6),
+                      Text('Access Other Options', style: GoogleFonts.inter(color: accentGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, size: 16, color: accentGreen),
+                    ],
+                  ),
+                ),
+                color: cardDark,
+                onSelected: (idx) {
+                  ref.read(appStateProvider.notifier).setNavIndex(idx);
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(value: 0, child: Text('🏠 Home Operational Hub', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 1, child: Text('🛍️ Marketplace', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 2, child: Text('💬 My Chats', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 4, child: Text('📦 Orders Command Center', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 5, child: Text('🚚 Fleet & Transport Hub', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 6, child: Text('💳 Payments & Settlements', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 16, child: Text('💰 Finance Module', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 21, child: Text('⚙️ Settings & Configuration', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 14),
           Row(
             children: [
               Container(
@@ -382,9 +449,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildAllPrivilegesTab() {
-    return ListView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(top: 8),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(Icons.people_outline, 'User & Identity Management'),
         _buildResponsiveGrid([
@@ -570,9 +636,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildCriticalControlsTab() {
-    return ListView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(top: 8),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(Icons.warning_amber_rounded, 'High-Risk Sovereign Override Controls', isDanger: true),
         _buildResponsiveGrid([

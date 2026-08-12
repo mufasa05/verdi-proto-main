@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../data/analytics_export_service.dart';
 import '../../../state/app_state.dart';
+import '../../../state/platform_data_state.dart';
 
 class AnalyticsPage extends ConsumerStatefulWidget {
   const AnalyticsPage({super.key});
@@ -62,7 +63,42 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
   }
 
   AnalyticsMockDataset _getDataset() {
+    final isDemo = ref.watch(isDemoModeProvider);
     final scale = _getRegionScale();
+
+    if (!isDemo) {
+      final orders = ref.watch(ordersListProvider);
+      final totalRev = orders.where((o) => o.payment == 'Paid').fold<double>(0, (sum, o) {
+        final val = double.tryParse(o.total.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+        return sum + val;
+      });
+      final deliveryCount = orders.where((o) => o.status == 'Delivered' || o.status == 'In Transit').length;
+
+      return AnalyticsMockDataset(
+        revenue: '\$${totalRev.toStringAsFixed(0)}',
+        revenueChange: '+0.0%',
+        orders: '${orders.length}',
+        ordersChange: '+0.0%',
+        buyers: '${orders.map((o) => o.buyer).toSet().length}',
+        buyersChange: '+0.0%',
+        fulfillment: orders.isEmpty ? '100%' : '98.0%',
+        fulfillmentChange: '+0.0%',
+        deliveries: '$deliveryCount',
+        deliveriesChange: '+0.0%',
+        listings: '0',
+        listingsChange: '+0.0%',
+        revenueTrend: [
+          ChartData('Wk 1', 0, 0),
+          ChartData('Wk 2', 0, 0),
+          ChartData('Wk 3', 0, 0),
+          ChartData('Wk 4', totalRev, totalRev),
+        ],
+        fulfillmentTrend: [],
+        cropVolumes: [],
+        categories: [],
+        topProducts: [],
+      );
+    }
 
     if (_selectedTimeframe == '30 Days') {
       return AnalyticsMockDataset(
@@ -367,7 +403,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
             Text(
               switch (effectiveRole) {
                 UserRole.farmer => 'Farmer Crop Yield & Field Performance Analytics',
-                UserRole.driver || UserRole.transporter => 'Fleet Freight & Transport Operations Analytics',
+                UserRole.transporter => 'Fleet Freight & Transport Operations Analytics',
                 UserRole.buyer => 'Procurement & Supply Chain Sourcing Analytics',
                 UserRole.expert => 'Agronomy Diagnostic & Advisory Analytics',
                 UserRole.financier => 'Agri-Credit Portfolio & Escrow Analytics',
@@ -799,6 +835,8 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
   }
 
   Widget _buildTailoredKpiGrid(AnalyticsMockDataset dataset, UserRole role) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final cols = constraints.maxWidth > 900 ? 4 : (constraints.maxWidth > 480 ? 2 : 1);
@@ -806,14 +844,30 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
         final double width = (constraints.maxWidth - (spacing * (cols - 1))) / cols;
 
         final cards = switch (role) {
-          UserRole.admin => [_kpiCard('Platform GMV', '\$1,420,800', '+18.4%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Trade Orders', '1,842', '+12.1%', Icons.shopping_bag_outlined, AnalyticsPage.blue, width), _kpiCard('Fleet Dispatches', '42,600 km', '+9.5%', Icons.local_shipping_outlined, AnalyticsPage.orange, width), _kpiCard('EUDR Compliance', '98.4%', '+2.1%', Icons.verified_outlined, AnalyticsPage.purple, width)],
-          UserRole.farmer => [_kpiCard('Harvest Yield', '3.8 Tons/ha', '+14.2%', Icons.agriculture_outlined, AnalyticsPage.green, width), _kpiCard('Field Health NDVI', '0.78 (Good)', '+5.1%', Icons.eco_outlined, AnalyticsPage.blue, width), _kpiCard('Farmgate Margin', '\$12,480', '+11.8%', Icons.payments_outlined, AnalyticsPage.orange, width), _kpiCard('Storage Reserve', '45.0 Tons', 'Stable', Icons.inventory_2_outlined, AnalyticsPage.purple, width)],
-          UserRole.buyer || UserRole.consumer => [_kpiCard('Sourcing Volume', '142 Tons', '+16.5%', Icons.shopping_cart_outlined, AnalyticsPage.green, width), _kpiCard('Order Fulfillment', '95.4%', '+1.8%', Icons.task_alt_outlined, AnalyticsPage.blue, width), _kpiCard('Avg Produce Rate', '\$1.45/kg', '-3.2%', Icons.price_change_outlined, AnalyticsPage.orange, width), _kpiCard('Supplier Quality', '4.8 / 5.0', '+0.2', Icons.star_outline_rounded, AnalyticsPage.purple, width)],
-          UserRole.driver || UserRole.transporter => [_kpiCard('Distance Driven', '4,280 km', '+12.3%', Icons.route_outlined, AnalyticsPage.green, width), _kpiCard('Completed Trips', '48 Trips', '+8.0%', Icons.local_shipping_outlined, AnalyticsPage.blue, width), _kpiCard('Fuel Efficiency', '28.5 L/100km', '-4.1%', Icons.local_gas_station_outlined, AnalyticsPage.orange, width), _kpiCard('Haulage Earnings', '\$3,420', '+15.2%', Icons.account_balance_wallet_outlined, AnalyticsPage.purple, width)],
-          UserRole.financier => [_kpiCard('Deployed Capital', '\$385,000', '+14.2%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Repayment Rate', '96.8%', '+1.4%', Icons.fact_check_outlined, AnalyticsPage.blue, width), _kpiCard('Portfolio Risk', 'Low (3.2%)', '-0.8%', Icons.shield_outlined, AnalyticsPage.orange, width), _kpiCard('Net Interest Yield', '11.4% p.a.', '+0.9%', Icons.trending_up, AnalyticsPage.purple, width)],
-          UserRole.valueAdder => [_kpiCard('Processing Vol', '840 Tons', '+21.0%', Icons.factory_outlined, AnalyticsPage.green, width), _kpiCard('Input Cost / Ton', '\$185/ton', '-2.4%', Icons.point_of_sale_outlined, AnalyticsPage.blue, width), _kpiCard('Value Margin', '42.5%', '+3.8%', Icons.bar_chart_outlined, AnalyticsPage.orange, width), _kpiCard('Plant Uptime', '97.2%', '+0.8%', Icons.precision_manufacturing_outlined, AnalyticsPage.purple, width)],
-          UserRole.expert => [_kpiCard('Advisory Sessions', '142 Cases', '+18.0%', Icons.psychology_outlined, AnalyticsPage.green, width), _kpiCard('Diagnosis Accuracy', '98.2%', '+1.1%', Icons.health_and_safety_outlined, AnalyticsPage.blue, width), _kpiCard('Farmer Reach', '1,240 Farmers', '+24.5%', Icons.groups_outlined, AnalyticsPage.orange, width), _kpiCard('Field Anomalies', '12 Active', '-4.0%', Icons.crisis_alert_outlined, AnalyticsPage.purple, width)],
-          UserRole.government => [_kpiCard('Regional Trade Vol', '1.42M Tons', '+18.4%', Icons.gavel_outlined, AnalyticsPage.green, width), _kpiCard('EUDR Compliance', '98.4%', '+2.1%', Icons.verified_user_outlined, AnalyticsPage.blue, width), _kpiCard('Subsidy Allocated', '\$1.2M', '+5.8%', Icons.account_balance_outlined, AnalyticsPage.orange, width), _kpiCard('Food Security', 'High Reserve', 'Stable', Icons.shield_outlined, AnalyticsPage.purple, width)],
+          UserRole.admin => isDemo
+              ? [_kpiCard('Platform GMV', '\$1,420,800', '+18.4%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Trade Orders', '1,842', '+12.1%', Icons.shopping_bag_outlined, AnalyticsPage.blue, width), _kpiCard('Fleet Dispatches', '42,600 km', '+9.5%', Icons.local_shipping_outlined, AnalyticsPage.orange, width), _kpiCard('EUDR Compliance', '98.4%', '+2.1%', Icons.verified_outlined, AnalyticsPage.purple, width)]
+              : [_kpiCard('Platform GMV', dataset.revenue, '+0.0%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Trade Orders', dataset.orders, '+0.0%', Icons.shopping_bag_outlined, AnalyticsPage.blue, width), _kpiCard('Fleet Dispatches', '${dataset.deliveries} km', '+0.0%', Icons.local_shipping_outlined, AnalyticsPage.orange, width), _kpiCard('EUDR Compliance', '100.0%', '+0.0%', Icons.verified_outlined, AnalyticsPage.purple, width)],
+          UserRole.farmer => isDemo
+              ? [_kpiCard('Harvest Yield', '3.8 Tons/ha', '+14.2%', Icons.agriculture_outlined, AnalyticsPage.green, width), _kpiCard('Field Health NDVI', '0.78 (Good)', '+5.1%', Icons.eco_outlined, AnalyticsPage.blue, width), _kpiCard('Farmgate Margin', '\$12,480', '+11.8%', Icons.payments_outlined, AnalyticsPage.orange, width), _kpiCard('Storage Reserve', '45.0 Tons', 'Stable', Icons.inventory_2_outlined, AnalyticsPage.purple, width)]
+              : [_kpiCard('Harvest Yield', '0.0 Tons/ha', '+0.0%', Icons.agriculture_outlined, AnalyticsPage.green, width), _kpiCard('Field Health NDVI', '0.00 (Baseline)', '+0.0%', Icons.eco_outlined, AnalyticsPage.blue, width), _kpiCard('Farmgate Margin', '\$0', '+0.0%', Icons.payments_outlined, AnalyticsPage.orange, width), _kpiCard('Storage Reserve', '0.0 Tons', 'Baseline', Icons.inventory_2_outlined, AnalyticsPage.purple, width)],
+          UserRole.buyer || UserRole.consumer => isDemo
+              ? [_kpiCard('Sourcing Volume', '142 Tons', '+16.5%', Icons.shopping_cart_outlined, AnalyticsPage.green, width), _kpiCard('Order Fulfillment', '95.4%', '+1.8%', Icons.task_alt_outlined, AnalyticsPage.blue, width), _kpiCard('Avg Produce Rate', '\$1.45/kg', '-3.2%', Icons.price_change_outlined, AnalyticsPage.orange, width), _kpiCard('Supplier Quality', '4.8 / 5.0', '+0.2', Icons.star_outline_rounded, AnalyticsPage.purple, width)]
+              : [_kpiCard('Sourcing Volume', '0 Tons', '+0.0%', Icons.shopping_cart_outlined, AnalyticsPage.green, width), _kpiCard('Order Fulfillment', dataset.fulfillment, '+0.0%', Icons.task_alt_outlined, AnalyticsPage.blue, width), _kpiCard('Avg Produce Rate', '\$0.00/kg', '+0.0%', Icons.price_change_outlined, AnalyticsPage.orange, width), _kpiCard('Supplier Quality', '0.0 / 5.0', '+0.0', Icons.star_outline_rounded, AnalyticsPage.purple, width)],
+          UserRole.transporter => isDemo
+              ? [_kpiCard('Distance Driven', '4,280 km', '+12.3%', Icons.route_outlined, AnalyticsPage.green, width), _kpiCard('Completed Trips', '48 Trips', '+8.0%', Icons.local_shipping_outlined, AnalyticsPage.blue, width), _kpiCard('Fuel Efficiency', '28.5 L/100km', '-4.1%', Icons.local_gas_station_outlined, AnalyticsPage.orange, width), _kpiCard('Haulage Earnings', '\$3,420', '+15.2%', Icons.account_balance_wallet_outlined, AnalyticsPage.purple, width)]
+              : [_kpiCard('Distance Driven', '0 km', '+0.0%', Icons.route_outlined, AnalyticsPage.green, width), _kpiCard('Completed Trips', '0 Trips', '+0.0%', Icons.local_shipping_outlined, AnalyticsPage.blue, width), _kpiCard('Fuel Efficiency', '0.0 L/100km', '+0.0%', Icons.local_gas_station_outlined, AnalyticsPage.orange, width), _kpiCard('Haulage Earnings', '\$0', '+0.0%', Icons.account_balance_wallet_outlined, AnalyticsPage.purple, width)],
+          UserRole.financier => isDemo
+              ? [_kpiCard('Deployed Capital', '\$385,000', '+14.2%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Repayment Rate', '96.8%', '+1.4%', Icons.fact_check_outlined, AnalyticsPage.blue, width), _kpiCard('Portfolio Risk', 'Low (3.2%)', '-0.8%', Icons.shield_outlined, AnalyticsPage.orange, width), _kpiCard('Net Interest Yield', '11.4% p.a.', '+0.9%', Icons.trending_up, AnalyticsPage.purple, width)]
+              : [_kpiCard('Deployed Capital', '\$0', '+0.0%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Repayment Rate', '100.0%', '+0.0%', Icons.fact_check_outlined, AnalyticsPage.blue, width), _kpiCard('Portfolio Risk', 'None (0.0%)', '+0.0%', Icons.shield_outlined, AnalyticsPage.orange, width), _kpiCard('Net Interest Yield', '0.0% p.a.', '+0.0%', Icons.trending_up, AnalyticsPage.purple, width)],
+          UserRole.valueAdder => isDemo
+              ? [_kpiCard('Processing Vol', '840 Tons', '+21.0%', Icons.factory_outlined, AnalyticsPage.green, width), _kpiCard('Input Cost / Ton', '\$185/ton', '-2.4%', Icons.point_of_sale_outlined, AnalyticsPage.blue, width), _kpiCard('Value Margin', '42.5%', '+3.8%', Icons.bar_chart_outlined, AnalyticsPage.orange, width), _kpiCard('Plant Uptime', '97.2%', '+0.8%', Icons.precision_manufacturing_outlined, AnalyticsPage.purple, width)]
+              : [_kpiCard('Processing Vol', '0 Tons', '+0.0%', Icons.factory_outlined, AnalyticsPage.green, width), _kpiCard('Input Cost / Ton', '\$0/ton', '+0.0%', Icons.point_of_sale_outlined, AnalyticsPage.blue, width), _kpiCard('Value Margin', '0.0%', '+0.0%', Icons.bar_chart_outlined, AnalyticsPage.orange, width), _kpiCard('Plant Uptime', '100.0%', '+0.0%', Icons.precision_manufacturing_outlined, AnalyticsPage.purple, width)],
+          UserRole.expert => isDemo
+              ? [_kpiCard('Advisory Sessions', '142 Cases', '+18.0%', Icons.psychology_outlined, AnalyticsPage.green, width), _kpiCard('Diagnosis Accuracy', '98.2%', '+1.1%', Icons.health_and_safety_outlined, AnalyticsPage.blue, width), _kpiCard('Farmer Reach', '1,240 Farmers', '+24.5%', Icons.groups_outlined, AnalyticsPage.orange, width), _kpiCard('Field Anomalies', '12 Active', '-4.0%', Icons.crisis_alert_outlined, AnalyticsPage.purple, width)]
+              : [_kpiCard('Advisory Sessions', '0 Cases', '+0.0%', Icons.psychology_outlined, AnalyticsPage.green, width), _kpiCard('Diagnosis Accuracy', '100.0%', '+0.0%', Icons.health_and_safety_outlined, AnalyticsPage.blue, width), _kpiCard('Farmer Reach', '0 Farmers', '+0.0%', Icons.groups_outlined, AnalyticsPage.orange, width), _kpiCard('Field Anomalies', '0 Active', '+0.0%', Icons.crisis_alert_outlined, AnalyticsPage.purple, width)],
+          UserRole.government => isDemo
+              ? [_kpiCard('Regional Trade Vol', '1.42M Tons', '+18.4%', Icons.gavel_outlined, AnalyticsPage.green, width), _kpiCard('EUDR Compliance', '98.4%', '+2.1%', Icons.verified_user_outlined, AnalyticsPage.blue, width), _kpiCard('Subsidy Allocated', '\$1.2M', '+5.8%', Icons.account_balance_outlined, AnalyticsPage.orange, width), _kpiCard('Food Security', 'High Reserve', 'Stable', Icons.shield_outlined, AnalyticsPage.purple, width)]
+              : [_kpiCard('Regional Trade Vol', '0 Tons', '+0.0%', Icons.gavel_outlined, AnalyticsPage.green, width), _kpiCard('EUDR Compliance', '100.0%', '+0.0%', Icons.verified_user_outlined, AnalyticsPage.blue, width), _kpiCard('Subsidy Allocated', '\$0', '+0.0%', Icons.account_balance_outlined, AnalyticsPage.orange, width), _kpiCard('Food Security', 'Baseline', 'Stable', Icons.shield_outlined, AnalyticsPage.purple, width)],
         };
 
         return Wrap(spacing: spacing, runSpacing: spacing, children: cards);
@@ -961,7 +1015,7 @@ class _SuperAdminPerspectiveSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final roles = [UserRole.admin, UserRole.farmer, UserRole.buyer, UserRole.driver, UserRole.financier, UserRole.valueAdder, UserRole.expert];
+    final roles = [UserRole.admin, UserRole.farmer, UserRole.buyer, UserRole.transporter, UserRole.financier, UserRole.valueAdder, UserRole.expert];
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: AnalyticsPage.green.withValues(alpha: 0.3)), boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 3))]),
@@ -1036,7 +1090,7 @@ class _AiAdvisoryCard extends StatelessWidget {
       UserRole.admin => (title: 'Macro Value Chain Expansion & Export Bottleneck Warning', text: 'Regional trade volume is up 18.4% with strong Beira corridor exports. Recommended action: Accelerate EUDR polygon verification for smallholder suppliers to prevent customs delays.'),
       UserRole.farmer => (title: 'Irrigation & Frost Advisory for Tomato & Potato Blocks', text: 'Moisture dip registered in Sector 4. Recommended action: Schedule early morning fertigation and verify frost protection covers before night temperature drop.'),
       UserRole.buyer || UserRole.consumer => (title: 'Grade A White Maize Procurement Opportunity', text: 'Masvingo grain silos reporting 3,200 MT fresh harvest arrival. Recommended action: Place forward orders to lock in lower farmgate floor pricing.'),
-      UserRole.driver || UserRole.transporter => (title: 'Beira Customs Corridor Freight Clearance Peak', text: 'Port scanner queues down to 20 minutes. Recommended action: Accept refrigerated container dispatches for immediate transport.'),
+      UserRole.transporter => (title: 'Beira Customs Corridor Freight Clearance Peak', text: 'Port scanner queues down to 20 minutes. Recommended action: Accept refrigerated container dispatches for immediate transport.'),
       UserRole.financier => (title: 'Low Portfolio Default Risk across Smallholder Credit Lines', text: 'Repayment compliance reaches 96.8%. Recommended action: Expand working capital loans for certified macadamia and blueberry growers.'),
       UserRole.valueAdder => (title: 'Oilseed Processing Throughput Optimization', text: 'Soybean crushing margin increased to 42.5%. Recommended action: Maximize shift capacity during low electricity tariff hours.'),
       UserRole.expert => (title: 'Targeted Pest Control Advisory for Fall Armyworm', text: 'Multispectral drone imagery flagged early leaf damage in Zone 2. Recommended action: Send targeted bio-pesticide spray alerts to field managers.'),

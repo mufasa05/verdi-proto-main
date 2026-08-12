@@ -141,14 +141,16 @@ class _SpatialBanner extends StatelessWidget {
   }
 }
 
-class _TopSummaryRow extends StatelessWidget {
+class _TopSummaryRow extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     final stats = [
-      ('Healthy Zones', '12 Zones', Icons.check_circle_outline, CropHealthPage.green),
-      ('Stressed Zones', '3 flagged', Icons.warning_amber_outlined, CropHealthPage.orange),
-      ('Critical Alerts', '1 Active', Icons.error_outline, CropHealthPage.red),
-      ('Average Score', '0.78 NDVI', Icons.grass_outlined, CropHealthPage.green),
+      ('Healthy Zones', isDemo ? '12 Zones' : '0 Zones', Icons.check_circle_outline, CropHealthPage.green),
+      ('Stressed Zones', isDemo ? '3 flagged' : '0 flagged', Icons.warning_amber_outlined, CropHealthPage.orange),
+      ('Critical Alerts', isDemo ? '1 Active' : '0 Active', Icons.error_outline, CropHealthPage.red),
+      ('Average Score', isDemo ? '0.78 NDVI' : '0.00 NDVI', Icons.grass_outlined, CropHealthPage.green),
     ];
 
     return LayoutBuilder(
@@ -197,9 +199,11 @@ class _TopSummaryRow extends StatelessWidget {
   }
 }
 
-class _AiInsightGrid extends StatelessWidget {
+class _AiInsightGrid extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     final cards = const [
       _AiCard(
         title: 'Moisture Stress Forecast',
@@ -223,6 +227,24 @@ class _AiInsightGrid extends StatelessWidget {
         color: CropHealthPage.green,
       ),
     ];
+
+    if (!isDemo) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Center(
+          child: Text(
+            'No crop health disease anomalies or risks detected across registered fields.',
+            style: GoogleFonts.inter(fontSize: 13, color: CropHealthPage.muted, fontWeight: FontWeight.w600),
+          ),
+        ),
+      );
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -815,11 +837,32 @@ class _ZoneHealthList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final zones = const [
-      _ZoneItem(name: 'Zone 1 – Maize Block', stage: 'Vegetative stage', moisture: '64% Normal', score: 0.72, date: '1h ago', status: 'Stable'),
-      _ZoneItem(name: 'Zone 2 – Tomato Plot', stage: 'Flowering stage', moisture: '44% Critical', score: 0.44, date: '2h ago', status: 'Stressed'),
-      _ZoneItem(name: 'Zone 3 – Potato Field', stage: 'Tuber initiation', moisture: '58% Low', score: 0.58, date: '4h ago', status: 'Watch'),
-    ];
+    final isDemo = ref.watch(isDemoModeProvider);
+    final zones = isDemo
+        ? const [
+            _ZoneItem(name: 'Zone 1 – Maize Block', stage: 'Vegetative stage', moisture: '64% Normal', score: 0.72, date: '1h ago', status: 'Stable'),
+            _ZoneItem(name: 'Zone 2 – Tomato Plot', stage: 'Flowering stage', moisture: '44% Critical', score: 0.44, date: '2h ago', status: 'Stressed'),
+            _ZoneItem(name: 'Zone 3 – Potato Field', stage: 'Tuber initiation', moisture: '58% Low', score: 0.58, date: '4h ago', status: 'Watch'),
+          ]
+        : <_ZoneItem>[];
+
+    if (zones.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Center(
+          child: Text(
+            'No Zone Crop Health Records Found. Registered zone data will appear here automatically.',
+            style: GoogleFonts.inter(fontSize: 13, color: CropHealthPage.muted, fontWeight: FontWeight.w600),
+          ),
+        ),
+      );
+    }
 
     return Column(
       children: zones.map((z) {

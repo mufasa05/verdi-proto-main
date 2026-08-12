@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// All 10 stakeholder types in the VERDI agricultural value chain.
-/// The original 4 (farmer, buyer, driver, admin) are preserved for
-/// backward-compatibility with the existing auth and routing logic.
+/// All stakeholder types in the VERDI agricultural value chain.
 enum UserRole {
-  // ── Core original roles ─────────────────────────────────────────
+  // ── Core roles ───────────────────────────────────────────────────
   farmer,       // 1. Smallholder / Commercial / Cooperative farmers
   buyer,        // 2. Retailers, wholesalers, supermarkets, exporters
-  driver,       // 3. Transport providers (trucks, motorbikes)
+  transporter,  // 3. Transport companies & fleet operators
   admin,        // 10. Platform admins & developers
 
   // ── Extended stakeholder roles ──────────────────────────────────
-  transporter,  // 3b. Transport companies (fleet managers)
   valueAdder,   // 4. Food processors, packagers, cold storage
   expert,       // 5. Agronomists, vets, soil scientists
   financier,    // 6. Banks, MFIs, agri-loan & insurance providers
@@ -24,7 +21,6 @@ enum UserRole {
   String get label => switch (this) {
         UserRole.farmer => 'Farmer',
         UserRole.buyer => 'Buyer',
-        UserRole.driver => 'Driver',
         UserRole.admin => 'Admin',
         UserRole.transporter => 'Transporter',
         UserRole.valueAdder => 'Value Adder',
@@ -38,7 +34,7 @@ enum UserRole {
   String get categoryTag => switch (this) {
         UserRole.farmer => 'Supply-side',
         UserRole.buyer => 'Demand-side',
-        UserRole.driver || UserRole.transporter => 'Logistics',
+        UserRole.transporter => 'Logistics',
         UserRole.admin => 'Platform Admin',
         UserRole.valueAdder => 'Value Chain',
         UserRole.expert => 'Advisory',
@@ -51,7 +47,7 @@ enum UserRole {
   IconData get icon => switch (this) {
         UserRole.farmer => Icons.agriculture_outlined,
         UserRole.buyer => Icons.shopping_cart_outlined,
-        UserRole.driver || UserRole.transporter => Icons.local_shipping_outlined,
+        UserRole.transporter => Icons.local_shipping_outlined,
         UserRole.admin => Icons.admin_panel_settings_outlined,
         UserRole.valueAdder => Icons.factory_outlined,
         UserRole.expert => Icons.science_outlined,
@@ -66,10 +62,8 @@ enum UserRole {
           'Sell produce, access markets, view prices, request transport.',
         UserRole.buyer =>
           'Browse produce, place orders, schedule deliveries.',
-        UserRole.driver =>
-          'Get delivery requests, track routes, manage logistics.',
         UserRole.transporter =>
-          'Manage fleet, assign drivers, track shipments.',
+          'Manage fleet, register vehicles, assign drivers & track shipments.',
         UserRole.admin =>
           'Maintain system, manage users, monitor platform health.',
         UserRole.valueAdder =>
@@ -90,7 +84,6 @@ enum UserRole {
 
   /// Whether this role sees logistics/delivery features.
   bool get hasLogisticsAccess =>
-      this == UserRole.driver ||
       this == UserRole.transporter ||
       this == UserRole.admin ||
       this == UserRole.government;

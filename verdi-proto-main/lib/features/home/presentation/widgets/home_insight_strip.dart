@@ -5,54 +5,23 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../state/app_state.dart';
 import '../../../../core/enums/verdi_screen.dart';
 
-class HomeInsightStrip extends StatelessWidget {
-  const HomeInsightStrip({super.key});
+class HomeInsightStrip extends ConsumerWidget {
+  final UserRole role;
+  const HomeInsightStrip({super.key, required this.role});
 
   static const green = Color(0xFF16A34A);
   static const orange = Color(0xFFF97316);
   static const blue = Color(0xFF2563EB);
   static const purple = Color(0xFF7C3AED);
+  static const teal = Color(0xFF0F766E);
 
   @override
-  Widget build(BuildContext context) {
-    final items = [
-      _InsightCardData(
-        title: '3 buyers in Chiredzi need tomatoes',
-        subtitle: 'Demand is high near your farm this morning.',
-        action: 'View buyers',
-        imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
-        color: green,
-        confidence: 0.94,
-        targetScreen: VerdiScreen.marketplace,
-      ),
-      _InsightCardData(
-        title: 'Tomato price trend is up 12%',
-        subtitle: 'You may want to list more inventory today.',
-        action: 'See trend',
-        imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
-        color: orange,
-        confidence: 0.85,
-        targetScreen: VerdiScreen.analytics,
-      ),
-      _InsightCardData(
-        title: 'Rain expected tomorrow',
-        subtitle: 'Delivery timing may need adjustment.',
-        action: 'View forecast',
-        imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
-        color: blue,
-        confidence: 0.78,
-        targetScreen: VerdiScreen.logistics,
-      ),
-      _InsightCardData(
-        title: 'Crop stress detected in East field',
-        subtitle: 'Monitor moisture and leaf health soon.',
-        action: 'Check field',
-        imageUrl: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80',
-        color: purple,
-        confidence: 0.91,
-        targetScreen: VerdiScreen.irrigation,
-      ),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = switch (role) {
+      UserRole.transporter => _transporterInsights(),
+      UserRole.valueAdder => _valueAdderInsights(),
+      _ => _defaultInsights(),
+    };
 
     return SizedBox(
       height: 200,
@@ -64,6 +33,123 @@ class HomeInsightStrip extends StatelessWidget {
       ),
     );
   }
+
+  static List<_InsightCardData> _valueAdderInsights() => [
+        _InsightCardData(
+          title: '15.0T Raw Crop Delivery Scheduled',
+          subtitle: 'Contracted intake batch arriving at processing line by 14:00.',
+          action: 'Log Intake',
+          imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 0.94,
+          targetScreen: VerdiScreen.processing,
+        ),
+        _InsightCardData(
+          title: 'High Moisture & Quality Grade',
+          subtitle: 'Optimal raw intake parameters — predicted processing yield +12%.',
+          action: 'View Yield',
+          imageUrl: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=1200&q=80',
+          color: teal,
+          confidence: 0.88,
+          targetScreen: VerdiScreen.processing,
+        ),
+        _InsightCardData(
+          title: 'Milling & Processing Line Maintenance',
+          subtitle: 'Line #1 maintenance check recommended before heavy shift run.',
+          action: 'Check Telemetry',
+          imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80',
+          color: orange,
+          confidence: 0.81,
+          targetScreen: VerdiScreen.processing,
+        ),
+        _InsightCardData(
+          title: 'Processed Crop Export Prices Up +15%',
+          subtitle: 'Bulk value-added commodity export rates rising in SADC region.',
+          action: 'See Rates',
+          imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
+          color: purple,
+          confidence: 0.92,
+          targetScreen: VerdiScreen.trade,
+        ),
+      ];
+
+  static List<_InsightCardData> _transporterInsights() => [
+        _InsightCardData(
+          title: '2 cargo loads available near Chiredzi',
+          subtitle: 'Freight pickup opportunity. Act before 14:00 today.',
+          action: 'View loads',
+          imageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 0.89,
+          targetScreen: VerdiScreen.logistics,
+        ),
+        _InsightCardData(
+          title: 'Fuel cost up 8% this week',
+          subtitle: 'Review route efficiency to protect your margins.',
+          action: 'View analytics',
+          imageUrl: 'https://images.unsplash.com/photo-1508444845599-5c89863b1c44?auto=format&fit=crop&w=1200&q=80',
+          color: orange,
+          confidence: 0.82,
+          targetScreen: VerdiScreen.analytics,
+        ),
+        _InsightCardData(
+          title: 'Road alert: Beitbridge corridor',
+          subtitle: 'Heavy rain may delay southern deliveries by 2–4 hrs.',
+          action: 'View forecast',
+          imageUrl: 'https://images.unsplash.com/photo-1503435824048-a799a3a84bf4?auto=format&fit=crop&w=1200&q=80',
+          color: blue,
+          confidence: 0.76,
+          targetScreen: VerdiScreen.logistics,
+        ),
+        _InsightCardData(
+          title: 'Tomato freight rate up 14%',
+          subtitle: 'High buyer demand from Harare. Lock in runs now.',
+          action: 'See trade',
+          imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
+          color: purple,
+          confidence: 0.91,
+          targetScreen: VerdiScreen.marketplace,
+        ),
+      ];
+
+  static List<_InsightCardData> _defaultInsights() => [
+        _InsightCardData(
+          title: '3 buyers in Chiredzi need tomatoes',
+          subtitle: 'Demand is high near your farm this morning.',
+          action: 'View buyers',
+          imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 0.94,
+          targetScreen: VerdiScreen.marketplace,
+        ),
+        _InsightCardData(
+          title: 'Tomato price trend is up 12%',
+          subtitle: 'You may want to list more inventory today.',
+          action: 'See trend',
+          imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
+          color: orange,
+          confidence: 0.85,
+          targetScreen: VerdiScreen.analytics,
+        ),
+        _InsightCardData(
+          title: 'Rain expected tomorrow',
+          subtitle: 'Delivery timing may need adjustment.',
+          action: 'View forecast',
+          imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
+          color: blue,
+          confidence: 0.78,
+          targetScreen: VerdiScreen.logistics,
+        ),
+        _InsightCardData(
+          title: 'Crop stress detected in East field',
+          subtitle: 'Monitor moisture and leaf health soon.',
+          action: 'Check field',
+          imageUrl: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80',
+          color: teal,
+          confidence: 0.91,
+          targetScreen: VerdiScreen.irrigation,
+        ),
+      ];
 }
 
 class _InsightCardData {

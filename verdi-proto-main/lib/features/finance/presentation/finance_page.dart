@@ -20,9 +20,12 @@ class _FinancePageState extends ConsumerState<FinancePage> {
 
   int _activeTab = 0;
   bool _showInstitutionalView = false; // Toggle for Admin/Financier
-
   // Creator Security Key System (Default: LOCKED)
   bool _isCreatorKeyUnlocked = false;
+
+  double get activeWalletBalance => ref.watch(isDemoModeProvider) ? _userWalletBalanceUsd : 0.0;
+  List<Map<String, dynamic>> get activeTransactions => ref.watch(isDemoModeProvider) ? _userTransactionsList : [];
+  List<Map<String, dynamic>> get activeRevenueLogs => ref.watch(isDemoModeProvider) ? _creatorRevenueLogs : [];
 
   // Live Personal Wallet State
   double _userWalletBalanceUsd = 2450.0;
@@ -1001,8 +1004,8 @@ class _FinancePageState extends ConsumerState<FinancePage> {
     final appNotifier = ref.read(appStateProvider.notifier);
 
     String title = 'Personal Agri-Wallet & Digital Earnings';
-    if (role == UserRole.driver || role == UserRole.transporter) {
-      title = 'Driver Freight Payout & Digital Wallet';
+    if (role == UserRole.transporter) {
+      title = 'Transporter Freight Payout & Fleet Wallet';
     } else if (role == UserRole.farmer) {
       title = 'Farmer Agri-Wallet & Inputs Fund';
     } else if (role == UserRole.buyer) {

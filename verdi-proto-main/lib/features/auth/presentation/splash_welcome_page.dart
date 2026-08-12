@@ -159,7 +159,7 @@ class _SplashWelcomePageState extends ConsumerState<SplashWelcomePage> with Sing
 
   @override
   Widget build(BuildContext context) {
-    if (_completed) {
+    if (_completed || kIsWeb) {
       return const AppShell();
     }
 

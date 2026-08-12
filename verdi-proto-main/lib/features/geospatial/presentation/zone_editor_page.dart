@@ -110,6 +110,12 @@ class _ZoneEditorPageState extends ConsumerState<ZoneEditorPage> {
   @override
   Widget build(BuildContext context) {
     final fields = ref.watch(geoFieldsProvider);
+    if (fields.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Zone Editor')),
+        body: const Center(child: Text('No mapped farm fields available.')),
+      );
+    }
     final field = fields.firstWhere((f) => f.id == widget.fieldId, orElse: () => fields.first);
     final fieldCenter = _getPolygonCenter(field.boundary);
     final isAdmin = ref.watch(appStateProvider).role == UserRole.admin;

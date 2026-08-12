@@ -26,7 +26,8 @@ enum VerdiScreen {
   satellites(20, 'Satellites', Icons.satellite_alt_outlined, Icons.satellite_alt_rounded),
   settings(21, 'Settings', Icons.settings_outlined, Icons.settings_rounded),
   export(22, 'Export & Trade', Icons.local_shipping_outlined, Icons.local_shipping_rounded),
-  admin(23, 'Admin Command Center', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded);
+  admin(23, 'Admin Command Center', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded),
+  processing(25, 'Value Addition Hub', Icons.factory_outlined, Icons.factory_rounded);
 
   final int pageIndex;
   final String title;

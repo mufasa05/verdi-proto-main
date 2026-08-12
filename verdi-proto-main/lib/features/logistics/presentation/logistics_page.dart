@@ -1400,7 +1400,7 @@ class _PremiumHeroCard extends StatelessWidget {
   }
 }
 
-class _StatsRow extends StatelessWidget {
+class _StatsRow extends ConsumerWidget {
   final bool isTablet;
   final bool isDesktop;
   final ValueChanged<String> onStatSelected;
@@ -1412,7 +1412,10 @@ class _StatsRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final deliveries = ref.watch(deliveriesListProvider);
+
     final labels = ['All', 'Picked up', 'On the way', 'Pending'];
     final accentColors = [
       const Color(0xFF10B981), // Emerald
@@ -1425,6 +1428,19 @@ class _StatsRow extends StatelessWidget {
       final stat = LogisticsMockData.stats[index];
       final accent = accentColors[index % accentColors.length];
       final pad = compact ? 12.0 : 16.0;
+
+      String displayVal = stat.value;
+      if (!isDemo) {
+        if (index == 0) {
+          displayVal = '${deliveries.length}';
+        } else if (index == 1) {
+          displayVal = '${deliveries.where((d) => d.status.toLowerCase().contains('picked')).length}';
+        } else if (index == 2) {
+          displayVal = '${deliveries.where((d) => d.status.toLowerCase().contains('route') || d.status.toLowerCase().contains('transit')).length}';
+        } else {
+          displayVal = '${deliveries.where((d) => d.status.toLowerCase().contains('delay') || d.status.toLowerCase().contains('pending')).length}';
+        }
+      }
 
       return GestureDetector(
         onTap: () => onStatSelected(labels[index]),
@@ -1480,7 +1496,7 @@ class _StatsRow extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            'LIVE',
+                            isDemo ? 'DEMO' : 'LIVE',
                             style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w900, color: accent),
                           ),
                         ),
@@ -1488,7 +1504,7 @@ class _StatsRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      stat.value,
+                      displayVal,
                       style: GoogleFonts.inter(
                         fontSize: compact ? 18 : 22,
                         fontWeight: FontWeight.w900,
@@ -1927,7 +1943,7 @@ class _VehicleStatusCard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (role == UserRole.transporter || role == UserRole.driver || role == UserRole.admin) ...[
+        if (role == UserRole.transporter || role == UserRole.admin) ...[
           ElevatedButton.icon(
             onPressed: () => _showRegisterVehicleDialog(context, ref),
             icon: const Icon(Icons.add),

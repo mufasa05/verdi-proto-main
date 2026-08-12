@@ -285,16 +285,44 @@ class DroneInspectionView extends ConsumerWidget {
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-                        child: Text('3 HOTSPOTS DETECTED', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: blue)),
+                        decoration: BoxDecoration(
+                          color: ref.watch(isDemoModeProvider)
+                              ? blue.withValues(alpha: 0.1)
+                              : green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          ref.watch(isDemoModeProvider) ? '3 HOTSPOTS DETECTED' : '0 HOTSPOTS DETECTED',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: ref.watch(isDemoModeProvider) ? blue : green,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ..._findings.map((f) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _FindingCard(finding: f),
-                      )),
+                  if (ref.watch(isDemoModeProvider))
+                    ..._findings.map((f) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _FindingCard(finding: f),
+                        ))
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'No active crop anomalies or hotspots detected across registered farm zones.',
+                          style: GoogleFonts.inter(fontSize: 13, color: muted, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 22),
 
                   // Launch Mission Banner CTA
@@ -556,9 +584,11 @@ class _SpatialHeroBanner extends StatelessWidget {
   }
 }
 
-class _AiFindingSummaryCard extends StatelessWidget {
+class _AiFindingSummaryCard extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -591,7 +621,9 @@ class _AiFindingSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '3 active hotspots classified across 5.2 ha scan. High-priority moisture deficit detected in Zone 2 (confidence: 91%). One-click fix purchase active.',
+                  isDemo
+                      ? '3 active hotspots classified across 5.2 ha scan. High-priority moisture deficit detected in Zone 2 (confidence: 91%). One-click fix purchase active.'
+                      : '0 active hotspots detected. Telemetry normal across live field scans.',
                   style: GoogleFonts.inter(fontSize: 12.5, color: const Color(0xFF64748B), height: 1.4),
                 ),
               ],
@@ -603,11 +635,13 @@ class _AiFindingSummaryCard extends StatelessWidget {
   }
 }
 
-class _MissionStatRow extends StatelessWidget {
+class _MissionStatRow extends ConsumerWidget {
   const _MissionStatRow();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final cols = constraints.maxWidth > 800 ? 4 : 2;
@@ -618,11 +652,11 @@ class _MissionStatRow extends StatelessWidget {
           mainAxisSpacing: 12,
           childAspectRatio: constraints.maxWidth > 800 ? 1.8 : 2.2,
           physics: const NeverScrollableScrollPhysics(),
-          children: const [
-            _StatChip(label: 'Missions Complete', value: '14', sub: 'This Season', icon: Icons.flight_outlined, color: Color(0xFF10B981)),
-            _StatChip(label: 'Farm Coverage', value: '72%', sub: 'Total Hectares', icon: Icons.area_chart_outlined, color: Color(0xFF3B82F6)),
-            _StatChip(label: 'Active Hotspots', value: '3', sub: 'Action Required', icon: Icons.warning_amber_outlined, color: Color(0xFFF97316)),
-            _StatChip(label: 'Average NDVI', value: '0.74', sub: 'Vegetative Score', icon: Icons.grass_outlined, color: Color(0xFF10B981)),
+          children: [
+            _StatChip(label: 'Missions Complete', value: isDemo ? '14' : '0', sub: isDemo ? 'This Season' : 'Live Network', icon: Icons.flight_outlined, color: const Color(0xFF10B981)),
+            _StatChip(label: 'Farm Coverage', value: isDemo ? '72%' : '0%', sub: 'Total Hectares', icon: Icons.area_chart_outlined, color: const Color(0xFF3B82F6)),
+            _StatChip(label: 'Active Hotspots', value: isDemo ? '3' : '0', sub: isDemo ? 'Action Required' : 'Nominal', icon: Icons.warning_amber_outlined, color: isDemo ? const Color(0xFFF97316) : const Color(0xFF10B981)),
+            _StatChip(label: 'Average NDVI', value: isDemo ? '0.74' : '0.00', sub: 'Vegetative Score', icon: Icons.grass_outlined, color: const Color(0xFF10B981)),
           ],
         );
       },
@@ -689,7 +723,8 @@ class _MissionList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final missions = ref.watch(irrigationStateProvider).droneMissions;
+    final isDemo = ref.watch(isDemoModeProvider);
+    final missions = isDemo ? ref.watch(irrigationStateProvider).droneMissions : <DroneMission>[];
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -794,7 +829,7 @@ class _MissionList extends ConsumerWidget {
   }
 }
 
-class _CaptureGallery extends StatelessWidget {
+class _CaptureGallery extends ConsumerWidget {
   const _CaptureGallery();
 
   static const _captures = [
@@ -816,7 +851,9 @@ class _CaptureGallery extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -828,50 +865,54 @@ class _CaptureGallery extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Multispectral Gallery', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
-          const SizedBox(height: 12),
-          ..._captures.map((c) => Container(
+          const SizedBox(height: 14),
+          if (isDemo)
+            ..._captures.map((c) {
+              return Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.network(
-                      c.url,
-                      height: 110,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 110,
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.image_not_supported, color: Colors.grey),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(c.label, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A))),
+                  child: Stack(
+                    alignment: Alignment.bottomLeft,
+                    children: [
+                      Image.network(c.url, height: 110, width: double.infinity, fit: BoxFit.cover),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(c.label, style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(color: const Color(0xFF10B981), borderRadius: BorderRadius.circular(10)),
+                              child: Text(c.tag, style: GoogleFonts.inter(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w800)),
                             ),
-                            child: Text(c.tag, style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF10B981), fontWeight: FontWeight.bold)),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              )),
+              );
+            })
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  'No Multispectral Drone Imagery Captured Yet.',
+                  style: GoogleFonts.inter(fontSize: 12.5, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
         ],
       ),
     );

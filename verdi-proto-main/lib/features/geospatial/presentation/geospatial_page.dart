@@ -318,6 +318,10 @@ class _GeospatialPageState extends ConsumerState<GeospatialPage> {
     if (!mounted) return;
 
     final fields = ref.read(geoFieldsProvider);
+    if (fields.isEmpty) {
+      setState(() => _isAiScanning = false);
+      return;
+    }
     final selectedId = ref.read(selectedFieldIdProvider);
     final targetField = fields.firstWhere((f) => f.id == selectedId, orElse: () => fields.first);
 
@@ -740,10 +744,12 @@ class _GeospatialPageState extends ConsumerState<GeospatialPage> {
       return matchesSearch && matchesRegion && matchesCrop;
     }).toList();
 
-    final selectedField = fields.firstWhere(
-      (f) => f.id == selectedFieldId,
-      orElse: () => fields.first,
-    );
+    final GeoField? selectedField = fields.isEmpty
+        ? null
+        : fields.firstWhere(
+            (f) => f.id == selectedFieldId,
+            orElse: () => fields.first,
+          );
 
     // Compute center stats
     final totalFields = filteredFields.length;
@@ -1448,12 +1454,14 @@ class _GeospatialPageState extends ConsumerState<GeospatialPage> {
                     });
                   },
                 ),
-                const SizedBox(height: 10),
-                _roundHudButton(
-                  icon: Icons.bar_chart_rounded,
-                  tooltip: 'Zonal Health Histogram & Stats',
-                  onTap: () => _showZonalStatisticsDialog(selectedField),
-                ),
+                if (selectedField != null) ...[
+                  const SizedBox(height: 10),
+                  _roundHudButton(
+                    icon: Icons.bar_chart_rounded,
+                    tooltip: 'Zonal Health Histogram & Stats',
+                    onTap: () => _showZonalStatisticsDialog(selectedField),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 _roundHudButton(
                   icon: Icons.psychology_rounded,
@@ -1462,12 +1470,14 @@ class _GeospatialPageState extends ConsumerState<GeospatialPage> {
                   iconColor: _isAiScanning ? Colors.white : Colors.purple.shade600,
                   onTap: _isAiScanning ? () {} : _runAiSpatialAnomalyScan,
                 ),
-                const SizedBox(height: 10),
-                _roundHudButton(
-                  icon: Icons.cloud_download_outlined,
-                  tooltip: 'Export Satellite GeoTIFF Band Data',
-                  onTap: () => _showSatelliteExportDialog(selectedField),
-                ),
+                if (selectedField != null) ...[
+                  const SizedBox(height: 10),
+                  _roundHudButton(
+                    icon: Icons.cloud_download_outlined,
+                    tooltip: 'Export Satellite GeoTIFF Band Data',
+                    onTap: () => _showSatelliteExportDialog(selectedField),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 _roundHudButton(
                   icon: Icons.layers_outlined,
@@ -1591,7 +1601,7 @@ class _GeospatialPageState extends ConsumerState<GeospatialPage> {
                 FloatingActionButton.extended(
                   onPressed: () {
                     final center = _mapController.camera.center;
-                    _showAddPinDialog(center, selectedField.id);
+                    _showAddPinDialog(center, selectedField?.id ?? '');
                   },
                   backgroundColor: const Color(0xFF16A34A),
                   foregroundColor: Colors.white,
@@ -1604,7 +1614,7 @@ class _GeospatialPageState extends ConsumerState<GeospatialPage> {
                     scheme: _selectedScheme!,
                     onClose: () => setState(() => _selectedScheme = null),
                   )
-                else
+                else if (selectedField != null)
                   FieldCard(
                     field: selectedField,
                     onViewDetails: () {
@@ -2440,10 +2450,12 @@ class _GeospatialMapFullScreenPageState
       return matchesSearch && matchesRegion && matchesCrop;
     }).toList();
 
-    final selectedField = fields.firstWhere(
-      (f) => f.id == selectedFieldId,
-      orElse: () => fields.first,
-    );
+    final GeoField? selectedField = fields.isEmpty
+        ? null
+        : fields.firstWhere(
+            (f) => f.id == selectedFieldId,
+            orElse: () => fields.first,
+          );
 
     // Compute center stats
     final totalFields = filteredFields.length;
@@ -2906,7 +2918,7 @@ class _GeospatialMapFullScreenPageState
                 FloatingActionButton.extended(
                   onPressed: () {
                     final center = _mapController.camera.center;
-                    _showAddPinDialog(center, selectedField.id);
+                    _showAddPinDialog(center, selectedField?.id ?? '');
                   },
                   backgroundColor: const Color(0xFF16A34A),
                   foregroundColor: Colors.white,
@@ -2919,7 +2931,7 @@ class _GeospatialMapFullScreenPageState
                     scheme: _selectedScheme!,
                     onClose: () => setState(() => _selectedScheme = null),
                   )
-                else
+                else if (selectedField != null)
                   FieldCard(
                     field: selectedField,
                     onViewDetails: () {

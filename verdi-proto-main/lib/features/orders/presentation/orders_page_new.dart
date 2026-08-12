@@ -1664,24 +1664,30 @@ class _UpgradedOrderDetailPanel extends ConsumerWidget {
 
   Widget _detailRow(IconData icon, String label, String value, {bool isGreen = false}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 16, color: _OrdersPageState.muted),
           const SizedBox(width: 8),
-          Expanded(
+          SizedBox(
+            width: 120,
             child: Text(
               label,
               style: GoogleFonts.inter(color: _OrdersPageState.muted, fontWeight: FontWeight.w500, fontSize: 12.5),
             ),
           ),
-          Text(
-            value,
-            textAlign: TextAlign.end,
-            style: GoogleFonts.inter(
-              color: isGreen ? _OrdersPageState.green : _OrdersPageState.dark,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              softWrap: true,
+              style: GoogleFonts.inter(
+                color: isGreen ? _OrdersPageState.green : _OrdersPageState.dark,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
             ),
           ),
         ],

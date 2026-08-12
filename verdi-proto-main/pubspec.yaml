@@ -53,7 +53,12 @@ dev_dependencies:
   build_runner: ^2.4.9
   riverpod_generator: ^2.4.12
   riverpod_lint: ^2.3.14
+  flutter_launcher_icons: ^0.14.3
 
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/images/verdi_logo.png"
 
 flutter:
   uses-material-design: true

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/verdi_api_service.dart';
+import '../../../state/app_state.dart';
 import '../models/trade_models.dart';
 
 // =============================================================================
@@ -516,7 +517,7 @@ final _initialAuditLog = [
 // =============================================================================
 
 class TradeSupplierNotifier extends StateNotifier<List<TradeSupplier>> {
-  TradeSupplierNotifier() : super(_initialSuppliers);
+  TradeSupplierNotifier({bool isDemo = true}) : super(isDemo ? _initialSuppliers : []);
 
   void addSupplier(TradeSupplier s) => state = [...state, s];
   void verifySupplier(String id) {
@@ -536,7 +537,7 @@ class TradeSupplierNotifier extends StateNotifier<List<TradeSupplier>> {
 }
 
 class PurchaseOrderNotifier extends StateNotifier<List<PurchaseOrder>> {
-  PurchaseOrderNotifier() : super(_initialPurchaseOrders) {
+  PurchaseOrderNotifier({bool isDemo = true}) : super(isDemo ? _initialPurchaseOrders : []) {
     _syncFromBackend();
   }
 
@@ -576,7 +577,7 @@ class PurchaseOrderNotifier extends StateNotifier<List<PurchaseOrder>> {
 }
 
 class StockBatchNotifier extends StateNotifier<List<StockBatch>> {
-  StockBatchNotifier() : super(_initialBatches);
+  StockBatchNotifier({bool isDemo = true}) : super(isDemo ? _initialBatches : []);
 
   void addBatch(StockBatch b) => state = [...state, b];
   void updateStatus(String id, String newStatus) {
@@ -585,17 +586,17 @@ class StockBatchNotifier extends StateNotifier<List<StockBatch>> {
 }
 
 class WarehouseNotifier extends StateNotifier<List<Warehouse>> {
-  WarehouseNotifier() : super(_initialWarehouses);
+  WarehouseNotifier({bool isDemo = true}) : super(isDemo ? _initialWarehouses : []);
 }
 
 class QualityCheckNotifier extends StateNotifier<List<QualityCheck>> {
-  QualityCheckNotifier() : super(_initialQualityChecks);
+  QualityCheckNotifier({bool isDemo = true}) : super(isDemo ? _initialQualityChecks : []);
 
   void addCheck(QualityCheck qc) => state = [...state, qc];
 }
 
 class ProcessingRunNotifier extends StateNotifier<List<ProcessingRun>> {
-  ProcessingRunNotifier() : super(_initialProcessingRuns);
+  ProcessingRunNotifier({bool isDemo = true}) : super(isDemo ? _initialProcessingRuns : []);
 
   void addRun(ProcessingRun run) => state = [...state, run];
   void completeRun(String id) {
@@ -615,7 +616,7 @@ class ProcessingRunNotifier extends StateNotifier<List<ProcessingRun>> {
 }
 
 class SalesOrderNotifier extends StateNotifier<List<SalesOrder>> {
-  SalesOrderNotifier() : super(_initialSalesOrders);
+  SalesOrderNotifier({bool isDemo = true}) : super(isDemo ? _initialSalesOrders : []);
 
   void addOrder(SalesOrder so) => state = [...state, so];
   void updateStatus(String id, String newStatus) {
@@ -627,7 +628,7 @@ class SalesOrderNotifier extends StateNotifier<List<SalesOrder>> {
 }
 
 class LogisticsTripNotifier extends StateNotifier<List<LogisticsTrip>> {
-  LogisticsTripNotifier() : super(_initialTrips) {
+  LogisticsTripNotifier({bool isDemo = true}) : super(isDemo ? _initialTrips : []) {
     _syncFromBackend();
   }
 
@@ -674,7 +675,7 @@ class LogisticsTripNotifier extends StateNotifier<List<LogisticsTrip>> {
 }
 
 class TradeAlertNotifier extends StateNotifier<List<TradeAlert>> {
-  TradeAlertNotifier() : super(_initialAlerts);
+  TradeAlertNotifier({bool isDemo = true}) : super(isDemo ? _initialAlerts : []);
 
   void dismiss(String id) {
     state = state.map((a) {
@@ -686,15 +687,15 @@ class TradeAlertNotifier extends StateNotifier<List<TradeAlert>> {
 }
 
 class PricePointNotifier extends StateNotifier<List<PricePoint>> {
-  PricePointNotifier() : super(_initialPricePoints);
+  PricePointNotifier({bool isDemo = true}) : super(isDemo ? _initialPricePoints : []);
 }
 
 class ComplianceNotifier extends StateNotifier<List<ComplianceRecord>> {
-  ComplianceNotifier() : super(_initialCompliance);
+  ComplianceNotifier({bool isDemo = true}) : super(isDemo ? _initialCompliance : []);
 }
 
 class AuditLogNotifier extends StateNotifier<List<AuditLogEntry>> {
-  AuditLogNotifier() : super(_initialAuditLog);
+  AuditLogNotifier({bool isDemo = true}) : super(isDemo ? _initialAuditLog : []);
 
   void addEntry(AuditLogEntry entry) => state = [entry, ...state];
 }
@@ -705,51 +706,51 @@ class AuditLogNotifier extends StateNotifier<List<AuditLogEntry>> {
 
 final tradeSupplierProvider =
     StateNotifierProvider<TradeSupplierNotifier, List<TradeSupplier>>(
-        (ref) => TradeSupplierNotifier());
+        (ref) => TradeSupplierNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final purchaseOrderProvider =
     StateNotifierProvider<PurchaseOrderNotifier, List<PurchaseOrder>>(
-        (ref) => PurchaseOrderNotifier());
+        (ref) => PurchaseOrderNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final stockBatchProvider =
     StateNotifierProvider<StockBatchNotifier, List<StockBatch>>(
-        (ref) => StockBatchNotifier());
+        (ref) => StockBatchNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final warehouseProvider =
     StateNotifierProvider<WarehouseNotifier, List<Warehouse>>(
-        (ref) => WarehouseNotifier());
+        (ref) => WarehouseNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final qualityCheckProvider =
     StateNotifierProvider<QualityCheckNotifier, List<QualityCheck>>(
-        (ref) => QualityCheckNotifier());
+        (ref) => QualityCheckNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final processingRunProvider =
     StateNotifierProvider<ProcessingRunNotifier, List<ProcessingRun>>(
-        (ref) => ProcessingRunNotifier());
+        (ref) => ProcessingRunNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final salesOrderProvider =
     StateNotifierProvider<SalesOrderNotifier, List<SalesOrder>>(
-        (ref) => SalesOrderNotifier());
+        (ref) => SalesOrderNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final logisticsTripProvider =
     StateNotifierProvider<LogisticsTripNotifier, List<LogisticsTrip>>(
-        (ref) => LogisticsTripNotifier());
+        (ref) => LogisticsTripNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final tradeAlertProvider =
     StateNotifierProvider<TradeAlertNotifier, List<TradeAlert>>(
-        (ref) => TradeAlertNotifier());
+        (ref) => TradeAlertNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final pricePointProvider =
     StateNotifierProvider<PricePointNotifier, List<PricePoint>>(
-        (ref) => PricePointNotifier());
+        (ref) => PricePointNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final complianceProvider =
     StateNotifierProvider<ComplianceNotifier, List<ComplianceRecord>>(
-        (ref) => ComplianceNotifier());
+        (ref) => ComplianceNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 final auditLogProvider =
     StateNotifierProvider<AuditLogNotifier, List<AuditLogEntry>>(
-        (ref) => AuditLogNotifier());
+        (ref) => AuditLogNotifier(isDemo: ref.watch(isDemoModeProvider)));
 
 /// Selected trade tab index (0-9)
 final selectedTradeTabProvider = StateProvider<int>((ref) => 0);

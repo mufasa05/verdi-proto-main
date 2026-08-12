@@ -132,6 +132,12 @@ class _FieldDetailMapPageState extends ConsumerState<FieldDetailMapPage> {
     final tasks = ref.watch(geoTasksProvider);
     final settings = ref.watch(geoLayerSettingsProvider);
 
+    if (fields.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Field Map')),
+        body: const Center(child: Text('No mapped farm fields available.')),
+      );
+    }
     final field = fields.firstWhere((f) => f.id == widget.fieldId, orElse: () => fields.first);
     final fieldCenter = _getPolygonCenter(field.boundary);
 

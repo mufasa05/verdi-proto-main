@@ -171,23 +171,28 @@ class _GeospatialConnectionBanner extends StatelessWidget {
 class _TopCommandSummary extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
     final state = ref.watch(irrigationStateProvider);
     
     int activeZonesCount = 0;
-    if (state.zone1NextWatering == 'Watering Now') activeZonesCount++;
-    if (state.zone2NextWatering == 'Watering Now') activeZonesCount++;
-    if (state.zone3NextWatering == 'Watering Now') activeZonesCount++;
-    if (state.zone4NextWatering == 'Watering Now') activeZonesCount++;
+    if (isDemo) {
+      if (state.zone1NextWatering == 'Watering Now') activeZonesCount++;
+      if (state.zone2NextWatering == 'Watering Now') activeZonesCount++;
+      if (state.zone3NextWatering == 'Watering Now') activeZonesCount++;
+      if (state.zone4NextWatering == 'Watering Now') activeZonesCount++;
+    }
 
     int pumpsRunning = 0;
-    if (state.pump1Running) pumpsRunning++;
-    if (state.pump2Running) pumpsRunning++;
+    if (isDemo) {
+      if (state.pump1Running) pumpsRunning++;
+      if (state.pump2Running) pumpsRunning++;
+    }
 
     final stats = [
-      ('Active Zones', '$activeZonesCount / 4', Icons.grid_view_outlined, FarmerIrrigationView.green),
-      ('Pumps Running', '$pumpsRunning Active', Icons.settings_input_component_outlined, FarmerIrrigationView.blue),
-      ('Water Used Today', '42.8 m³', Icons.opacity_outlined, FarmerIrrigationView.blue),
-      ('Offline Assets', state.valve3AStatus == 'Fault (Leak)' ? '1 Valve' : 'None', Icons.wifi_off_outlined, FarmerIrrigationView.orange),
+      ('Active Zones', isDemo ? '$activeZonesCount / 4' : '0 / 0', Icons.grid_view_outlined, FarmerIrrigationView.green),
+      ('Pumps Running', isDemo ? '$pumpsRunning Active' : '0 Active', Icons.settings_input_component_outlined, FarmerIrrigationView.blue),
+      ('Water Used Today', isDemo ? '42.8 m³' : '0.0 m³', Icons.opacity_outlined, FarmerIrrigationView.blue),
+      ('Offline Assets', isDemo && state.valve3AStatus == 'Fault (Leak)' ? '1 Valve' : 'None', Icons.wifi_off_outlined, FarmerIrrigationView.orange),
     ];
 
     return LayoutBuilder(
@@ -378,15 +383,17 @@ class _AiInsightsCard extends StatelessWidget {
   }
 }
 
-class _SensorStrip extends StatelessWidget {
+class _SensorStrip extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     final sensors = [
-      ('Soil Moisture', '64% avg', Icons.water_drop_outlined),
-      ('Line Pressure', '3.8 bar', Icons.speed_outlined),
-      ('Flow Rate', '14.2 L/s', Icons.air_outlined),
-      ('Main Tank', '88% Capacity', Icons.storage_outlined),
-      ('Temperature', '24.2°C', Icons.thermostat_outlined),
+      ('Soil Moisture', isDemo ? '64% avg' : '0% avg', Icons.water_drop_outlined),
+      ('Line Pressure', isDemo ? '3.8 bar' : '0.0 bar', Icons.speed_outlined),
+      ('Flow Rate', isDemo ? '14.2 L/s' : '0.0 L/s', Icons.air_outlined),
+      ('Main Tank', isDemo ? '88% Capacity' : '0% Capacity', Icons.storage_outlined),
+      ('Temperature', isDemo ? '24.2°C' : '--°C', Icons.thermostat_outlined),
     ];
 
     return Container(
@@ -427,9 +434,12 @@ class _SensorStrip extends StatelessWidget {
   }
 }
 
-class _AlertExceptionsRail extends StatelessWidget {
+class _AlertExceptionsRail extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    if (!isDemo) return const SizedBox.shrink();
+
     final alerts = [
       ('Pump 2 pressure anomaly', 'Warning: High friction detected in pump casing. Diagnostic recommended.', FarmerIrrigationView.orange, Icons.warning_amber),
       ('Zone 3 dry sector', 'Critical: Soil moisture at 38% in northern strip. Recommended manual override.', FarmerIrrigationView.red, Icons.error_outline),
@@ -497,13 +507,34 @@ class _ZoneControlGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
     final state = ref.watch(irrigationStateProvider);
-    final zones = [
-      _Zone(name: 'Zone 1 - Maize', crop: 'Sweetcorn', moisture: state.zone1Moisture, nextWatering: state.zone1NextWatering, mode: state.zone1Mode, risk: state.zone1Risk),
-      _Zone(name: 'Zone 2 - Tomatoes', crop: 'Roma Tomatoes', moisture: state.zone2Moisture, nextWatering: state.zone2NextWatering, mode: state.zone2Mode, risk: state.zone2Risk),
-      _Zone(name: 'Zone 3 - Vegetables', crop: 'Spinach & Kale', moisture: state.zone3Moisture, nextWatering: state.zone3NextWatering, mode: state.zone3Mode, risk: state.zone3Risk),
-      _Zone(name: 'Zone 4 - Potatoes', crop: 'Irish Gold', moisture: state.zone4Moisture, nextWatering: state.zone4NextWatering, mode: state.zone4Mode, risk: state.zone4Risk),
-    ];
+    final zones = isDemo
+        ? [
+            _Zone(name: 'Zone 1 - Maize', crop: 'Sweetcorn', moisture: state.zone1Moisture, nextWatering: state.zone1NextWatering, mode: state.zone1Mode, risk: state.zone1Risk),
+            _Zone(name: 'Zone 2 - Tomatoes', crop: 'Roma Tomatoes', moisture: state.zone2Moisture, nextWatering: state.zone2NextWatering, mode: state.zone2Mode, risk: state.zone2Risk),
+            _Zone(name: 'Zone 3 - Vegetables', crop: 'Spinach & Kale', moisture: state.zone3Moisture, nextWatering: state.zone3NextWatering, mode: state.zone3Mode, risk: state.zone3Risk),
+            _Zone(name: 'Zone 4 - Potatoes', crop: 'Irish Gold', moisture: state.zone4Moisture, nextWatering: state.zone4NextWatering, mode: state.zone4Mode, risk: state.zone4Risk),
+          ]
+        : <_Zone>[];
+
+    if (zones.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Center(
+          child: Text(
+            'No Farm Zones Configured Yet. Registered irrigation zones will appear here automatically.',
+            style: GoogleFonts.inter(fontSize: 13, color: FarmerIrrigationView.muted, fontWeight: FontWeight.w600),
+          ),
+        ),
+      );
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {

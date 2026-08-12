@@ -94,11 +94,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
 // ─────────────────────────────────────────────────────────────────────────────
 // ACCESS CONTROL TAB
 // ─────────────────────────────────────────────────────────────────────────────
-class _AccessControlTab extends StatelessWidget {
+class _AccessControlTab extends ConsumerWidget {
   const _AccessControlTab();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return SafeArea(
       child: Align(
         alignment: Alignment.topCenter,
@@ -112,16 +114,33 @@ class _AccessControlTab extends StatelessWidget {
               const SizedBox(height: 16),
 
               // AI Access Risk Alert Card
-              _AiAccessRiskCard(),
-              const SizedBox(height: 16),
+              if (isDemo) _AiAccessRiskCard(),
+              if (isDemo) const SizedBox(height: 16),
 
               // User list
               Text('Active Users & Scope', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: SettingsPage.dark)),
               const SizedBox(height: 10),
-              ..._users.map((u) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _UserAccessCard(user: u),
-              )),
+              if (isDemo)
+                ..._users.map((u) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _UserAccessCard(user: u),
+                ))
+              else
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: Colors.black12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No officially registered users yet. Users will appear here automatically upon official registration.',
+                      style: GoogleFonts.inter(fontSize: 13, color: SettingsPage.muted, fontWeight: FontWeight.w600),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 20),
 
               // Module Access Matrix

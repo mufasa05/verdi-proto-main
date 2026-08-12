@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../state/app_state.dart';
 import '../../analytics/data/analytics_export_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -9,7 +11,7 @@ import '../../analytics/data/analytics_export_service.dart';
 //         Input Subsidies, Biosecurity Outbreaks, ePhyto Customs, Price Monitoring
 // ─────────────────────────────────────────────────────────────────────────────
 
-class GovernmentPage extends StatefulWidget {
+class GovernmentPage extends ConsumerStatefulWidget {
   const GovernmentPage({super.key});
 
   static const green = Color(0xFF16A34A);
@@ -23,10 +25,10 @@ class GovernmentPage extends StatefulWidget {
   static const background = Color(0xFFF8FAFC);
 
   @override
-  State<GovernmentPage> createState() => _GovernmentPageState();
+  ConsumerState<GovernmentPage> createState() => _GovernmentPageState();
 }
 
-class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStateMixin {
+class _GovernmentPageState extends ConsumerState<GovernmentPage> with TickerProviderStateMixin {
   late TabController _tabController;
   bool _loading = false;
 
@@ -262,10 +264,20 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
     );
   }
 
+  List<Map<String, dynamic>> get activeFarmers => ref.watch(isDemoModeProvider) ? _farmers : [];
+  List<Map<String, dynamic>> get activeFarms => ref.watch(isDemoModeProvider) ? _farms : [];
+  List<Map<String, dynamic>> get activeOfficers => ref.watch(isDemoModeProvider) ? _officers : [];
+  List<Map<String, dynamic>> get activeVouchers => ref.watch(isDemoModeProvider) ? _vouchers : [];
+  List<Map<String, dynamic>> get activeOutbreaks => ref.watch(isDemoModeProvider) ? _outbreaks : [];
+  List<Map<String, dynamic>> get activeDossiers => ref.watch(isDemoModeProvider) ? _dossiers : [];
+  List<Map<String, dynamic>> get activePrices => ref.watch(isDemoModeProvider) ? _prices : [];
+
   // ═══════════════════════════════════════════════════════════════
   // TAB 1: FOOD SECURITY & STRATEGIC OVERVIEW
   // ═══════════════════════════════════════════════════════════════
   Widget _buildFoodSecurityTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
@@ -278,27 +290,27 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
             children: [
               InkWell(
                 onTap: () => _tabController.animateTo(6), // Trade & Prices
-                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Strategic Maize Reserve', value: '420,000 t', icon: Icons.warehouse_outlined, color: GovernmentPage.green),
+                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Strategic Maize Reserve', value: isDemo ? '420,000 t' : '0 t', icon: Icons.warehouse_outlined, color: GovernmentPage.green),
               ),
               InkWell(
                 onTap: () => _tabController.animateTo(6), // Trade & Prices
-                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Wheat Reserve', value: '180,000 t', icon: Icons.grain_outlined, color: GovernmentPage.orange),
+                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Wheat Reserve', value: isDemo ? '180,000 t' : '0 t', icon: Icons.grain_outlined, color: GovernmentPage.orange),
               ),
               InkWell(
                 onTap: () => _showEmergencyReliefModal(context),
-                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Yield Forecast (National)', value: '1.24M t', icon: Icons.satellite_alt_outlined, color: GovernmentPage.blue),
+                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Yield Forecast (National)', value: isDemo ? '1.24M t' : '0 t', icon: Icons.satellite_alt_outlined, color: GovernmentPage.blue),
               ),
               InkWell(
                 onTap: () => _tabController.animateTo(1), // Farmer Registry
-                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Registered Farmers', value: '${_farmers.length + 8408}', icon: Icons.people_outlined, color: GovernmentPage.teal),
+                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Registered Farmers', value: isDemo ? '${_farmers.length + 8408}' : '${activeFarmers.length}', icon: Icons.people_outlined, color: GovernmentPage.teal),
               ),
               InkWell(
                 onTap: () => _tabController.animateTo(2), // Farm Registration
-                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Registered Farm Parcels', value: '${_farms.length + 3211}', icon: Icons.map_outlined, color: GovernmentPage.purple),
+                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Registered Farm Parcels', value: isDemo ? '${_farms.length + 3211}' : '${activeFarms.length}', icon: Icons.map_outlined, color: GovernmentPage.purple),
               ),
               InkWell(
                 onTap: () => _tabController.animateTo(3), // Extension Officers
-                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Extension Officers', value: '${_officers.length + 182}', icon: Icons.support_agent_outlined, color: GovernmentPage.red),
+                child: _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Extension Officers', value: isDemo ? '${_officers.length + 182}' : '${activeOfficers.length}', icon: Icons.support_agent_outlined, color: GovernmentPage.red),
               ),
             ],
           );
@@ -306,35 +318,45 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
         const SizedBox(height: 24),
         _SectionCard(
           title: 'Climate & Disaster Early Warning System',
-          child: Column(
-            children: [
-              _WarningItem(
-                title: 'Drought Warning: Masvingo South', level: 'High Alert', color: GovernmentPage.red,
-                desc: 'Rainfall anomaly threshold breached. Sub-surface moisture stress rising. Recommend emergency irrigation scheme activation.',
-                onAction: () => _showEmergencyReliefModal(context),
-              ),
-              const SizedBox(height: 12),
-              _WarningItem(
-                title: 'Flood Risk: Zambezi Basin Downstream', level: 'Moderate Risk', color: GovernmentPage.orange,
-                desc: 'Unusual telemetry spikes at downstream water meters. Sluice gate coordination with Kariba Dam Authority required.',
-                onAction: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sluice gate coordination signal dispatched to Kariba Authority.'), backgroundColor: GovernmentPage.orange),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              _WarningItem(
-                title: 'Heatwave — Beitbridge Corridor', level: 'Advisory', color: GovernmentPage.blue,
-                desc: 'Temperatures forecast 38–41°C for 5 days. Transit cold chain assets vulnerable. Issue transport advisory.',
-                onAction: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cold-chain transport advisory broadcast to all refrigerated logistics operators.'), backgroundColor: GovernmentPage.blue),
-                  );
-                },
-              ),
-            ],
-          ),
+          child: isDemo
+              ? Column(
+                  children: [
+                    _WarningItem(
+                      title: 'Drought Warning: Masvingo South', level: 'High Alert', color: GovernmentPage.red,
+                      desc: 'Rainfall anomaly threshold breached. Sub-surface moisture stress rising. Recommend emergency irrigation scheme activation.',
+                      onAction: () => _showEmergencyReliefModal(context),
+                    ),
+                    const SizedBox(height: 12),
+                    _WarningItem(
+                      title: 'Flood Risk: Zambezi Basin Downstream', level: 'Moderate Risk', color: GovernmentPage.orange,
+                      desc: 'Unusual telemetry spikes at downstream water meters. Sluice gate coordination with Kariba Dam Authority required.',
+                      onAction: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sluice gate coordination signal dispatched to Kariba Authority.'), backgroundColor: GovernmentPage.orange),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _WarningItem(
+                      title: 'Heatwave — Beitbridge Corridor', level: 'Advisory', color: GovernmentPage.blue,
+                      desc: 'Temperatures forecast 38–41°C for 5 days. Transit cold chain assets vulnerable. Issue transport advisory.',
+                      onAction: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Cold-chain transport advisory broadcast to all refrigerated logistics operators.'), backgroundColor: GovernmentPage.blue),
+                        );
+                      },
+                    ),
+                  ],
+                )
+              : const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: Text(
+                      'No active climate disaster alerts. Live satellite telemetry normal.',
+                      style: TextStyle(color: GovernmentPage.muted, fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(height: 16),
         _SectionCard(
@@ -348,9 +370,13 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
                 children: ['Province', 'Registered Farmers', 'Yield Index', 'Subsidy Coverage'].map((h) =>
                     Padding(padding: const EdgeInsets.all(10),
                         child: Text(h, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)))).toList()),
-              ...['Manicaland|2,841|0.84|78%', 'Mashonaland Central|3,120|0.91|82%',
-                'Matabeleland South|1,240|0.61|64%', 'Midlands|1,810|0.73|70%',
-                'Masvingo|2,190|0.68|66%'].map((row) {
+              ...(ref.watch(isDemoModeProvider)
+                  ? ['Manicaland|2,841|0.84|78%', 'Mashonaland Central|3,120|0.91|82%',
+                     'Matabeleland South|1,240|0.61|64%', 'Midlands|1,810|0.73|70%',
+                     'Masvingo|2,190|0.68|66%']
+                  : ['Manicaland|0|0.00|0%', 'Mashonaland Central|0|0.00|0%',
+                     'Matabeleland South|0|0.00|0%', 'Midlands|0|0.00|0%',
+                     'Masvingo|0|0.00|0%']).map((row) {
                 final cells = row.split('|');
                 return TableRow(children: cells.map((c) =>
                     Padding(padding: const EdgeInsets.all(10),
@@ -375,7 +401,7 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
     String selectedProvince = 'Manicaland';
     String selectedWallet = 'EcoCash';
 
-    final filteredFarmers = _farmers.where((f) {
+    final filteredFarmers = activeFarmers.where((f) {
       final matchesSearch = f['name'].toString().toLowerCase().contains(_farmerSearchQuery.toLowerCase()) ||
           f['id'].toString().toLowerCase().contains(_farmerSearchQuery.toLowerCase()) ||
           f['nationalId'].toString().toLowerCase().contains(_farmerSearchQuery.toLowerCase());
@@ -614,14 +640,14 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
         ),
         const SizedBox(height: 24),
         _SectionCard(
-          title: 'Registered Farm Parcels Ledger (${_farms.length} Parcels)',
+          title: 'Registered Farm Parcels Ledger (${activeFarms.length} Parcels)',
           child: ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _farms.length,
+            itemCount: activeFarms.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (ctx, i) {
-              final fm = _farms[i];
+              final fm = activeFarms[i];
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -673,10 +699,10 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
           return Wrap(
             spacing: 12, runSpacing: 12,
             children: [
-              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Total Officers', value: '${_officers.length}', icon: Icons.badge_outlined, color: GovernmentPage.purple),
-              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Farmers Supported', value: '${_officers.fold(0, (s, o) => s + (o['farmersSupported'] as int))}', icon: Icons.people_outlined, color: GovernmentPage.green),
-              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Training Sessions', value: '${_officers.fold(0, (s, o) => s + (o['trainingSessions'] as int))}', icon: Icons.school_outlined, color: GovernmentPage.blue),
-              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Active Officers', value: '${_officers.where((o) => o['status'] == 'Active').length}', icon: Icons.check_circle_outline, color: GovernmentPage.teal),
+              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Total Officers', value: '${activeOfficers.length}', icon: Icons.badge_outlined, color: GovernmentPage.purple),
+              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Farmers Supported', value: '${activeOfficers.fold(0, (s, o) => s + (o['farmersSupported'] as int))}', icon: Icons.people_outlined, color: GovernmentPage.green),
+              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Training Sessions', value: '${activeOfficers.fold(0, (s, o) => s + (o['trainingSessions'] as int))}', icon: Icons.school_outlined, color: GovernmentPage.blue),
+              _KpiCard(width: (c.maxWidth - 12 * (cols - 1)) / cols, label: 'Active Officers', value: '${activeOfficers.where((o) => o['status'] == 'Active').length}', icon: Icons.check_circle_outline, color: GovernmentPage.teal),
             ],
           );
         }),
@@ -746,10 +772,10 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
           child: ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _officers.length,
+            itemCount: activeOfficers.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (ctx, i) {
-              final o = _officers[i];
+              final o = activeOfficers[i];
               final isActive = o['status'] == 'Active';
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -850,7 +876,7 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
                   children: ['Voucher ID', 'Farmer', 'Inputs', 'Value', 'Status'].map((h) =>
                       Padding(padding: const EdgeInsets.all(8), child: Text(h, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)))).toList(),
                 ),
-                ..._vouchers.map((v) => TableRow(children: [
+                ...activeVouchers.map((v) => TableRow(children: [
                   Padding(padding: const EdgeInsets.all(8), child: Text(v['id'], style: const TextStyle(fontSize: 12))),
                   Padding(padding: const EdgeInsets.all(8), child: Text(v['farmer'], style: const TextStyle(fontSize: 12))),
                   Padding(padding: const EdgeInsets.all(8), child: Text(v['inputs'], style: const TextStyle(fontSize: 12))),
@@ -982,7 +1008,7 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
                 style: ElevatedButton.styleFrom(backgroundColor: GovernmentPage.red, foregroundColor: Colors.white),
               ),
               const Divider(height: 24),
-              ..._outbreaks.map((o) {
+              ...activeOutbreaks.map((o) {
                 final severityColor = o['severity'] == 'Critical' ? GovernmentPage.red : o['severity'] == 'High' ? GovernmentPage.orange : GovernmentPage.blue;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -1060,7 +1086,7 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
                     children: ['Commodity', 'Province', 'Wholesale', 'Retail', 'Change'].map((h) =>
                         Padding(padding: const EdgeInsets.all(10), child: Text(h, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)))).toList(),
                   ),
-                  ..._prices.map((p) => TableRow(children: [
+                  ...activePrices.map((p) => TableRow(children: [
                     Padding(padding: const EdgeInsets.all(10), child: Text(p['commodity'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
                     Padding(padding: const EdgeInsets.all(10), child: Text(p['province'], style: const TextStyle(fontSize: 12))),
                     Padding(padding: const EdgeInsets.all(10), child: Text(p['wholesale'], style: const TextStyle(fontSize: 12))),
@@ -1084,7 +1110,7 @@ class _GovernmentPageState extends State<GovernmentPage> with TickerProviderStat
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('Verify AMA exporter licenses, SAZ compliance dossiers, and clear shipments for the South Corridor (Beitbridge → Durban) and East Corridor (Forbes → Beira).', style: TextStyle(fontSize: 12.5, color: GovernmentPage.muted)),
             const Divider(height: 24),
-            ..._dossiers.map((d) {
+            ...activeDossiers.map((d) {
               final isCleared = d['phytoStatus'] == 'Cleared';
               final isOnHold = d['phytoStatus'] == 'On Hold';
               final phytoColor = isCleared ? GovernmentPage.green : isOnHold ? GovernmentPage.red : GovernmentPage.orange;

@@ -84,10 +84,10 @@ class NotificationCenterNotifier extends StateNotifier<NotificationCenterState> 
 
   final NotificationRepository _repository;
 
-  Future<void> loadNotifications() async {
+  Future<void> loadNotifications({bool isDemo = true}) async {
     state = state.copyWith(loading: true, error: null);
     try {
-      final notifications = await _repository.loadNotifications();
+      final notifications = await _repository.loadNotifications(isDemo: isDemo);
       final rules = await _repository.loadRules();
       final history = await _repository.loadHistory();
       final filtered = _filterNotifications(notifications);

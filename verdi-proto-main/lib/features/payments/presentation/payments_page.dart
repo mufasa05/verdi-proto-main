@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/platform_data_state.dart';
+import '../../../state/app_state.dart';
 import '../../analytics/data/analytics_export_service.dart';
 
 class PaymentsPage extends ConsumerStatefulWidget {
@@ -184,7 +185,9 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                       style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E), letterSpacing: 1.0),
                     ),
                     Text(
-                      'Total Vault Escrow Lock: \$1,428,500.00 • EcoCash / OneMoney Gateway: 99.98% Success • SADC RTGS Settlement: Active • ZiG/USD Rate: 13.85 • Compliance Violations: 0',
+                      ref.watch(isDemoModeProvider)
+                          ? 'Total Vault Escrow Lock: \$1,428,500.00 • EcoCash / OneMoney Gateway: 99.98% Success • SADC RTGS Settlement: Active • ZiG/USD Rate: 13.85 • Compliance Violations: 0'
+                          : 'Total Vault Escrow Lock: \$0.00 • EcoCash / OneMoney Gateway: Operational • SADC RTGS Settlement: Active • ZiG/USD Rate: 13.85 • Compliance Violations: 0',
                       style: GoogleFonts.inter(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -832,18 +835,20 @@ class _PremiumHeroCard extends StatelessWidget {
   }
 }
 
-class _StatsGrid extends StatelessWidget {
+class _StatsGrid extends ConsumerWidget {
   final bool isDesktop;
 
   const _StatsGrid({required this.isDesktop});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     final cards = [
-      _StatData('Received', 'US\$ 674', Icons.payments_outlined),
-      _StatData('Pending', 'US\$ 258', Icons.hourglass_top_outlined),
-      _StatData('Payouts', 'US\$ 176', Icons.send_outlined),
-      _StatData('Escrow Lock', 'US\$ 4,436', Icons.lock_clock_outlined),
+      _StatData('Received', isDemo ? 'US\$ 674' : 'US\$ 0', Icons.payments_outlined),
+      _StatData('Pending', isDemo ? 'US\$ 258' : 'US\$ 0', Icons.hourglass_top_outlined),
+      _StatData('Payouts', isDemo ? 'US\$ 176' : 'US\$ 0', Icons.send_outlined),
+      _StatData('Escrow Lock', isDemo ? 'US\$ 4,436' : 'US\$ 0', Icons.lock_clock_outlined),
     ];
 
     Widget buildCard(_StatData stat, {bool compact = false}) {

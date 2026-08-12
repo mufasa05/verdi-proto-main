@@ -419,12 +419,15 @@ class _SatellitesPageState extends ConsumerState<SatellitesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final avgNdvi = _fields.fold<double>(0, (s, f) => s + f.ndvi) / _fields.length;
-    final avgCloud = _fields.fold<int>(0, (s, f) => s + f.cloud) ~/ _fields.length;
-    final freshScenes = _fields.where((f) => f.freshnessHours <= 6).length;
-    final anomalyCount = _fields.where((f) => f.anomaly != 'None').length;
+    final isDemo = ref.watch(isDemoModeProvider);
+    final activeFieldsList = isDemo ? _fields : <_SatField>[];
 
-    final displayFields = _filteredFields;
+    final avgNdvi = activeFieldsList.isEmpty ? 0.0 : activeFieldsList.fold<double>(0, (s, f) => s + f.ndvi) / activeFieldsList.length;
+    final avgCloud = activeFieldsList.isEmpty ? 0 : activeFieldsList.fold<int>(0, (s, f) => s + f.cloud) ~/ activeFieldsList.length;
+    final freshScenes = activeFieldsList.where((f) => f.freshnessHours <= 6).length;
+    final anomalyCount = activeFieldsList.where((f) => f.anomaly != 'None').length;
+
+    final displayFields = isDemo ? _filteredFields : <_SatField>[];
 
     return Scaffold(
       backgroundColor: SatellitesPage.background,
@@ -498,7 +501,7 @@ class _SatellitesPageState extends ConsumerState<SatellitesPage> {
                     selectedLayer: _selectedLayer,
                     historicalDaysAgo: _historicalDaysAgo,
                     onHistoricalDaysChanged: (v) => setState(() => _historicalDaysAgo = v),
-                    fields: _fields,
+                    fields: activeFieldsList,
                     onSelectField: (f) => _showFieldDetailModal(context, f),
                   ),
                   const SizedBox(height: 16),
@@ -566,7 +569,7 @@ class _SatellitesPageState extends ConsumerState<SatellitesPage> {
                           _KpiCard(
                             width: width,
                             label: 'Fresh Scenes',
-                            value: '$freshScenes / ${_fields.length}',
+                            value: '$freshScenes / ${activeFieldsList.length}',
                             icon: Icons.timelapse_outlined,
                             color: SatellitesPage.green,
                             onTap: () => setState(() => _activeFilter = _activeFilter == 'fresh' ? null : 'fresh'),
@@ -588,15 +591,32 @@ class _SatellitesPageState extends ConsumerState<SatellitesPage> {
                   // Hotspot Anomaly List
                   Text('Hotspot Anomaly Map', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: SatellitesPage.dark)),
                   const SizedBox(height: 10),
-                  ..._fields.where((f) => f.anomaly != 'None').map(
-                    (f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _HotspotCard(
-                        field: f,
-                        onTap: () => _showFieldDetailModal(context, f),
+                  if (isDemo && activeFieldsList.where((f) => f.anomaly != 'None').isNotEmpty)
+                    ...activeFieldsList.where((f) => f.anomaly != 'None').map(
+                      (f) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _HotspotCard(
+                          field: f,
+                          onTap: () => _showFieldDetailModal(context, f),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'No satellite hotspot anomalies detected. Spectral telemetry baseline normal.',
+                          style: GoogleFonts.inter(fontSize: 13, color: SatellitesPage.muted, fontWeight: FontWeight.w600),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 20),
 
                   // All Field Scenes
@@ -612,15 +632,32 @@ class _SatellitesPageState extends ConsumerState<SatellitesPage> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  ...displayFields.map(
-                    (f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _FieldSceneCard(
-                        field: f,
-                        onTap: () => _showFieldDetailModal(context, f),
+                  if (isDemo && displayFields.isNotEmpty)
+                    ...displayFields.map(
+                      (f) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _FieldSceneCard(
+                          field: f,
+                          onTap: () => _showFieldDetailModal(context, f),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'No field scenes captured. Satellite telemetry will populate automatically once farm polygons are created.',
+                          style: GoogleFonts.inter(fontSize: 13, color: SatellitesPage.muted, fontWeight: FontWeight.w600),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -784,7 +821,7 @@ class _HeaderChip extends StatelessWidget {
   }
 }
 
-class _AiInsightRail extends StatelessWidget {
+class _AiInsightRail extends ConsumerWidget {
   final List<_AiInsight> insights = const [
     _AiInsight(
       text: 'Moisture anomaly in Odzi Block — stress rising over 4 days',
@@ -811,7 +848,9 @@ class _AiInsightRail extends StatelessWidget {
   const _AiInsightRail({required this.onSelectInsight});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    if (!isDemo) return const SizedBox.shrink();
     return SizedBox(
       height: 88,
       child: ListView.builder(

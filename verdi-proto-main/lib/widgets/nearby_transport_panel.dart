@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:verdi/core/services/verdi_api_service.dart';
 import '../features/logistics/data/logistics_data.dart';
+import '../state/app_state.dart';
 import '../state/platform_data_state.dart';
 
 class NearbyTransportPanel extends ConsumerWidget {
@@ -14,6 +15,7 @@ class NearbyTransportPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
     final trucks = ref.watch(trucksListProvider);
 
     return Container(
@@ -57,7 +59,7 @@ class NearbyTransportPanel extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Flexible transport for bulk goods and cash-on-site orders',
+                      isDemo ? 'Sample drivers for test orders' : 'Real registered transporters from live database',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: _muted,
@@ -70,9 +72,28 @@ class NearbyTransportPanel extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           if (trucks.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: Text("No transport options available")),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Icon(Icons.local_shipping_outlined, size: 44, color: _muted),
+                    const SizedBox(height: 10),
+                    Text(
+                      isDemo ? 'No Transport Options Available' : 'No Transporters Registered Yet',
+                      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: _dark),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isDemo
+                          ? 'Try adding sample trucks.'
+                          : 'When real transport providers register on your live platform, they will automatically be listed here.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(fontSize: 12, color: _muted),
+                    ),
+                  ],
+                ),
+              ),
             )
           else
             ListView.separated(

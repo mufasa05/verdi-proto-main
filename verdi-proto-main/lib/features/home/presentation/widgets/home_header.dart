@@ -149,23 +149,24 @@ class HomeHeader extends ConsumerWidget {
       ),
       child: isNarrow
           ? Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     avatar,
-                    Row(
-                      children: [
-                        currencySelector,
-                        const SizedBox(width: 8),
-                        agentModeToggle,
-                      ],
-                    ),
+                    currencySelector,
                   ],
                 ),
-                const SizedBox(height: 12),
-                details,
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: details),
+                    const SizedBox(width: 8),
+                    agentModeToggle,
+                  ],
+                ),
               ],
             )
           : Row(

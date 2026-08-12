@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../data/mock_app_data.dart';
 import '../../../state/cart_state.dart';
 import '../../../state/app_state.dart';
+import '../../../state/platform_data_state.dart';
 import '../../../state/chat_state.dart';
 import '../../../widgets/cart_drawer.dart';
 import '../../../widgets/nearby_transport_panel.dart';
@@ -284,10 +285,16 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
   }
 
   List<MarketplaceProduct> get _filteredProducts {
+    final isDemo = ref.watch(isDemoModeProvider);
     final search = _searchController.text.trim().toLowerCase();
     final tab = _categories[_tabController.index];
 
-    return _allProducts.where((p) {
+    // Filter out static demo products when in Live mode
+    final baseProducts = isDemo
+        ? _allProducts
+        : _allProducts.where((p) => !_defaultProducts.contains(p)).toList();
+
+    return baseProducts.where((p) {
       final matchesSearch = search.isEmpty ||
           p.name.toLowerCase().contains(search) ||
           p.description.toLowerCase().contains(search) ||
@@ -2035,13 +2042,16 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
   }
 }
 
-class _ReferenceDesktopPanel extends StatelessWidget {
+class _ReferenceDesktopPanel extends ConsumerWidget {
   final VoidCallback onOpenTransport;
 
   const _ReferenceDesktopPanel({required this.onOpenTransport});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final trucks = ref.watch(trucksListProvider);
+
     return Column(
       children: [
         // Top High Demand Card
@@ -2121,7 +2131,7 @@ class _ReferenceDesktopPanel extends StatelessWidget {
                       style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w800, color: _MarketplacePageState.dark),
                     ),
                     Text(
-                      '5 transporters nearby',
+                      isDemo ? '${trucks.length} transporters nearby' : '${trucks.length} live transporters registered',
                       style: GoogleFonts.inter(fontSize: 11.5, color: _MarketplacePageState.muted),
                     ),
                   ],
@@ -2167,19 +2177,30 @@ class _ReferenceDesktopPanel extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              _demandRow('🍅', 'Tomatoes', 'High demand', '+12%', Colors.green),
-              const SizedBox(height: 10),
-              _demandRow('🌽', 'Maize', 'High demand', '+8%', Colors.green),
-              const SizedBox(height: 10),
-              _demandRow('🥔', 'Potatoes', 'Moderate demand', '+3%', Colors.orange),
-              const SizedBox(height: 10),
-              _demandRow('🧅', 'Others', 'Low demand', '-3%', Colors.red),
+              if (isDemo) ...[
+                _demandRow('🍅', 'Tomatoes', 'High demand', '+12%', Colors.green),
+                const SizedBox(height: 10),
+                _demandRow('🌽', 'Maize', 'High demand', '+8%', Colors.green),
+                const SizedBox(height: 10),
+                _demandRow('🥔', 'Potatoes', 'Moderate demand', '+3%', Colors.orange),
+                const SizedBox(height: 10),
+                _demandRow('🧅', 'Others', 'Low demand', '-3%', Colors.red),
+              ] else ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(
+                    'No market demand volatility detected. Live auction telemetry baseline normal.',
+                    style: GoogleFonts.inter(fontSize: 12, color: _MarketplacePageState.muted, fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
         const SizedBox(height: 16),
 
-        // Transport Near You Card
+        // Transport Near You Card (Demo vs Live Account Filtering)
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -2203,19 +2224,60 @@ class _ReferenceDesktopPanel extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              _transportRow('Towarda Logistics', '4.8 • 2 km away', onOpenTransport),
-              const SizedBox(height: 10),
-              _transportRow('Speedy Movers', '4.8 • 5 km away', onOpenTransport),
-              const SizedBox(height: 10),
-              _transportRow('ZimFast Transport', '4.7 • 8 km away', onOpenTransport),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: onOpenTransport,
-                child: Text(
-                  '+7 transport providers available >',
-                  style: GoogleFonts.inter(fontSize: 12, color: _MarketplacePageState.green, fontWeight: FontWeight.bold),
+              if (isDemo) ...[
+                _transportRow('Towarda Logistics', '4.8 • 2 km away', onOpenTransport),
+                const SizedBox(height: 10),
+                _transportRow('Speedy Movers', '4.8 • 5 km away', onOpenTransport),
+                const SizedBox(height: 10),
+                _transportRow('ZimFast Transport', '4.7 • 8 km away', onOpenTransport),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: onOpenTransport,
+                  child: Text(
+                    '+7 transport providers available >',
+                    style: GoogleFonts.inter(fontSize: 12, color: _MarketplacePageState.green, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
+              ] else ...[
+                if (trucks.isNotEmpty) ...[
+                  ...trucks.take(3).map((t) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _transportRow('${t.driver} (${t.vehicle})', '${t.rating.toStringAsFixed(1)} • ${t.from}', onOpenTransport),
+                      )),
+                  TextButton(
+                    onPressed: onOpenTransport,
+                    child: Text(
+                      'View all registered transporters (${trucks.length}) >',
+                      style: GoogleFonts.inter(fontSize: 12, color: _MarketplacePageState.green, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 12),
+                  const Icon(Icons.local_shipping_outlined, size: 36, color: _MarketplacePageState.muted),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No Transporters Registered Yet',
+                    style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: _MarketplacePageState.dark),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'When real transport providers register on your live platform, they will appear here.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontSize: 11.5, color: _MarketplacePageState.muted),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: onOpenTransport,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _MarketplacePageState.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Register as Transporter', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ],
             ],
           ),
         ),

@@ -32,7 +32,9 @@ import 'features/weather/data/mock_weather_repository.dart';
 import 'features/weather/presentation/weather_page.dart';
 import 'features/weather/presentation/weather_provider.dart';
 import 'features/news/presentation/news_page.dart';
+import 'features/processing/presentation/value_adder_processing_page.dart';
 import 'features/assistant/presentation/widgets/global_voice_agent_overlay.dart';
+import 'core/enums/verdi_screen.dart';
 import 'state/app_state.dart';
 import 'features/auth/state/auth_state.dart';
 
@@ -72,6 +74,7 @@ class AppShell extends ConsumerWidget {
       const ExportPage(), // index 22: Export & Trade Layer
       const AdminDashboardPage(), // index 23: Admin Command Center
       const NewsPage(), // index 24: Southern African Agri-News
+      const ValueAdderProcessingPage(), // index 25: Value Addition Hub
     ];
 
     return ChangeNotifierProvider<WeatherProvider>(
@@ -111,10 +114,30 @@ class AppShell extends ConsumerWidget {
             );
           }
 
+          final currentScreenTitle = VerdiScreen.fromIndex(state.navIndex).title;
+
           return GlobalVoiceAgentOverlay(
             child: Scaffold(
             appBar: AppBar(
-              title: const Text('Verdi'),
+              title: Row(
+                children: [
+                  if (state.navIndex != 0) ...[
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, size: 20),
+                      onPressed: () => notifier.setNavIndex(0),
+                      tooltip: 'Return to Home',
+                    ),
+                    const SizedBox(width: 2),
+                  ],
+                  Expanded(
+                    child: Text(
+                      currentScreenTitle,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
               actions: [
                 // Demo Mode Quick Switch Action
                 InkWell(
@@ -140,7 +163,7 @@ class AppShell extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          ref.watch(isDemoModeProvider) ? 'DEMO ON' : 'REAL MODE',
+                          ref.watch(isDemoModeProvider) ? 'DEMO' : 'REAL',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
@@ -151,7 +174,6 @@ class AppShell extends ConsumerWidget {
                     ),
                   ),
                 ),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -187,55 +209,53 @@ class AppShell extends ConsumerWidget {
                       ),
                   ],
                 ),
-                GestureDetector(
-                  onTap: () {
-                    ref.read(appStateProvider.notifier).setNavIndex(21); // Settings index
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: const Color(0xFF16A34A),
-                      child: const Icon(Icons.person, size: 18, color: Colors.white),
-                    ),
+                Builder(
+                  builder: (scaffoldContext) => IconButton(
+                    icon: const Icon(Icons.menu),
+                    tooltip: 'All Modules',
+                    onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
                   ),
                 ),
               ],
             ),
             drawer: Drawer(child: sidebar),
             body: IndexedStack(index: state.navIndex, children: pages),
-            bottomNavigationBar: state.navIndex <= 3
-                ? NavigationBar(
-                    selectedIndex: state.navIndex,
-                    onDestinationSelected: (idx) {
-                      notifier.setNavIndex(idx);
-                      if (!isDesktop) {
-                        Navigator.of(context).maybePop();
-                      }
-                    },
-                    destinations: const [
-                      NavigationDestination(
-                        icon: Icon(Icons.home_outlined),
-                        label: 'Home',
-                      ),
-                      NavigationDestination(
-                        icon: Icon(Icons.storefront_outlined),
-                        label: 'Marketplace',
-                      ),
-                      NavigationDestination(
-                        icon: Icon(Icons.chat_bubble_outline),
-                        label: 'Chats',
-                      ),
-                      NavigationDestination(
-                        icon: Icon(Icons.insights_outlined),
-                        label: 'Analytics',
-                      ),
-                    ],
-                  )
-                : null,
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: state.navIndex > 3 ? 0 : state.navIndex,
+              onDestinationSelected: (idx) {
+                if (idx == 3) {
+                  // Open full drawer menu for all modules
+                  Scaffold.of(context).openDrawer();
+                } else {
+                  notifier.setNavIndex(idx);
+                }
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.storefront_outlined),
+                  selectedIcon: Icon(Icons.storefront_rounded),
+                  label: 'Market',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.chat_bubble_outline),
+                  selectedIcon: Icon(Icons.chat_bubble_rounded),
+                  label: 'Chats',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.grid_view_outlined),
+                  selectedIcon: Icon(Icons.grid_view_rounded),
+                  label: 'Modules',
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }
@@ -297,6 +317,7 @@ class Sidebar extends ConsumerWidget {
     _SidebarMenuItem(index: 22, label: 'Export', icon: LucideIcons.packageOpen),
     _SidebarMenuItem(index: 23, label: 'Admin Command Center', icon: LucideIcons.shieldAlert),
     _SidebarMenuItem(index: 24, label: 'News', icon: LucideIcons.newspaper),
+    _SidebarMenuItem(index: 25, label: 'Value Addition Hub', icon: LucideIcons.factory),
   ];
 
   @override
@@ -325,14 +346,12 @@ class Sidebar extends ConsumerWidget {
         case UserRole.farmer:
         case UserRole.expert:
           return item.index == 10 ||
-              item.index == 11 ||
               item.index == 13 ||
               item.index == 14 ||
               item.index == 17 ||
               item.index == 20;
 
         case UserRole.transporter:
-        case UserRole.driver:
           return item.index == 4 || item.index == 5 || item.index == 15;
 
         case UserRole.buyer:
@@ -342,10 +361,10 @@ class Sidebar extends ConsumerWidget {
           return item.index == 6 || item.index == 16;
 
         case UserRole.government:
-          return item.index == 3 || item.index == 11 || item.index == 17 || item.index == 18 || item.index == 20;
+          return item.index == 3 || item.index == 17 || item.index == 18 || item.index == 20;
 
         case UserRole.valueAdder:
-          return item.index == 4 || item.index == 6 || item.index == 16;
+          return item.index == 4 || item.index == 6 || item.index == 16 || item.index == 25;
 
         case UserRole.consumer:
           return item.index == 4;
@@ -398,28 +417,29 @@ class Sidebar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Demo Mode Switcher Tile
+                const SizedBox(height: 12),
+                // Active Mode Status Badge (Configured on Auth Screen)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: ref.watch(isDemoModeProvider)
-                        ? const Color(0xFF16A34A).withValues(alpha: 0.1)
-                        : Colors.grey.shade100,
+                        ? const Color(0xFF16A34A).withValues(alpha: 0.08)
+                        : Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: ref.watch(isDemoModeProvider)
-                          ? const Color(0xFF16A34A).withValues(alpha: 0.4)
-                          : Colors.black12,
+                          ? const Color(0xFF16A34A).withValues(alpha: 0.3)
+                          : Colors.blue.shade200,
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        Icons.science_outlined,
+                        ref.watch(isDemoModeProvider) ? Icons.science_outlined : Icons.cloud_done_outlined,
                         size: 18,
                         color: ref.watch(isDemoModeProvider)
                             ? const Color(0xFF16A34A)
-                            : Colors.grey.shade600,
+                            : Colors.blue.shade700,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -427,28 +447,21 @@ class Sidebar extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              ref.watch(isDemoModeProvider) ? 'Demo Mode (ON)' : 'Real Mode (OFF)',
+                              ref.watch(isDemoModeProvider) ? 'Mode: Offline Demo' : 'Mode: Live Real Network',
                               style: GoogleFonts.inter(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w800,
                                 color: ref.watch(isDemoModeProvider)
                                     ? const Color(0xFF16A34A)
-                                    : const Color(0xFF0F172A),
+                                    : Colors.blue.shade900,
                               ),
                             ),
                             Text(
-                              ref.watch(isDemoModeProvider) ? 'Viewing sample data' : 'Empty space for your data',
+                              ref.watch(isDemoModeProvider) ? 'Configured at Login' : 'Connected to live database',
                               style: GoogleFonts.inter(fontSize: 9.5, color: Colors.grey.shade600),
                             ),
                           ],
                         ),
-                      ),
-                      Switch.adaptive(
-                        value: ref.watch(isDemoModeProvider),
-                        activeColor: const Color(0xFF16A34A),
-                        onChanged: (val) {
-                          ref.read(appStateProvider.notifier).setDemoMode(val);
-                        },
                       ),
                     ],
                   ),

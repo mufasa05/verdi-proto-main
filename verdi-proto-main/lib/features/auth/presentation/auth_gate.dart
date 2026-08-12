@@ -5,6 +5,11 @@ import 'auth_screen.dart';
 import 'splash_welcome_page.dart';
 import '../state/auth_state.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:flutter/foundation.dart';
+import '../../../app_shell.dart';
+
 class AuthGate extends ConsumerStatefulWidget {
   const AuthGate({super.key});
 
@@ -20,6 +25,19 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     super.initState();
     // Run initialize once on startup — this restores any saved session.
     Future.microtask(() async {
+      // Purge legacy/old session data on first launch under new auth system.
+      // This ensures previously stored mock sessions are cleared completely.
+      final prefs = await SharedPreferences.getInstance();
+      final migratedKey = 'verdi.auth.migrated_v2';
+      if (prefs.getBool(migratedKey) != true) {
+        await prefs.remove('verdi.auth.session');
+        await prefs.remove('verdi.auth.token');
+        await prefs.remove('verdi.auth.last_email');
+        // Clear the old registered users store (v1) if present
+        await prefs.remove('verdi.auth.registered_users_db');
+        await prefs.setBool(migratedKey, true);
+      }
+
       await ref.read(authStateProvider.notifier).initialize();
       if (mounted) {
         setState(() => _initialized = true);
@@ -46,6 +64,9 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     }
 
     if (isAuthenticated) {
+      if (kIsWeb) {
+        return const AppShell();
+      }
       return const SplashWelcomePage();
     }
 

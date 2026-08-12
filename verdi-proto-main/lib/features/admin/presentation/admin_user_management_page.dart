@@ -44,7 +44,7 @@ class _AdminUserManagementPageState extends State<AdminUserManagementPage> {
   final List<UserItem> _users = [
     UserItem(id: 'USR-001', name: 'Kudakwashe Moyo', email: 'kuda.moyo@farmnet.co.zw', role: UserRole.farmer, status: 'Active', location: 'Harare, ZW', joinedDate: '12 Jan 2024'),
     UserItem(id: 'USR-002', name: 'Tendai Mutasa', email: 'tendai.m@agritrade.co.zw', role: UserRole.buyer, status: 'Active', location: 'Bulawayo, ZW', joinedDate: '04 Feb 2024'),
-    UserItem(id: 'USR-003', name: 'Blessing Ndlovu', email: 'b.ndlovu@expresslogistics.co.zw', role: UserRole.driver, status: 'Active', location: 'Gweru, ZW', joinedDate: '18 Mar 2024'),
+    UserItem(id: 'USR-003', name: 'Blessing Ndlovu', email: 'b.ndlovu@expresslogistics.co.zw', role: UserRole.transporter, status: 'Active', location: 'Gweru, ZW', joinedDate: '18 Mar 2024'),
     UserItem(id: 'USR-004', name: 'Dr. Farai Chigumba', email: 'farai.agri@gov.zw', role: UserRole.government, status: 'Active', location: 'Harare, ZW', joinedDate: '01 Nov 2023'),
     UserItem(id: 'USR-005', name: 'Chipo Sibanda', email: 'chipo.expert@verdi.co', role: UserRole.expert, status: 'Pending', location: 'Mutare, ZW', joinedDate: '10 Jul 2024'),
     UserItem(id: 'USR-006', name: 'Stanbic Agri Capital', email: 'loans@stanbic.co.zw', role: UserRole.financier, status: 'Active', location: 'Harare, ZW', joinedDate: '15 Dec 2023'),
