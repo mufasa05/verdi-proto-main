@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "framework": null,
+  "buildCommand": "cd verdi-proto-main && flutter build web --release",
+  "outputDirectory": "verdi-proto-main/build/web",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
