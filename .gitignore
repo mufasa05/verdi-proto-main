@@ -27,6 +27,8 @@ tsconfig.build.tsbuildinfo
 .pub/
 .flutter-plugins-dependencies
 build/
+!**/build/web/**
+!**/build/web/*
 *.zip
 *.log
 logcat_verdi.txt

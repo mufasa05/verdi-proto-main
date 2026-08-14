@@ -2,7 +2,7 @@
   "version": 2,
   "cleanUrls": true,
   "framework": null,
-  "buildCommand": "cd verdi-proto-main && flutter build web --release",
+  "buildCommand": null,
   "outputDirectory": "verdi-proto-main/build/web",
   "rewrites": [
     {
