@@ -71,7 +71,7 @@ class _LogisticsPageState extends ConsumerState<LogisticsPage> {
     
     List<DeliveryItem> userDeliveries = allDeliveries;
     if (role != UserRole.admin && user != null) {
-      userDeliveries = allDeliveries.where((d) {
+      final filtered = allDeliveries.where((d) {
         final isCustomer = d.customer.toLowerCase() == user.fullName.toLowerCase() || 
                            d.customer.toLowerCase().contains(user.fullName.toLowerCase()) ||
                            user.fullName.toLowerCase().contains(d.customer.toLowerCase());
@@ -80,6 +80,9 @@ class _LogisticsPageState extends ConsumerState<LogisticsPage> {
                          user.fullName.toLowerCase().contains(d.driver.toLowerCase());
         return isCustomer || isDriver;
       }).toList();
+      if (filtered.isNotEmpty) {
+        userDeliveries = filtered;
+      }
     }
 
     if (_selectedFilter == 'All') return userDeliveries;

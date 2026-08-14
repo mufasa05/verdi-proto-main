@@ -172,7 +172,7 @@ class AppState {
     required this.role,
     required this.navIndex,
     this.currency = AppCurrency.zig,
-    this.isDemoMode = false,
+    this.isDemoMode = true,
   });
 
   AppState copyWith({
@@ -193,7 +193,7 @@ class AppState {
     role: UserRole.farmer,
     navIndex: 0,
     currency: AppCurrency.zig,
-    isDemoMode: false,
+    isDemoMode: true,
   );
 }
 

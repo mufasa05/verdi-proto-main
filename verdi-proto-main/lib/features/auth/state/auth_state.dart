@@ -155,6 +155,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
 
     _setRole(role);
+    if (_ref != null) {
+      _ref!.read(appStateProvider.notifier).setDemoMode(true);
+    } else if (_container != null) {
+      _container!.read(appStateProvider.notifier).setDemoMode(true);
+    }
     state = state.copyWith(
       user: mockUser,
       isAuthenticated: true,
