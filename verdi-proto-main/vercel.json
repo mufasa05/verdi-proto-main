@@ -2,12 +2,15 @@
   "version": 2,
   "cleanUrls": true,
   "framework": null,
-  "buildCommand": "flutter build web --release",
+  "buildCommand": "echo 'Using precompiled web build'",
   "outputDirectory": "build/web",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
     }
   ],
   "headers": [

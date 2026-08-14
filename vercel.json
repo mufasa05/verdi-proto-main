@@ -2,12 +2,15 @@
   "version": 2,
   "cleanUrls": true,
   "framework": null,
-  "buildCommand": null,
+  "buildCommand": "echo 'Using precompiled web build'",
   "outputDirectory": "verdi-proto-main/build/web",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
     }
   ],
   "headers": [
