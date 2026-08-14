@@ -18,11 +18,14 @@ class _WeatherPageState extends State<WeatherPage> {
   String _selectedRadarMode = 'Precipitation Radar';
   bool _isAiQuerying = false;
   String? _customAiReply;
+  bool _isTransporterView = true;
+  String _selectedCorridor = 'A4: Harare ──▶ Chiredzi (420 km)';
 
   static const green = Color(0xFF16A34A);
   static const dark = Color(0xFF0F172A);
   static const muted = Color(0xFF64748B);
   static const blue = Color(0xFF2563EB);
+  static const orange = Color(0xFFF97316);
 
   final List<String> _locations = const [
     'Harare, Zimbabwe',
@@ -30,6 +33,13 @@ class _WeatherPageState extends State<WeatherPage> {
     'Mutare, Manicaland',
     'Bindura, Mashonaland',
     'Bulawayo, Matabeleland',
+  ];
+
+  final List<String> _corridors = const [
+    'A4: Harare ──▶ Chiredzi (420 km)',
+    'N2: Harare ──▶ Bulawayo (440 km)',
+    'Grain Belt: Mvurwi ──▶ Bulawayo (540 km)',
+    'A3: Harare ──▶ Mutare / Beira (290 km)',
   ];
 
   WeatherData _getWeatherDataForLocation(String location, WeatherData baseWeather) {
@@ -298,71 +308,204 @@ class _WeatherPageState extends State<WeatherPage> {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Location Quick Picker Bar
+                                // Transporter vs Farm Mode Switcher Bar
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.location_on_rounded, color: blue, size: 20),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Selected Region:',
-                                        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: dark),
-                                      ),
-                                      const SizedBox(width: 12),
                                       Expanded(
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            children: _locations.map((loc) {
-                                              final selected = loc == _selectedLocation;
-                                              return Padding(
-                                                padding: const EdgeInsets.only(right: 6),
-                                                child: ChoiceChip(
-                                                  label: Text(loc.split(',').first),
-                                                  selected: selected,
-                                                  selectedColor: blue,
-                                                  labelStyle: GoogleFonts.inter(
-                                                    color: selected ? Colors.white : dark,
+                                        child: InkWell(
+                                          onTap: () => setState(() => _isTransporterView = true),
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: _isTransporterView ? const Color(0xFFF97316) : Colors.transparent,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.local_shipping_rounded, size: 18, color: _isTransporterView ? Colors.white : dark),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'Transporter Highway Corridors',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 12.5,
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
+                                                    color: _isTransporterView ? Colors.white : dark,
                                                   ),
-                                                  onSelected: (_) {
-                                                    setState(() => _selectedLocation = loc);
-                                                  },
                                                 ),
-                                              );
-                                            }).toList(),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () => setState(() => _isTransporterView = false),
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: !_isTransporterView ? green : Colors.transparent,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.agriculture_rounded, size: 18, color: !_isTransporterView ? Colors.white : dark),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'Farm Agronomy & Crops',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: !_isTransporterView ? Colors.white : dark,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 16),
 
-                                // Hero Weather Card
-                                _WeatherHeroCard(
-                                  weather: activeWeather,
-                                  onAskAi: () => _showAiAdvisorDialog(context),
-                                ),
-                                const SizedBox(height: 16),
+                                if (_isTransporterView) ...[
+                                  // Transporter Corridor Picker
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.alt_route_rounded, color: orange, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Transit Corridor:',
+                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: dark),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              children: _corridors.map((corridor) {
+                                                final selected = corridor == _selectedCorridor;
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(right: 6),
+                                                  child: ChoiceChip(
+                                                    label: Text('${corridor.split(':').first}: ${corridor.split('──▶').last}'),
+                                                    selected: selected,
+                                                    selectedColor: orange,
+                                                    labelStyle: GoogleFonts.inter(
+                                                      color: selected ? Colors.white : dark,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 11.5,
+                                                    ),
+                                                    onSelected: (_) {
+                                                      setState(() => _selectedCorridor = corridor);
+                                                    },
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
 
-                                // Weather Alerts Card
-                                _WeatherAlertCard(alerts: activeWeather.alerts),
-                                const SizedBox(height: 16),
+                                  // Transporter Logistics Weather Hero Card
+                                  _TransporterWeatherHeroCard(
+                                    corridor: _selectedCorridor,
+                                    weather: activeWeather,
+                                    onAskAi: () => _showAiAdvisorDialog(context),
+                                  ),
+                                  const SizedBox(height: 16),
 
-                                // AI Agronomic Insights Rail
-                                _AiAgronomicInsightsRail(
-                                  weather: activeWeather,
-                                  onAskAi: () => _showAiAdvisorDialog(context),
-                                ),
-                                const SizedBox(height: 16),
+                                  // Transporter Logistics Hazards & Road Kpis
+                                  _TransporterLogisticsKpiGrid(corridor: _selectedCorridor),
+                                  const SizedBox(height: 16),
+                                ] else ...[
+                                  // Location Quick Picker Bar
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.location_on_rounded, color: blue, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Selected Region:',
+                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: dark),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              children: _locations.map((loc) {
+                                                final selected = loc == _selectedLocation;
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(right: 6),
+                                                  child: ChoiceChip(
+                                                    label: Text(loc.split(',').first),
+                                                    selected: selected,
+                                                    selectedColor: blue,
+                                                    labelStyle: GoogleFonts.inter(
+                                                      color: selected ? Colors.white : dark,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 12,
+                                                    ),
+                                                    onSelected: (_) {
+                                                      setState(() => _selectedLocation = loc);
+                                                    },
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Hero Weather Card
+                                  _WeatherHeroCard(
+                                    weather: activeWeather,
+                                    onAskAi: () => _showAiAdvisorDialog(context),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Weather Alerts Card
+                                  _WeatherAlertCard(alerts: activeWeather.alerts),
+                                  const SizedBox(height: 16),
+
+                                  // AI Agronomic Insights Rail
+                                  _AiAgronomicInsightsRail(
+                                    weather: activeWeather,
+                                    onAskAi: () => _showAiAdvisorDialog(context),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
 
                                 // Interactive Weather Radar Simulation Widget
                                 _WeatherRadarCard(
@@ -1306,6 +1449,267 @@ class _DailyForecastTile extends StatelessWidget {
           Text(
             '$min / $max',
             style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransporterWeatherHeroCard extends StatelessWidget {
+  final String corridor;
+  final WeatherData weather;
+  final VoidCallback onAskAi;
+
+  const _TransporterWeatherHeroCard({
+    required this.corridor,
+    required this.weather,
+    required this.onAskAi,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF97316).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFF97316).withOpacity(0.4)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.radar_rounded, color: Color(0xFFF97316), size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      'HIGHWAY FREIGHT CORRIDOR RADAR',
+                      style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: const Color(0xFFF97316), letterSpacing: 0.8),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: onAskAi,
+                icon: const Icon(Icons.psychology_rounded, size: 15),
+                label: const Text('Logistics AI Advisor', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF97316),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            corridor,
+            style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Route Status: Active Freight Haulage • Ambient Temperature 33°C • Moderate Crosswinds',
+            style: GoogleFonts.inter(fontSize: 12.5, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              _buildMetricChip(Icons.wb_sunny_outlined, '33°C Heat', 'Lowveld Segment', Colors.amber),
+              const SizedBox(width: 12),
+              _buildMetricChip(Icons.air_rounded, '38 km/h Wind', 'Escarpment Gusts', Colors.cyan),
+              const SizedBox(width: 12),
+              _buildMetricChip(Icons.water_drop_outlined, '18mm Rain', 'Farm Ramp Mud', Colors.orange),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricChip(IconData icon, String title, String subtitle, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+            ),
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF94A3B8)),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TransporterLogisticsKpiGrid extends StatelessWidget {
+  final String corridor;
+
+  const _TransporterLogisticsKpiGrid({required this.corridor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.shield_outlined, color: Color(0xFFF97316), size: 18),
+            const SizedBox(width: 6),
+            Text(
+              'TRANSPORTER ROAD HAZARDS & CARGO RISK INDEX',
+              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A), letterSpacing: 0.8),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        GridView.count(
+          crossAxisCount: MediaQuery.of(context).size.width > 900 ? 4 : 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.45,
+          children: const [
+            _TransporterHazardCard(
+              title: 'Farm Road Mud Access',
+              status: 'HIGH MUD RISK',
+              detail: '18mm recent rain on unpaved dirt ramps. 30-Tonne rigs risk getting bogged.',
+              statusColor: Color(0xFFDC2626),
+              icon: Icons.terrain_rounded,
+            ),
+            _TransporterHazardCard(
+              title: 'Highway Hydroplaning',
+              status: 'LOW RISK',
+              detail: 'Main asphalt tar is dry. Good tire traction along A4/N2 arterial roads.',
+              statusColor: Color(0xFF16A34A),
+              icon: Icons.alt_route_rounded,
+            ),
+            _TransporterHazardCard(
+              title: 'Trailer Crosswind Risk',
+              status: 'MODERATE WARNING',
+              detail: '38 km/h wind gusts on Save River bridge. Reduce speed for curtain-side trailers.',
+              statusColor: Color(0xFFD97706),
+              icon: Icons.air_rounded,
+            ),
+            _TransporterHazardCard(
+              title: 'Produce Spoilage Risk',
+              status: 'CRITICAL THERMAL',
+              detail: '33°C ambient heat in Lowveld. Fresh tomatoes require tarpaulin or refrigerated vent.',
+              statusColor: Color(0xFFDC2626),
+              icon: Icons.thermostat_rounded,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TransporterHazardCard extends StatelessWidget {
+  final String title;
+  final String status;
+  final String detail;
+  final Color statusColor;
+  final IconData icon;
+
+  const _TransporterHazardCard({
+    required this.title,
+    required this.status,
+    required this.detail,
+    required this.statusColor,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: statusColor),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              status,
+              style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w900, color: statusColor),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: Text(
+              detail,
+              style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF64748B), height: 1.25),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

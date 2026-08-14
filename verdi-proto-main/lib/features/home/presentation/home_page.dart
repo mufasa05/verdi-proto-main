@@ -1632,7 +1632,7 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
       );
     }
 
-    // Demo Data: 2 Cargo Load Requests
+    // Demo Data: 4 Cargo Load Requests
     return Column(
       children: [
         _buildBiddingCard(
@@ -1643,6 +1643,18 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
           ratePerKm: '\$0.90/km',
           deadline: 'Pickup by 14:00 Today',
           badgeColor: const Color(0xFF16A34A),
+          requesterName: 'Chiredzi East Farmers Co-operative',
+          requesterContactPerson: 'Mr. Farai Musonza (Logistics Director)',
+          requesterPhone: '+263 77 412 9081',
+          requesterRating: '4.9 ★ (142 completed trips)',
+          coopRegId: 'ZIM-COP-884920',
+          pickupFacility: 'Block B, Chiredzi East Packhouse, Lowveld Region',
+          pickupManager: 'Sekuru Blessing (+263 71 293 8472)',
+          dropoffFacility: 'Stall 44, Fresh Produce Terminal, Mbare Market, Harare',
+          dropoffManager: 'Kudzai Mbare Trading (+263 77 301 9284)',
+          cargoPackaging: '625 Ventilated Plastic Crates on 10 Euro-Pallets',
+          tempRequirement: '12°C - 15°C (Perishable Fresh Produce)',
+          escrowStatus: '100% Locked in Verdi Escrow Vault (\$380.00)',
         ),
         const SizedBox(height: 12),
         _buildBiddingCard(
@@ -1653,6 +1665,62 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
           ratePerKm: '\$1.33/km',
           deadline: 'Pickup Tomorrow 08:00',
           badgeColor: const Color(0xFF0284C7),
+          requesterName: 'Mvurwi Grain Producers Association',
+          requesterContactPerson: 'Mrs. Sarah Chimwanda (Depot Manager)',
+          requesterPhone: '+263 73 392 1045',
+          requesterRating: '4.85 ★ (98 completed trips)',
+          coopRegId: 'ZIM-AGR-542190',
+          pickupFacility: 'Mvurwi Grain Silo 4, Depot Road, Mashonaland Central',
+          pickupManager: 'Tinashe Silo Ops (+263 77 112 3901)',
+          dropoffFacility: 'Bulawayo Milling Plant, Belmont Industrial Site, Bulawayo',
+          dropoffManager: 'Receiving Bay 2 (+263 71 884 9201)',
+          cargoPackaging: '560 Bulk Woven Polypropylene Bags (50kg each)',
+          tempRequirement: 'Dry Bulk Ventilation (Max 12% Moisture Content)',
+          escrowStatus: '100% Locked in Verdi Escrow Vault (\$720.00)',
+        ),
+        const SizedBox(height: 12),
+        _buildBiddingCard(
+          context,
+          cargoTitle: '8.0 Tonnes Export Macadamia Nuts',
+          route: 'Chipinge Estate ──▶ Beira Port Export Terminal (290 km)',
+          fee: '\$640.00',
+          ratePerKm: '\$2.20/km',
+          deadline: 'Pickup Today 16:30',
+          badgeColor: const Color(0xFF8B5CF6),
+          requesterName: 'Highland Nut Exporters Ltd',
+          requesterContactPerson: 'Mr. Tendai Mutare (Export Controller)',
+          requesterPhone: '+263 77 904 1122',
+          requesterRating: '4.95 ★ (210 completed export trips)',
+          coopRegId: 'EXP-MAC-99120',
+          pickupFacility: 'Highland Processing Plant, Chipinge East, Manicaland',
+          pickupManager: 'Edmore Dispatch (+263 77 881 2044)',
+          dropoffFacility: 'Port of Beira Logistics Dock 4, Mozambique Transit Corridor',
+          dropoffManager: 'Customs Logistics (+258 84 991 0022)',
+          cargoPackaging: '160 Sealed Moisture-Proof Vacuum Drums',
+          tempRequirement: 'Low Humidity Dry Transit (Phytosanitary Sealed)',
+          escrowStatus: '100% Locked in Verdi Escrow Vault (\$640.00)',
+        ),
+        const SizedBox(height: 12),
+        _buildBiddingCard(
+          context,
+          cargoTitle: '18.5 Tonnes Grade A Irish Potatoes',
+          route: 'Nyanga Valley Co-op ──▶ Gweru Wholesale Depot (380 km)',
+          fee: '\$490.00',
+          ratePerKm: '\$1.29/km',
+          deadline: 'Pickup Tomorrow 06:00',
+          badgeColor: const Color(0xFFD97706),
+          requesterName: 'Nyanga Highlands Farmers Co-op',
+          requesterContactPerson: 'Mrs. Grace Chipo (Co-op Chair)',
+          requesterPhone: '+263 71 554 9900',
+          requesterRating: '4.8 ★ (76 completed trips)',
+          coopRegId: 'ZIM-COP-33819',
+          pickupFacility: 'Central Sorting Shed, Nyanga Valley, Manicaland',
+          pickupManager: 'Takudzwa Farm Manager (+263 77 441 0928)',
+          dropoffFacility: 'Gweru Wholesale Agricultural Depot, Midlands',
+          dropoffManager: 'Depot Receiving Bay (+263 73 990 1283)',
+          cargoPackaging: '1,230 Mesh Sacks (15kg per sack)',
+          tempRequirement: 'Cool Ambient Ventilation Required (Covered Tarpaulin)',
+          escrowStatus: '100% Locked in Verdi Escrow Vault (\$490.00)',
         ),
       ],
     );
@@ -1666,6 +1734,18 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
     required String ratePerKm,
     required String deadline,
     required Color badgeColor,
+    required String requesterName,
+    required String requesterContactPerson,
+    required String requesterPhone,
+    required String requesterRating,
+    required String coopRegId,
+    required String pickupFacility,
+    required String pickupManager,
+    required String dropoffFacility,
+    required String dropoffManager,
+    required String cargoPackaging,
+    required String tempRequirement,
+    required String escrowStatus,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1697,6 +1777,25 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
                   style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: badgeColor),
                 ),
               ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16A34A).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFF16A34A).withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.shield_outlined, size: 10, color: Color(0xFF16A34A)),
+                    const SizedBox(width: 3),
+                    Text(
+                      'VERIFIED REQUESTER',
+                      style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFF16A34A)),
+                    ),
+                  ],
+                ),
+              ),
               const Spacer(),
               Text(
                 fee,
@@ -1723,6 +1822,21 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          // Requester Summary Line
+          Row(
+            children: [
+              const Icon(Icons.business_outlined, size: 13, color: Color(0xFF16A34A)),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  'Requester: $requesterName • $requesterRating',
+                  style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -1731,13 +1845,62 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
                 style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B)),
               ),
               const Spacer(),
+              // Secondary View Details Button
+              OutlinedButton.icon(
+                onPressed: () {
+                  _showCargoRequesterDetailModal(
+                    context,
+                    cargoTitle: cargoTitle,
+                    route: route,
+                    fee: fee,
+                    ratePerKm: ratePerKm,
+                    deadline: deadline,
+                    requesterName: requesterName,
+                    requesterContactPerson: requesterContactPerson,
+                    requesterPhone: requesterPhone,
+                    requesterRating: requesterRating,
+                    coopRegId: coopRegId,
+                    pickupFacility: pickupFacility,
+                    pickupManager: pickupManager,
+                    dropoffFacility: dropoffFacility,
+                    dropoffManager: dropoffManager,
+                    cargoPackaging: cargoPackaging,
+                    tempRequirement: tempRequirement,
+                    escrowStatus: escrowStatus,
+                  );
+                },
+                icon: const Icon(Icons.info_outline_rounded, size: 15),
+                label: const Text('View Info', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF0F172A),
+                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Primary Accept Button
               ElevatedButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('✅ Accepted Freight Load: $cargoTitle!'),
-                      backgroundColor: const Color(0xFF16A34A),
-                    ),
+                  _showCargoRequesterDetailModal(
+                    context,
+                    cargoTitle: cargoTitle,
+                    route: route,
+                    fee: fee,
+                    ratePerKm: ratePerKm,
+                    deadline: deadline,
+                    requesterName: requesterName,
+                    requesterContactPerson: requesterContactPerson,
+                    requesterPhone: requesterPhone,
+                    requesterRating: requesterRating,
+                    coopRegId: coopRegId,
+                    pickupFacility: pickupFacility,
+                    pickupManager: pickupManager,
+                    dropoffFacility: dropoffFacility,
+                    dropoffManager: dropoffManager,
+                    cargoPackaging: cargoPackaging,
+                    tempRequirement: tempRequirement,
+                    escrowStatus: escrowStatus,
                   );
                 },
                 icon: const Icon(Icons.check_circle_outline, size: 16),
@@ -1750,6 +1913,310 @@ class _CargoBiddingRadarSection extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCargoRequesterDetailModal(
+    BuildContext context, {
+    required String cargoTitle,
+    required String route,
+    required String fee,
+    required String ratePerKm,
+    required String deadline,
+    required String requesterName,
+    required String requesterContactPerson,
+    required String requesterPhone,
+    required String requesterRating,
+    required String coopRegId,
+    required String pickupFacility,
+    required String pickupManager,
+    required String dropoffFacility,
+    required String dropoffManager,
+    required String cargoPackaging,
+    required String tempRequirement,
+    required String escrowStatus,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Drag Handle & Close
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF16A34A).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'LOAD SPECIFICATIONS & REQUESTER DOSSIER',
+                      style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: const Color(0xFF16A34A), letterSpacing: 0.8),
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              
+              // Load Title & Escrow Lock Badge
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cargoTitle,
+                          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$route • $ratePerKm',
+                          style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF475569), fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        fee,
+                        style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w900, color: const Color(0xFF16A34A)),
+                      ),
+                      Text(
+                        'Escrow Vault Guaranteed',
+                        style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF16A34A), fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: ListView(
+                  children: [
+                    // Section 1: Requester Profile Card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 22,
+                                backgroundColor: const Color(0xFF16A34A).withOpacity(0.15),
+                                child: const Icon(Icons.business_center_rounded, color: Color(0xFF16A34A), size: 24),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            requesterName,
+                                            style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF0284C7)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$requesterContactPerson • Reg ID: $coopRegId',
+                                      style: GoogleFonts.inter(fontSize: 11.5, color: const Color(0xFF475569)),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      requesterRating,
+                                      style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFFD97706), fontWeight: FontWeight.w700),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('📞 Calling $requesterContactPerson ($requesterPhone)...')),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.phone_outlined, size: 16),
+                                  label: Text('Call ($requesterPhone)', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF0F172A),
+                                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('💬 Opening WhatsApp Chat with $requesterName...')),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                                  label: const Text('WhatsApp', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF25D366),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Section 2: Origin & Pickup Location Details
+                    _buildModalSectionHeader('PICKUP ORIGIN & LOADING BAY', Icons.location_on_outlined, const Color(0xFF16A34A)),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('Pickup Facility', pickupFacility),
+                    _buildDetailRow('On-Site Dispatcher', pickupManager),
+                    _buildDetailRow('Pickup Window', deadline),
+
+                    const SizedBox(height: 16),
+
+                    // Section 3: Dropoff & Destination Details
+                    _buildModalSectionHeader('DELIVERY DESTINATION & OFFLOADING', Icons.flag_outlined, const Color(0xFF0284C7)),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('Destination Point', dropoffFacility),
+                    _buildDetailRow('Recipient Contact', dropoffManager),
+
+                    const SizedBox(height: 16),
+
+                    // Section 4: Cargo & Handling Specifications
+                    _buildModalSectionHeader('CARGO SPECIFICATIONS & HANDLING', Icons.inventory_2_outlined, const Color(0xFFD97706)),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('Packaging / Unit Type', cargoPackaging),
+                    _buildDetailRow('Temperature Requirement', tempRequirement),
+
+                    const SizedBox(height: 16),
+
+                    // Section 5: Financial Escrow Security
+                    _buildModalSectionHeader('PAYMENT ESCROW & FREIGHT TERMS', Icons.lock_clock_outlined, const Color(0xFF8B5CF6)),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('Vault Lock Status', escrowStatus),
+                    _buildDetailRow('Payout Terms', '50% Instant Mobile Money Advance on Loading Scan • 50% Balance on e-POD Signoff'),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('✅ Successfully Accepted Load for $cargoTitle! Waybill generated.'),
+                            backgroundColor: const Color(0xFF16A34A),
+                            duration: const Duration(seconds: 4),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.check_circle_rounded, size: 20),
+                      label: Text('Accept & Lock Load ($fee)', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF97316),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalSectionHeader(String title, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(
+          title,
+          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: color, letterSpacing: 0.8),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6, left: 22),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              '$label:',
+              style: GoogleFonts.inter(fontSize: 11.5, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(fontSize: 11.5, color: const Color(0xFF0F172A), fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
