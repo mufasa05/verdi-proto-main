@@ -402,19 +402,24 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
           children: [
             Text(
               switch (effectiveRole) {
-                UserRole.farmer => 'Farmer Crop Yield & Field Performance Analytics',
-                UserRole.transporter => 'Fleet Freight & Transport Operations Analytics',
-                UserRole.buyer => 'Procurement & Supply Chain Sourcing Analytics',
-                UserRole.expert => 'Agronomy Diagnostic & Advisory Analytics',
-                UserRole.financier => 'Agri-Credit Portfolio & Escrow Analytics',
-                UserRole.valueAdder => 'Agri-Processing & Value-Chain Analytics',
-                UserRole.government => 'National Grain Security & EUDR Trade Analytics',
-                UserRole.consumer => 'Fresh Produce Origin & Quality Analytics',
-                UserRole.admin => 'Super Admin Value Chain Command Analytics',
+                UserRole.farmer => 'Field & Yield Analytics',
+                UserRole.transporter => 'Freight & Logistics Analytics',
+                UserRole.buyer => 'Supply Chain Sourcing Analytics',
+                UserRole.expert => 'Agronomy Diagnostic Analytics',
+                UserRole.financier => 'Agri-Credit Portfolio Analytics',
+                UserRole.valueAdder => 'Agri-Processing Analytics',
+                UserRole.government => 'Grain Security & Trade Analytics',
+                UserRole.consumer => 'Produce Origin Analytics',
+                UserRole.admin => 'Executive Value Chain Analytics',
               },
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: AnalyticsPage.dark),
             ),
-            Text('Real-Time Spatial Telemetry & Predictive AI Suite', style: GoogleFonts.inter(fontSize: 11, color: AnalyticsPage.muted, fontWeight: FontWeight.w500)),
+            Text(
+              'Spatial Telemetry & Predictive AI',
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(fontSize: 11, color: AnalyticsPage.muted, fontWeight: FontWeight.w500),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
@@ -807,14 +812,35 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
             children: [
               Text('SIMULATED OUTPUT PROJECTIONS (25 HA SECTOR)', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E), letterSpacing: 1.0)),
               const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _simOutputMetric('Projected Yield', '${projectedYield.toStringAsFixed(1)} Tons/ha', const Color(0xFF22C55E)),
-                  _simOutputMetric('Net Gross Profit', '\$${netProfit.toStringAsFixed(0)}', Colors.white),
-                  _simOutputMetric('Profit Margin', '${margin.toStringAsFixed(1)}%', const Color(0xFF38BDF8)),
-                  _simOutputMetric('CO2 Offset', '${co2Offset.toStringAsFixed(1)} T', const Color(0xFFA7F3D0)),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 540;
+                  if (isNarrow) {
+                    return GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 2.2,
+                      children: [
+                        _simOutputMetric('Projected Yield', '${projectedYield.toStringAsFixed(1)} Tons/ha', const Color(0xFF22C55E)),
+                        _simOutputMetric('Net Gross Profit', '\$${netProfit.toStringAsFixed(0)}', Colors.white),
+                        _simOutputMetric('Profit Margin', '${margin.toStringAsFixed(1)}%', const Color(0xFF38BDF8)),
+                        _simOutputMetric('CO2 Offset', '${co2Offset.toStringAsFixed(1)} T', const Color(0xFFA7F3D0)),
+                      ],
+                    );
+                  }
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _simOutputMetric('Projected Yield', '${projectedYield.toStringAsFixed(1)} Tons/ha', const Color(0xFF22C55E)),
+                      _simOutputMetric('Net Gross Profit', '\$${netProfit.toStringAsFixed(0)}', Colors.white),
+                      _simOutputMetric('Profit Margin', '${margin.toStringAsFixed(1)}%', const Color(0xFF38BDF8)),
+                      _simOutputMetric('CO2 Offset', '${co2Offset.toStringAsFixed(1)} T', const Color(0xFFA7F3D0)),
+                    ],
+                  );
+                },
               ),
             ],
           ),

@@ -1002,6 +1002,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
   Widget _buildPersonalWalletHeader(UserRole role, bool isInstitutionalAllowed) {
     final currency = ref.watch(appStateProvider).currency;
     final appNotifier = ref.read(appStateProvider.notifier);
+    final isNarrow = MediaQuery.of(context).size.width < 650;
 
     String title = 'Personal Agri-Wallet & Digital Earnings';
     if (role == UserRole.transporter) {
@@ -1016,24 +1017,27 @@ class _FinancePageState extends ConsumerState<FinancePage> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.black12)),
+      ),
+      child: isNarrow
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: dark,
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: dark,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
@@ -1056,49 +1060,135 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                   'Manage payout settlements in ZiG, USD & ZAR, mobile money transfers, and credit lines.',
                   style: GoogleFonts.inter(fontSize: 12, color: muted),
                 ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<AppCurrency>(
+                          value: currency,
+                          isDense: true,
+                          menuMaxHeight: 200,
+                          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: dark),
+                          onChanged: (c) {
+                            if (c != null) appNotifier.setCurrency(c);
+                          },
+                          items: AppCurrency.values.map((c) {
+                            return DropdownMenuItem<AppCurrency>(
+                              value: c,
+                              child: Text('${c.flag} ${c.code}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    if (isInstitutionalAllowed)
+                      ElevatedButton.icon(
+                        onPressed: () => setState(() => _showInstitutionalView = true),
+                        icon: const Icon(Icons.account_balance_outlined, size: 16),
+                        label: const Text('Institutional Treasury Hub'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: dark,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: dark,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: green.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${role.label.toUpperCase()} DESK',
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: green,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Manage payout settlements in ZiG, USD & ZAR, mobile money transfers, and credit lines.',
+                        style: GoogleFonts.inter(fontSize: 12, color: muted),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<AppCurrency>(
+                      value: currency,
+                      isDense: true,
+                      menuMaxHeight: 200,
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: dark),
+                      onChanged: (c) {
+                        if (c != null) appNotifier.setCurrency(c);
+                      },
+                      items: AppCurrency.values.map((c) {
+                        return DropdownMenuItem<AppCurrency>(
+                          value: c,
+                          child: Text('${c.flag} ${c.code}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                if (isInstitutionalAllowed)
+                  ElevatedButton.icon(
+                    onPressed: () => setState(() => _showInstitutionalView = true),
+                    icon: const Icon(Icons.account_balance_outlined, size: 16),
+                    label: const Text('Institutional Treasury Hub'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: dark,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<AppCurrency>(
-                value: currency,
-                isDense: true,
-                menuMaxHeight: 200,
-                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: dark),
-                onChanged: (c) {
-                  if (c != null) appNotifier.setCurrency(c);
-                },
-                items: AppCurrency.values.map((c) {
-                  return DropdownMenuItem<AppCurrency>(
-                    value: c,
-                    child: Text('${c.flag} ${c.code}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          if (isInstitutionalAllowed)
-            ElevatedButton.icon(
-              onPressed: () => setState(() => _showInstitutionalView = true),
-              icon: const Icon(Icons.account_balance_outlined, size: 16),
-              label: const Text('Institutional Treasury Hub'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: dark,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-        ],
-      ),
     );
   }
 

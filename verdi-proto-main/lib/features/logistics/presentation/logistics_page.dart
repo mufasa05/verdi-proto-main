@@ -1041,88 +1041,169 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          if (isCompact) ...[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Fleet & Transport Command Center',
-                          style: GoogleFonts.inter(
-                            fontSize: isCompact ? 18 : 22,
-                            fontWeight: FontWeight.w800,
-                            color: _LogisticsPageState.dark,
-                          ),
+                    Expanded(
+                      child: Text(
+                        'Fleet & Transport Command Center',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: _LogisticsPageState.dark,
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: _LogisticsPageState.green.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'LIVE TELEMETRY',
-                            style: GoogleFonts.inter(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                              color: _LogisticsPageState.green,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Real-time cold chain monitoring, driver radio dispatch, and SADC freight tracking.',
-                      style: GoogleFonts.inter(color: _LogisticsPageState.muted, fontSize: 12, height: 1.3),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _LogisticsPageState.green.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'LIVE TELEMETRY',
+                        style: GoogleFonts.inter(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w900,
+                          color: _LogisticsPageState.green,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: onBookDispatch,
-                    icon: const Icon(Icons.local_shipping_outlined, size: 16),
-                    label: const Text('Book Dispatch'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _LogisticsPageState.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                const SizedBox(height: 4),
+                Text(
+                  'Real-time cold chain monitoring, driver radio dispatch, and SADC freight tracking.',
+                  style: GoogleFonts.inter(color: _LogisticsPageState.muted, fontSize: 12, height: 1.3),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: onBookDispatch,
+                      icon: const Icon(Icons.local_shipping_outlined, size: 16),
+                      label: const Text('Book Dispatch'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _LogisticsPageState.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: onRegisterVehicle,
-                    icon: const Icon(Icons.directions_car_outlined, size: 16),
-                    label: const Text('Add Vehicle'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _LogisticsPageState.dark,
-                      side: const BorderSide(color: Colors.black26),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    OutlinedButton.icon(
+                      onPressed: onRegisterVehicle,
+                      icon: const Icon(Icons.directions_car_outlined, size: 16),
+                      label: const Text('Add Vehicle'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _LogisticsPageState.dark,
+                        side: const BorderSide(color: Colors.black26),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: onExport,
-                    tooltip: 'Export delivery report',
-                    icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                    style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFFF8FAFC),
-                      side: const BorderSide(color: Colors.black12),
+                    IconButton(
+                      onPressed: onExport,
+                      tooltip: 'Export delivery report',
+                      icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8FAFC),
+                        side: const BorderSide(color: Colors.black12),
+                      ),
                     ),
+                  ],
+                ),
+              ],
+            ),
+          ] else ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Fleet & Transport Command Center',
+                            style: GoogleFonts.inter(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: _LogisticsPageState.dark,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: _LogisticsPageState.green.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'LIVE TELEMETRY',
+                              style: GoogleFonts.inter(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                color: _LogisticsPageState.green,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Real-time cold chain monitoring, driver radio dispatch, and SADC freight tracking.',
+                        style: GoogleFonts.inter(color: _LogisticsPageState.muted, fontSize: 12, height: 1.3),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                const SizedBox(width: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: onBookDispatch,
+                      icon: const Icon(Icons.local_shipping_outlined, size: 16),
+                      label: const Text('Book Dispatch'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _LogisticsPageState.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: onRegisterVehicle,
+                      icon: const Icon(Icons.directions_car_outlined, size: 16),
+                      label: const Text('Add Vehicle'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _LogisticsPageState.dark,
+                        side: const BorderSide(color: Colors.black26),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onExport,
+                      tooltip: 'Export delivery report',
+                      icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8FAFC),
+                        side: const BorderSide(color: Colors.black12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
           Wrap(
             spacing: 6,

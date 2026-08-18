@@ -276,13 +276,16 @@ class DroneInspectionView extends ConsumerWidget {
                   const SizedBox(height: 22),
 
                   // AI Classified Anomaly Section
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: 8,
+                    runSpacing: 6,
                     children: [
                       Text(
-                        'AI-Classified Crop Anomalies & Recommendations',
-                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark),
+                        'AI-Classified Crop Anomalies',
+                        style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w800, color: dark),
                       ),
-                      const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
@@ -326,67 +329,118 @@ class DroneInspectionView extends ConsumerWidget {
                   const SizedBox(height: 22),
 
                   // Launch Mission Banner CTA
-                  Container(
-                    padding: const EdgeInsets.all(22),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0F172A), Color(0xFF10B981)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: green.withValues(alpha: 0.25),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 650;
+                      return Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0F172A), Color(0xFF10B981)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: green.withValues(alpha: 0.25),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                        child: isNarrow
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(Icons.flight_takeoff, color: Colors.white, size: 22),
-                                  const SizedBox(width: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.flight_takeoff, color: Colors.white, size: 20),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Launch Real-Time Drone Telemetry',
+                                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
                                   Text(
-                                    'Launch Real-Time Drone Telemetry Simulator',
-                                    style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white),
+                                    'Experience live 5G mesh telemetry tracking, multispectral camera streams, and instant automated AI spot-treatment purchase triggers.',
+                                    style: GoogleFonts.inter(fontSize: 12.5, color: Colors.white.withValues(alpha: 0.88), height: 1.4),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const AutoMissionScreen()),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                                      label: const Text('Start Telemetry'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: dark,
+                                        elevation: 4,
+                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.flight_takeoff, color: Colors.white, size: 22),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                'Launch Real-Time Drone Telemetry',
+                                                style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          'Experience live 5G mesh telemetry tracking, multispectral camera streams, and instant automated AI spot-treatment purchase triggers.',
+                                          style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withValues(alpha: 0.88), height: 1.4),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const AutoMissionScreen()),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                                    label: const Text('Start Telemetry'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: dark,
+                                      elevation: 4,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Experience live 5G mesh telemetry tracking, multispectral camera streams, and instant automated AI spot-treatment purchase triggers.',
-                                style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withValues(alpha: 0.88), height: 1.4),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const AutoMissionScreen()),
-                            );
-                          },
-                          icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                          label: const Text('Start Telemetry'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: dark,
-                            elevation: 4,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 60),
                 ],
@@ -556,13 +610,15 @@ class _SpatialHeroBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     Text(
                       'Geospatial Sentinel-2 Telemetry Link',
                       style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),
                     ),
-                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(color: const Color(0xFF10B981), borderRadius: BorderRadius.circular(12)),
@@ -644,13 +700,14 @@ class _MissionStatRow extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cols = constraints.maxWidth > 800 ? 4 : 2;
+        final isWide = constraints.maxWidth > 800;
+        final cols = isWide ? 4 : 2;
         return GridView.count(
           crossAxisCount: cols,
           shrinkWrap: true,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: constraints.maxWidth > 800 ? 1.8 : 2.2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: isWide ? 1.8 : 1.55,
           physics: const NeverScrollableScrollPhysics(),
           children: [
             _StatChip(label: 'Missions Complete', value: isDemo ? '14' : '0', sub: isDemo ? 'This Season' : 'Live Network', icon: Icons.flight_outlined, color: const Color(0xFF10B981)),
@@ -682,10 +739,10 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
@@ -694,21 +751,21 @@ class _StatChip extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 22),
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 11.5, color: const Color(0xFF64748B))),
-                const SizedBox(height: 2),
-                Text(value, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
-                Text(sub, style: GoogleFonts.inter(fontSize: 10, color: color, fontWeight: FontWeight.bold)),
+                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B))),
+                const SizedBox(height: 1),
+                Text(value, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 9.5, color: color, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -738,8 +795,10 @@ class _MissionList extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Text('Flight Mission Queue & History', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
-              const Spacer(),
+              Expanded(
+                child: Text('Flight Mission Queue & History', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
+              ),
+              const SizedBox(width: 8),
               Text('${missions.length} Registered', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B))),
             ],
           ),

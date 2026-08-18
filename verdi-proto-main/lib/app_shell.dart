@@ -123,24 +123,23 @@ class AppShell extends ConsumerWidget {
           return GlobalVoiceAgentOverlay(
             child: Scaffold(
             appBar: AppBar(
-              title: Row(
-                children: [
-                  if (state.navIndex != 0) ...[
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, size: 20),
+              leading: state.navIndex != 0
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
                       onPressed: () => notifier.setNavIndex(0),
                       tooltip: 'Return to Home',
+                    )
+                  : Builder(
+                      builder: (scaffoldContext) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        tooltip: 'All Modules',
+                        onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                      ),
                     ),
-                    const SizedBox(width: 2),
-                  ],
-                  Expanded(
-                    child: Text(
-                      currentScreenTitle,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
+              title: Text(
+                currentScreenTitle,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold),
               ),
               actions: [
                 Stack(
@@ -151,6 +150,7 @@ class AppShell extends ConsumerWidget {
                         notifier.setNavIndex(7); // Go to notifications/alerts
                       },
                       icon: const Icon(Icons.notifications_none_outlined),
+                      tooltip: 'Notifications',
                     ),
                     if (alertCount > 0)
                       Positioned(
@@ -178,13 +178,14 @@ class AppShell extends ConsumerWidget {
                       ),
                   ],
                 ),
-                Builder(
-                  builder: (scaffoldContext) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    tooltip: 'All Modules',
-                    onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                if (state.navIndex != 0)
+                  Builder(
+                    builder: (scaffoldContext) => IconButton(
+                      icon: const Icon(Icons.grid_view_outlined),
+                      tooltip: 'All Modules',
+                      onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                    ),
                   ),
-                ),
               ],
             ),
             drawer: Drawer(child: sidebar),
