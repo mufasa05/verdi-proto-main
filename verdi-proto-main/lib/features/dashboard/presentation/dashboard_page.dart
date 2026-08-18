@@ -310,17 +310,47 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Super administrator',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Super administrator',
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: ref.watch(isDemoModeProvider)
+                                ? accentGold.withValues(alpha: 0.15)
+                                : accentGreen.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: ref.watch(isDemoModeProvider)
+                                  ? accentGold.withValues(alpha: 0.4)
+                                  : accentGreen.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Text(
+                            ref.watch(isDemoModeProvider) ? 'DEMO SANDBOX' : 'LIVE PRODUCTION',
+                            style: TextStyle(
+                              color: ref.watch(isDemoModeProvider) ? accentGold : accentGreen,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Highest privilege role in Verdi OS · Full system sovereignty · All domains · All modules',
+                      ref.watch(isDemoModeProvider)
+                          ? 'Demo Sandbox Mode · Pre-populated scenario fixtures for testing'
+                          : 'Live Production Mode · Zero mock data · Live platform telemetry & true source records',
                       style: GoogleFonts.inter(fontSize: 11, color: textMuted),
                     ),
                   ],

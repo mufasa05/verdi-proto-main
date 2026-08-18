@@ -369,11 +369,11 @@ class DeliveriesNotifier extends StateNotifier<List<DeliveryItem>> {
   static final List<DeliveryItem> _userDeliveries = [];
 
   DeliveriesNotifier({required this.isDemo})
-      : super(isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries, ...LogisticsMockData.deliveries]);
+      : super(isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries]);
 
   void addDelivery(DeliveryItem delivery) {
     _userDeliveries.insert(0, delivery);
-    state = isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries, ...LogisticsMockData.deliveries];
+    state = isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries];
   }
 
   void updateDeliveryStatus(String id, String status) {
@@ -583,7 +583,17 @@ final List<LiveUserSession> _defaultLiveSessions = [
 ];
 
 class LiveUserSessionsNotifier extends StateNotifier<List<LiveUserSession>> {
-  LiveUserSessionsNotifier() : super(_defaultLiveSessions);
+  final bool isDemo;
+  static final List<LiveUserSession> _userLiveSessions = [];
+
+  LiveUserSessionsNotifier({required this.isDemo})
+      : super(isDemo ? _defaultLiveSessions : _userLiveSessions);
+
+  void registerLiveUser(LiveUserSession session) {
+    _userLiveSessions.removeWhere((s) => s.id == session.id);
+    _userLiveSessions.insert(0, session);
+    state = isDemo ? _defaultLiveSessions : [..._userLiveSessions];
+  }
 
   void setUserOnlineStatus(String userId, bool isOnline, String action) {
     state = state.map((s) {
@@ -608,11 +618,16 @@ class LiveUserSessionsNotifier extends StateNotifier<List<LiveUserSession>> {
 
 final liveUserSessionsProvider =
     StateNotifierProvider<LiveUserSessionsNotifier, List<LiveUserSession>>((ref) {
-  return LiveUserSessionsNotifier();
+  final isDemo = ref.watch(isDemoModeProvider);
+  return LiveUserSessionsNotifier(isDemo: isDemo);
 });
 
 class PlatformActivityNotifier extends StateNotifier<List<PlatformActivityEvent>> {
-  PlatformActivityNotifier() : super(_initialEvents);
+  final bool isDemo;
+  static final List<PlatformActivityEvent> _userLiveEvents = [];
+
+  PlatformActivityNotifier({required this.isDemo})
+      : super(isDemo ? _initialEvents : _userLiveEvents);
 
   static final List<PlatformActivityEvent> _initialEvents = [
     const PlatformActivityEvent(
@@ -686,11 +701,13 @@ class PlatformActivityNotifier extends StateNotifier<List<PlatformActivityEvent>
   ];
 
   void logActivity(PlatformActivityEvent event) {
-    state = [event, ...state];
+    _userLiveEvents.insert(0, event);
+    state = isDemo ? [event, ...state] : [..._userLiveEvents];
   }
 }
 
 final platformActivityProvider =
     StateNotifierProvider<PlatformActivityNotifier, List<PlatformActivityEvent>>((ref) {
-  return PlatformActivityNotifier();
+  final isDemo = ref.watch(isDemoModeProvider);
+  return PlatformActivityNotifier(isDemo: isDemo);
 });

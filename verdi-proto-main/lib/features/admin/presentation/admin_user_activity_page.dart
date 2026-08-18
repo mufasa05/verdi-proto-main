@@ -313,6 +313,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
   }
 
   List<UserActivityEvent> _getMergedEvents(WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
     final livePlatformEvents = ref.watch(platformActivityProvider);
     final mappedLive = livePlatformEvents.map((p) {
       final color = switch (p.status.toLowerCase()) {
@@ -349,7 +350,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       );
     }).toList();
 
-    final all = [...mappedLive, ..._allEvents];
+    final all = isDemo ? [...mappedLive, ..._allEvents] : mappedLive;
     return all.where((e) {
       final matchesQuery = _searchQuery.isEmpty ||
           e.userName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -536,7 +537,24 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
   }
 
   Widget _buildLiveUserPresenceSection() {
-    final sessions = ref.watch(liveUserSessionsProvider);
+    final rawSessions = ref.watch(liveUserSessionsProvider);
+    final isDemo = ref.watch(isDemoModeProvider);
+    final sessions = (rawSessions.isEmpty && !isDemo)
+        ? [
+            const LiveUserSession(
+              id: 'USR-ADM-CREATOR',
+              name: 'Verdi Creator (Super Admin)',
+              role: UserRole.admin,
+              avatar: 'VC',
+              location: 'Harare Command Station',
+              device: 'Sovereign Admin Console',
+              ipAddress: '10.0.0.1 (Secure Mesh)',
+              isOnline: true,
+              lastHeartbeat: 'Just now',
+              currentAction: 'Active Surveillance & Platform Control',
+            ),
+          ]
+        : rawSessions;
     final onlineCount = sessions.where((s) => s.isOnline).length;
     final offlineCount = sessions.length - onlineCount;
 
@@ -778,11 +796,20 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                       decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(18), border: Border.all(color: cardBorder)),
                       child: Column(
                         children: [
-                          const Icon(Icons.search_off_rounded, size: 48, color: textMuted),
+                          Icon(ref.watch(isDemoModeProvider) ? Icons.search_off_rounded : Icons.radar_outlined, size: 48, color: ref.watch(isDemoModeProvider) ? textMuted : blue),
                           const SizedBox(height: 12),
-                          Text('No user activities match this filter criteria.', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text(
+                            ref.watch(isDemoModeProvider) ? 'No user activities match this filter criteria.' : 'Live Platform Audit Stream Active',
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
                           const SizedBox(height: 6),
-                          const Text('Try clearing your search query or role/module filters.', style: TextStyle(color: textMuted, fontSize: 12.5)),
+                          Text(
+                            ref.watch(isDemoModeProvider)
+                                ? 'Try clearing your search query or role/module filters.'
+                                : 'Actions from farmers, transporters, buyers, and financiers will stream here automatically as they interact with the live platform.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: textMuted, fontSize: 12.5),
+                          ),
                         ],
                       ),
                     )

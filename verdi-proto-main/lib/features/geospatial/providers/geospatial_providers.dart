@@ -150,7 +150,7 @@ final _initialTasks = [
 // --- RIVERPOD STATE NOTIFIERS ---
 
 class GeoFieldsNotifier extends StateNotifier<List<GeoField>> {
-  GeoFieldsNotifier({bool isDemo = true}) : super([..._initialFields]);
+  GeoFieldsNotifier({bool isDemo = true}) : super(isDemo ? [..._initialFields] : []);
 
   void addField(GeoField field) {
     state = [...state, field];
@@ -162,7 +162,7 @@ class GeoFieldsNotifier extends StateNotifier<List<GeoField>> {
 }
 
 class GeoZonesNotifier extends StateNotifier<List<GeoZone>> {
-  GeoZonesNotifier({bool isDemo = true}) : super([..._initialZones]);
+  GeoZonesNotifier({bool isDemo = true}) : super(isDemo ? [..._initialZones] : []);
 
   void addZone(GeoZone zone) {
     state = [...state, zone];
@@ -174,7 +174,7 @@ class GeoZonesNotifier extends StateNotifier<List<GeoZone>> {
 }
 
 class GeoObservationsNotifier extends StateNotifier<List<GeoObservation>> {
-  GeoObservationsNotifier({bool isDemo = true}) : super([..._initialObservations]);
+  GeoObservationsNotifier({bool isDemo = true}) : super(isDemo ? [..._initialObservations] : []);
 
   void addObservation(GeoObservation obs) {
     state = [...state, obs];
@@ -186,7 +186,7 @@ class GeoObservationsNotifier extends StateNotifier<List<GeoObservation>> {
 }
 
 class GeoTasksNotifier extends StateNotifier<List<GeoTask>> {
-  GeoTasksNotifier({bool isDemo = true}) : super([..._initialTasks]);
+  GeoTasksNotifier({bool isDemo = true}) : super(isDemo ? [..._initialTasks] : []);
 
   void addTask(GeoTask task) {
     state = [...state, task];
@@ -223,7 +223,7 @@ class GeoLayerSettingsNotifier extends StateNotifier<GeoLayerSettings> {
 }
 
 class SelectedFieldIdNotifier extends StateNotifier<String?> {
-  SelectedFieldIdNotifier({bool isDemo = true}) : super('FLD-01');
+  SelectedFieldIdNotifier({bool isDemo = true}) : super(isDemo ? 'FLD-01' : null);
 
   void select(String? id) => state = id;
 }

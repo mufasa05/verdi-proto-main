@@ -44,8 +44,8 @@ class DynamicIntelligenceSynthesizer {
     required List<OrderItem> orders,
     required List<TruckItem> trucks,
     required List<PaymentItem> payments,
-    int onlineUsersCount = 18,
-    double platformHealthPercent = 99.8,
+    int onlineUsersCount = 1,
+    double platformHealthPercent = 100.0,
   }) {
     switch (role) {
       case UserRole.admin:
@@ -87,6 +87,60 @@ class DynamicIntelligenceSynthesizer {
       return sum + val;
     });
 
+    if (!isDemo) {
+      return [
+        AiInsightItem(
+          title: '$onlineUsersCount Live Active User Session${onlineUsersCount > 1 ? 's' : ''}',
+          subtitle: 'Real-time multi-role surveillance active. Platform audit bus streaming live.',
+          action: 'Audit Log',
+          imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+          color: purple,
+          confidence: 0.99,
+          targetScreen: VerdiScreen.adminActivity,
+          category: 'Security',
+          severity: 'Moderate',
+        ),
+        AiInsightItem(
+          title: 'Infrastructure Health at ${platformHealthPercent.toStringAsFixed(1)}%',
+          subtitle: 'All 8 distributed API microservices, Sentinel geospatial server, and gateway operational.',
+          action: 'System Health',
+          imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 1.0,
+          targetScreen: VerdiScreen.adminHealth,
+          category: 'Health',
+          severity: 'Moderate',
+        ),
+        AiInsightItem(
+          title: '$activeOrdersCount Live Trade Orders (GMV: \$${totalTradeGmv.toStringAsFixed(2)})',
+          subtitle: activeOrdersCount > 0
+              ? 'Real-time marketplace trade liquidity and escrow settlements.'
+              : 'Marketplace pipeline ready. Trade orders will stream here when placed by buyers.',
+          action: 'Inspect Trade',
+          imageUrl: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
+          color: blue,
+          confidence: 0.95,
+          targetScreen: VerdiScreen.admin,
+          category: 'Market',
+          severity: 'Moderate',
+        ),
+        AiInsightItem(
+          title: '$activeTrucksCount Registered Freight Trucks Active',
+          subtitle: activeTrucksCount > 0
+              ? 'Transporter GPS telemetry and cold-chain sensor streams active.'
+              : 'Fleet telemetry ready. Transporters registering vehicles will appear in live tracking.',
+          action: 'Fleet Telemetry',
+          imageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
+          color: orange,
+          confidence: 0.92,
+          targetScreen: VerdiScreen.logistics,
+          category: 'Logistics',
+          severity: 'Moderate',
+        ),
+      ];
+    }
+
+    // Demo Mode Sandbox Insights
     return [
       AiInsightItem(
         title: '$onlineUsersCount Active Nodes & Real-Time Surveillance',
@@ -139,6 +193,44 @@ class DynamicIntelligenceSynthesizer {
   // FARMER INTELLIGENCE
   // ───────────────────────────────────────────────────────────────────────────
   static List<AiInsightItem> _synthesizeFarmerInsights(List<OrderItem> orders, bool isDemo) {
+    if (!isDemo) {
+      return [
+        const AiInsightItem(
+          title: 'Smart Irrigation Ready for Activation',
+          subtitle: 'Connect field sensors or log manual soil moisture reading to start automated watering.',
+          action: 'Open Irrigation',
+          imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
+          color: orange,
+          confidence: 0.95,
+          targetScreen: VerdiScreen.irrigation,
+          category: 'Agronomic',
+          severity: 'Moderate',
+        ),
+        const AiInsightItem(
+          title: 'Live Marketplace Ready: List Harvest Batch',
+          subtitle: 'Create a listing for your fresh crops to connect directly with wholesale buyers.',
+          action: 'List Produce',
+          imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 0.92,
+          targetScreen: VerdiScreen.marketplace,
+          category: 'Market',
+          severity: 'Moderate',
+        ),
+        const AiInsightItem(
+          title: 'Geospatial Field Mapping Online',
+          subtitle: 'Draw your farm boundary on the satellite map to initialize Sentinel-2 NDVI monitoring.',
+          action: 'Map Field',
+          imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
+          color: blue,
+          confidence: 0.97,
+          targetScreen: VerdiScreen.geospatial,
+          category: 'Agronomic',
+          severity: 'Moderate',
+        ),
+      ];
+    }
+
     return [
       const AiInsightItem(
         title: 'High Moisture Deficit Detected in Zone 2',
@@ -195,6 +287,33 @@ class DynamicIntelligenceSynthesizer {
     List<OrderItem> orders,
     bool isDemo,
   ) {
+    if (!isDemo) {
+      return [
+        const AiInsightItem(
+          title: 'Register Vehicle to Receive Haulage Bids',
+          subtitle: 'Add your cargo truck, flatbed, or refrigerated van to unlock regional freight dispatches.',
+          action: 'Add Vehicle',
+          imageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 0.95,
+          targetScreen: VerdiScreen.logistics,
+          category: 'Logistics',
+          severity: 'Moderate',
+        ),
+        const AiInsightItem(
+          title: 'In-Cab GPS Telemetry Hub Ready',
+          subtitle: 'Stream live location coordinates and reefer temperature for smart contract escrow release.',
+          action: 'Open Telemetry',
+          imageUrl: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=1200&q=80',
+          color: blue,
+          confidence: 0.98,
+          targetScreen: VerdiScreen.logistics,
+          category: 'Logistics',
+          severity: 'Moderate',
+        ),
+      ];
+    }
+
     return [
       const AiInsightItem(
         title: '3 Cargo Haulage Bids Active Near Chiredzi',
@@ -229,17 +348,6 @@ class DynamicIntelligenceSynthesizer {
         category: 'Logistics',
         severity: 'Moderate',
       ),
-      const AiInsightItem(
-        title: 'Diesel Fuel Rate Index: \$1.42/L (↓2.1%)',
-        subtitle: 'Lower fuel expenses projected for Harare-Bulawayo haulage runs this week.',
-        action: 'Fuel Analytics',
-        imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
-        color: purple,
-        confidence: 0.86,
-        targetScreen: VerdiScreen.analytics,
-        category: 'Financial',
-        severity: 'Informational',
-      ),
     ];
   }
 
@@ -247,6 +355,33 @@ class DynamicIntelligenceSynthesizer {
   // BUYER & CONSUMER INTELLIGENCE
   // ───────────────────────────────────────────────────────────────────────────
   static List<AiInsightItem> _synthesizeBuyerInsights(List<OrderItem> orders, bool isDemo) {
+    if (!isDemo) {
+      return [
+        const AiInsightItem(
+          title: 'Direct Farmgate Marketplace Active',
+          subtitle: 'Search fresh harvest batches verified with digital phytosanitary inspection.',
+          action: 'Browse Produce',
+          imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 0.96,
+          targetScreen: VerdiScreen.marketplace,
+          category: 'Market',
+          severity: 'Moderate',
+        ),
+        const AiInsightItem(
+          title: 'EUDR Compliance Verification Engine',
+          subtitle: 'Verify farm polygon deforestation-free compliance before locking escrow.',
+          action: 'Audit Origin',
+          imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
+          color: blue,
+          confidence: 0.98,
+          targetScreen: VerdiScreen.traceability,
+          category: 'Market',
+          severity: 'Moderate',
+        ),
+      ];
+    }
+
     return [
       const AiInsightItem(
         title: '45 Tonnes Certified White Maize Listed in Mazowe',
@@ -270,17 +405,6 @@ class DynamicIntelligenceSynthesizer {
         category: 'Market',
         severity: 'Moderate',
       ),
-      const AiInsightItem(
-        title: 'Scheduled Delivery ETA: 1h 45m (Bulawayo Route)',
-        subtitle: 'Fresh produce consignment #ORD-1001 in transit with driver Tafadzwa M.',
-        action: 'Track Dispatch',
-        imageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
-        color: orange,
-        confidence: 0.91,
-        targetScreen: VerdiScreen.orders,
-        category: 'Logistics',
-        severity: 'Moderate',
-      ),
     ];
   }
 
@@ -297,17 +421,6 @@ class DynamicIntelligenceSynthesizer {
         category: 'Market',
         severity: 'Moderate',
       ),
-      const AiInsightItem(
-        title: 'Organic Certified Valencia Oranges Available',
-        subtitle: 'Harvested yesterday in Mutare Valley. Fresh delivery available within 24 hours.',
-        action: 'Shop Fresh',
-        imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
-        color: orange,
-        confidence: 0.92,
-        targetScreen: VerdiScreen.marketplace,
-        category: 'Market',
-        severity: 'Moderate',
-      ),
     ];
   }
 
@@ -315,6 +428,22 @@ class DynamicIntelligenceSynthesizer {
   // FINANCIER & INSTITUTIONAL TREASURY INSIGHTS
   // ───────────────────────────────────────────────────────────────────────────
   static List<AiInsightItem> _synthesizeFinancierInsights(List<PaymentItem> payments, bool isDemo) {
+    if (!isDemo) {
+      return [
+        const AiInsightItem(
+          title: 'Agri-Credit Underwriting Portal Active',
+          subtitle: 'Review smallholder credit requests verified with satellite NDVI vegetative health data.',
+          action: 'Credit Desk',
+          imageUrl: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
+          color: green,
+          confidence: 0.97,
+          targetScreen: VerdiScreen.finance,
+          category: 'Financial',
+          severity: 'Moderate',
+        ),
+      ];
+    }
+
     return [
       const AiInsightItem(
         title: 'Agri-Credit Portfolio Health: 96.8% Repayment Rate',
@@ -327,28 +456,6 @@ class DynamicIntelligenceSynthesizer {
         category: 'Financial',
         severity: 'Moderate',
       ),
-      const AiInsightItem(
-        title: 'Murewa Cooperative Loan Facility: AAA+ Score (885/900)',
-        subtitle: 'Solar drip installation loan underwriting cleared with satellite NDVI vegetative verification.',
-        action: 'Approve Facility',
-        imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
-        color: blue,
-        confidence: 0.94,
-        targetScreen: VerdiScreen.finance,
-        category: 'Financial',
-        severity: 'Moderate',
-      ),
-      const AiInsightItem(
-        title: 'Multi-Currency Liquidity Pool Balanced',
-        subtitle: 'ZiG, USD, and ZAR payment clearing accounts funded with 0 escrow delays.',
-        action: 'View Liquidity',
-        imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
-        color: purple,
-        confidence: 0.91,
-        targetScreen: VerdiScreen.finance,
-        category: 'Financial',
-        severity: 'Informational',
-      ),
     ];
   }
 
@@ -358,8 +465,8 @@ class DynamicIntelligenceSynthesizer {
   static List<AiInsightItem> _synthesizeGovernmentInsights(List<OrderItem> orders, bool isDemo) {
     return [
       const AiInsightItem(
-        title: 'Strategic Grain Reserve at 68.4% of National Target',
-        subtitle: 'Commercial maize harvesting in Mashonaland Central providing positive supply cushion.',
+        title: 'National Strategic Grain Reserve Tracking',
+        subtitle: 'Monitoring regional crop yields and trade volume buffer for national food security.',
         action: 'National Security',
         imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
         color: green,
@@ -368,25 +475,14 @@ class DynamicIntelligenceSynthesizer {
         category: 'Agronomic',
         severity: 'Moderate',
       ),
-      const AiInsightItem(
-        title: 'National ePhyto Export Registry: 100% Compliant',
-        subtitle: 'Zero phytosanitary rejection notices across citrus and avocado border checkpoints.',
-        action: 'Audit Exports',
-        imageUrl: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=1200&q=80',
-        color: blue,
-        confidence: 0.98,
-        targetScreen: VerdiScreen.export,
-        category: 'Market',
-        severity: 'Moderate',
-      ),
     ];
   }
 
   static List<AiInsightItem> _synthesizeValueAdderInsights(List<OrderItem> orders, bool isDemo) {
     return [
       const AiInsightItem(
-        title: '15.0T Raw Crop Delivery Scheduled for Processing',
-        subtitle: 'Contracted intake batch arriving at milling facility by 14:00 with 11.8% moisture grade.',
+        title: 'Raw Crop Processing Intake Weighbridge',
+        subtitle: 'Log raw intake moisture grade and processing yield on active mill lines.',
         action: 'Log Intake',
         imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
         color: green,
@@ -395,41 +491,19 @@ class DynamicIntelligenceSynthesizer {
         category: 'Agronomic',
         severity: 'Moderate',
       ),
-      const AiInsightItem(
-        title: 'Milling Line #1 Maintenance Telemetry Normal',
-        subtitle: 'Solenoid pressure and motor RPM steady for high-volume shift run.',
-        action: 'Check Telemetry',
-        imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80',
-        color: teal,
-        confidence: 0.89,
-        targetScreen: VerdiScreen.processing,
-        category: 'Health',
-        severity: 'Informational',
-      ),
     ];
   }
 
   static List<AiInsightItem> _synthesizeExpertInsights(bool isDemo) {
     return [
       const AiInsightItem(
-        title: '2 Farm Consultation Requests Pending Review',
-        subtitle: 'Fall armyworm diagnosis in Gutu Block and soil acidification report in Marondera.',
+        title: 'Agronomic Advisory & Case Desk',
+        subtitle: 'Review farmer pest diagnostics and soil health consultation requests.',
         action: 'Review Cases',
         imageUrl: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80',
         color: purple,
         confidence: 0.93,
         targetScreen: VerdiScreen.cropHealth,
-        category: 'Agronomic',
-        severity: 'Moderate',
-      ),
-      const AiInsightItem(
-        title: 'Regional Soil Ph Index: 5.8 (Slightly Acidic)',
-        subtitle: 'Recommend agricultural lime application (250 kg/ha) ahead of summer planting.',
-        action: 'Advisory Memo',
-        imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
-        color: green,
-        confidence: 0.90,
-        targetScreen: VerdiScreen.geospatial,
         category: 'Agronomic',
         severity: 'Moderate',
       ),

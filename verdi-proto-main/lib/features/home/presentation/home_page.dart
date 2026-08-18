@@ -336,6 +336,24 @@ class _HomePageState extends ConsumerState<HomePage> {
     final liveEvents = ref.watch(platformActivityProvider);
     final displayEvents = liveEvents.take(4).toList();
 
+    if (displayEvents.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            const Icon(Icons.history_toggle_off, size: 16, color: HomePage.muted),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'No live platform activities recorded yet. User actions will stream here in real time.',
+                style: GoogleFonts.inter(fontSize: 12, color: HomePage.muted, fontStyle: FontStyle.italic),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: [
         const SizedBox(height: 8),
@@ -425,6 +443,24 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildLogisticsContent(WidgetRef ref) {
     final trucks = ref.watch(trucksListProvider);
     final available = trucks.where((t) => t.status != 'Offline').take(3).toList();
+
+    if (available.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            const Icon(Icons.local_shipping_outlined, size: 16, color: HomePage.muted),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'No transport trucks currently active in this region. Add a vehicle in the Logistics module to enable live dispatches.',
+                style: GoogleFonts.inter(fontSize: 12, color: HomePage.muted, fontStyle: FontStyle.italic),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Column(
       children: [

@@ -258,6 +258,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 await prefs.setString('verdi.auth.session', jsonEncode(adminUser.toJson()));
                 await prefs.setString('verdi.auth.token', 'creator_token_2026');
 
+                final isDemo = ref.read(isDemoModeProvider);
+                ref.read(appStateProvider.notifier).setDemoMode(isDemo);
                 ref.read(appStateProvider.notifier).setRole(UserRole.admin);
                 
                 ref.read(authStateProvider.notifier).authenticateUser(adminUser);
@@ -756,51 +758,103 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Widget _buildModeSelectorTile() {
     final isDemoMode = ref.watch(isDemoModeProvider);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isDemoMode ? const Color(0xFF16A34A).withValues(alpha: 0.1) : Colors.blue.shade50,
+        color: Colors.black.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDemoMode ? const Color(0xFF16A34A).withValues(alpha: 0.4) : Colors.blue.shade300,
-          width: 1.5,
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
       ),
+      padding: const EdgeInsets.all(4),
       child: Row(
         children: [
-          Icon(
-            isDemoMode ? Icons.science_outlined : Icons.cloud_done_outlined,
-            size: 20,
-            color: isDemoMode ? const Color(0xFF16A34A) : Colors.blue.shade700,
-          ),
-          const SizedBox(width: 10),
+          // Segment 1: Live Real Mode
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isDemoMode ? 'Demo Mode (OFFLINE DATA)' : 'Real Mode (LIVE BACKEND API)',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isDemoMode ? const Color(0xFF16A34A) : Colors.blue.shade900,
-                  ),
+            child: InkWell(
+              onTap: () => ref.read(appStateProvider.notifier).setDemoMode(false),
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: !isDemoMode ? const Color(0xFF10B981) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: !isDemoMode
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          )
+                        ]
+                      : null,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  isDemoMode
-                      ? 'Pre-loaded offline sample data & workflows'
-                      : 'Connects directly to your live production server',
-                  style: GoogleFonts.inter(fontSize: 10, color: Colors.grey.shade700),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: !isDemoMode ? Colors.white : Colors.white38,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Live Real Mode',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: !isDemoMode ? FontWeight.w800 : FontWeight.w600,
+                        color: !isDemoMode ? Colors.white : Colors.white60,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-          Switch.adaptive(
-            value: isDemoMode,
-            activeColor: const Color(0xFF16A34A),
-            onChanged: (enabled) {
-              ref.read(appStateProvider.notifier).setDemoMode(enabled);
-            },
+          const SizedBox(width: 4),
+          // Segment 2: Offline Demo Mode
+          Expanded(
+            child: InkWell(
+              onTap: () => ref.read(appStateProvider.notifier).setDemoMode(true),
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: isDemoMode ? const Color(0xFFF59E0B) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: isDemoMode
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          )
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.science_outlined,
+                      size: 13,
+                      color: isDemoMode ? Colors.white : Colors.white38,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Offline Demo',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: isDemoMode ? FontWeight.w800 : FontWeight.w600,
+                        color: isDemoMode ? Colors.white : Colors.white60,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
