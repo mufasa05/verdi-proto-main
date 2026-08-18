@@ -6,6 +6,7 @@ import '../../../state/cart_state.dart';
 import '../../../state/chat_state.dart';
 import '../../auth/state/auth_state.dart';
 import '../../../state/app_state.dart';
+import '../../logistics/presentation/transporter_telemetry_page.dart';
 
 class OrdersPage extends ConsumerStatefulWidget {
   const OrdersPage({super.key});
@@ -28,6 +29,17 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     'Low Stock Risk',
     'Delayed',
     'Traceable Batch',
+  ];
+
+  final List<String> _transporterFilters = const [
+    'All',
+    'Assigned Hauls',
+    'In Transit',
+    'Delivered',
+    'High Priority',
+    'Escrow Paid',
+    'Reefer Freight',
+    'Delayed Route',
   ];
 
   String _selectedFilter = 'All';
@@ -70,9 +82,16 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
       case 'Low Stock Risk':
         return _riskLevel(order) != 'Low' && order.status != 'Delivered';
       case 'Delayed':
+      case 'Delayed Route':
         return order.eta.contains('Awaiting') || order.status == 'Pending' || order.status == 'Cancelled';
       case 'Traceable Batch':
         return order.id.contains('1001') || order.id.contains('1003');
+      case 'Assigned Hauls':
+        return order.status == 'Confirmed' || order.status == 'In Transit' || order.status == 'Pending';
+      case 'Escrow Paid':
+        return order.payment == 'Paid' || order.payment == 'Escrow';
+      case 'Reefer Freight':
+        return order.product.toLowerCase().contains('berry') || order.product.toLowerCase().contains('tomato') || order.product.toLowerCase().contains('milk') || order.product.toLowerCase().contains('seed');
       default:
         return true;
     }
@@ -133,10 +152,12 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
   Widget build(BuildContext context) {
     final currentUser = ref.watch(authStateProvider).user;
     final currentRole = ref.watch(appStateProvider).role;
+    final isTransporter = currentRole == UserRole.transporter;
     final allOrdersRaw = ref.watch(ordersListProvider);
+    final activeFilters = isTransporter ? _transporterFilters : _filters;
 
     final List<OrderItem> allOrders;
-    if (currentRole == UserRole.admin) {
+    if (currentRole == UserRole.admin || isTransporter) {
       allOrders = allOrdersRaw;
     } else {
       allOrders = allOrdersRaw.where((order) {
@@ -175,26 +196,47 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 1100;
 
-    final stats = [
-      _StatData('Total orders', orders.length.toString(), Icons.receipt_long_outlined, '+12% this week', const Color(0xFF10B981)),
-      _StatData('Pending approval', orders.where((order) => order.status == 'Pending').length.toString(), Icons.pending_actions_outlined, 'Action required', Colors.amber),
-      _StatData('In transit', orders.where((order) => order.status == 'In Transit').length.toString(), Icons.delivery_dining_outlined, 'Active corridors', Colors.blue),
-      _StatData('Delivered today', orders.where((order) => order.status == 'Delivered').length.toString(), Icons.check_circle_outline, '100% on time', Colors.teal),
-      _StatData('Revenue', 'US\$ ${_revenueValue(orders)}', Icons.payments_outlined, 'Gross volume', Colors.indigo),
-      _StatData('At-risk orders', orders.where((order) => _riskLevel(order) == 'High').length.toString(), Icons.warning_amber_rounded, 'Requires review', Colors.red),
-      _StatData('Unpaid value', 'US\$ ${_unpaidValue(orders)}', Icons.account_balance_wallet_outlined, 'Pending escrow', Colors.deepOrange),
-      _StatData('Fulfillment SLA', '${_slaScore(orders)}%', Icons.speed_outlined, 'High SLA score', Colors.green),
-    ];
+    final stats = isTransporter
+        ? [
+            _StatData('Active Freight Hauls', orders.length.toString(), Icons.local_shipping_outlined, '4 live routes', const Color(0xFF2563EB)),
+            _StatData('Pending Loading', orders.where((order) => order.status == 'Pending' || order.status == 'Confirmed').length.toString(), Icons.pending_actions_outlined, 'Depot loading ready', Colors.amber),
+            _StatData('In Highway Transit', orders.where((order) => order.status == 'In Transit').length.toString(), Icons.navigation_outlined, 'A5 & A3 Corridors', Colors.blue),
+            _StatData('Delivered & Offloaded', orders.where((order) => order.status == 'Delivered').length.toString(), Icons.check_circle_outline, '100% on time', Colors.teal),
+            _StatData('Haulage Gross Fees', 'US\$ ${_revenueValue(orders)}', Icons.payments_outlined, 'Carrier payout volume', Colors.indigo),
+            _StatData('At-Risk Corridors', orders.where((order) => _riskLevel(order) == 'High').length.toString(), Icons.warning_amber_rounded, 'Weather/Road review', Colors.red),
+            _StatData('Escrow Payout Due', 'US\$ ${_unpaidValue(orders)}', Icons.account_balance_wallet_outlined, 'Guaranteed escrow', Colors.deepOrange),
+            _StatData('Dispatch SLA Score', '${_slaScore(orders)}%', Icons.speed_outlined, 'Top carrier tier', Colors.green),
+          ]
+        : [
+            _StatData('Total orders', orders.length.toString(), Icons.receipt_long_outlined, '+12% this week', const Color(0xFF10B981)),
+            _StatData('Pending approval', orders.where((order) => order.status == 'Pending').length.toString(), Icons.pending_actions_outlined, 'Action required', Colors.amber),
+            _StatData('In transit', orders.where((order) => order.status == 'In Transit').length.toString(), Icons.delivery_dining_outlined, 'Active corridors', Colors.blue),
+            _StatData('Delivered today', orders.where((order) => order.status == 'Delivered').length.toString(), Icons.check_circle_outline, '100% on time', Colors.teal),
+            _StatData('Revenue', 'US\$ ${_revenueValue(orders)}', Icons.payments_outlined, 'Gross volume', Colors.indigo),
+            _StatData('At-risk orders', orders.where((order) => _riskLevel(order) == 'High').length.toString(), Icons.warning_amber_rounded, 'Requires review', Colors.red),
+            _StatData('Unpaid value', 'US\$ ${_unpaidValue(orders)}', Icons.account_balance_wallet_outlined, 'Pending escrow', Colors.deepOrange),
+            _StatData('Fulfillment SLA', '${_slaScore(orders)}%', Icons.speed_outlined, 'High SLA score', Colors.green),
+          ];
 
     return Scaffold(
       backgroundColor: bgLight,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showNewOrderDialog(context, ref),
-        backgroundColor: green,
+        onPressed: isTransporter
+            ? () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TransporterTelemetryPage()),
+                );
+              }
+            : () => _showNewOrderDialog(context, ref),
+        backgroundColor: isTransporter ? const Color(0xFF2563EB) : green,
         foregroundColor: Colors.white,
         elevation: 4,
-        icon: const Icon(Icons.add_circle_outline, size: 20),
-        label: Text('New Order', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 14)),
+        icon: Icon(isTransporter ? Icons.pin_drop_outlined : Icons.add_circle_outline, size: 20),
+        label: Text(
+          isTransporter ? 'Live GPS Telemetry' : 'New Order',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 14),
+        ),
       ),
       body: SafeArea(
         child: Align(
@@ -208,8 +250,9 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
                 children: [
                   _UpgradedHeaderBanner(
                     isCompact: !isDesktop,
+                    isTransporter: isTransporter,
                     selectedFilter: _selectedFilter,
-                    filters: _filters,
+                    filters: activeFilters,
                     controller: _searchController,
                     onSearchChanged: (value) {
                       setState(() {
@@ -927,6 +970,7 @@ void _showNewOrderDialog(BuildContext context, WidgetRef ref) {
 
 class _UpgradedHeaderBanner extends StatelessWidget {
   final bool isCompact;
+  final bool isTransporter;
   final String selectedFilter;
   final List<String> filters;
   final TextEditingController controller;
@@ -938,6 +982,7 @@ class _UpgradedHeaderBanner extends StatelessWidget {
 
   const _UpgradedHeaderBanner({
     required this.isCompact,
+    this.isTransporter = false,
     required this.selectedFilter,
     required this.filters,
     required this.controller,
@@ -956,7 +1001,7 @@ class _UpgradedHeaderBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             const Color(0xFF0F172A),
-            const Color(0xFF1E293B),
+            isTransporter ? const Color(0xFF1E3A8A) : const Color(0xFF1E293B),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -984,7 +1029,7 @@ class _UpgradedHeaderBanner extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            'Order Operations Hub',
+                            isTransporter ? 'Freight Haulage & Dispatch Hub' : 'Order Operations Hub',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
@@ -999,9 +1044,9 @@ class _UpgradedHeaderBanner extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                            color: (isTransporter ? const Color(0xFF3B82F6) : const Color(0xFF10B981)).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                            border: Border.all(color: (isTransporter ? const Color(0xFF3B82F6) : const Color(0xFF10B981)).withValues(alpha: 0.4)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1009,16 +1054,16 @@ class _UpgradedHeaderBanner extends StatelessWidget {
                               Container(
                                 width: 7,
                                 height: 7,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF10B981),
+                                decoration: BoxDecoration(
+                                  color: isTransporter ? const Color(0xFF3B82F6) : const Color(0xFF10B981),
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'LIVE NETWORK',
+                                isTransporter ? 'CARRIER FLEET LIVE' : 'LIVE NETWORK',
                                 style: GoogleFonts.inter(
-                                  color: const Color(0xFF10B981),
+                                  color: isTransporter ? const Color(0xFF93C5FD) : const Color(0xFF10B981),
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.5,
@@ -1031,7 +1076,9 @@ class _UpgradedHeaderBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Automated batch tracking, SLA monitoring, and delivery corridor execution across Zimbabwe.',
+                      isTransporter
+                          ? 'Active cargo loads, carrier dispatch slips, route waybills, and driver payout milestones.'
+                          : 'Automated batch tracking, SLA monitoring, and delivery corridor execution across Zimbabwe.',
                       style: GoogleFonts.inter(
                         fontSize: 13.5,
                         color: const Color(0xFF94A3B8),

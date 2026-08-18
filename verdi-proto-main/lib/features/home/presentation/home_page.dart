@@ -9,6 +9,7 @@ import '../../auth/state/auth_state.dart';
 import '../../admin/presentation/admin_dashboard_page.dart';
 import '../../admin/presentation/infrastructure_modules_control_page.dart';
 import '../../admin/presentation/user_identity_control_page.dart';
+import '../../logistics/presentation/transporter_telemetry_page.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_insight_strip.dart';
 import 'widgets/ask_verdi_fab.dart';
@@ -841,11 +842,23 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
     }
 
     if (role == UserRole.transporter) {
-      return const [
-        _QuickActionConfig('View Active Dispatch', 'Cargo transport job', Icons.navigation_outlined, Color(0xFF16A34A), 5),
-        _QuickActionConfig('Update GPS Telemetry', 'Live GPS & Route tracking', Icons.pin_drop_outlined, Color(0xFF2563EB), 10),
-        _QuickActionConfig('Check Driver Wallet', 'Freight payouts & earnings', Icons.account_balance_wallet_outlined, Color(0xFF7C3AED), 16),
-        _QuickActionConfig('Fleet Cargo Loads', 'Available freight loads', Icons.local_shipping_outlined, Color(0xFFF97316), 5),
+      return [
+        const _QuickActionConfig('View Active Dispatch', 'Cargo transport job', Icons.navigation_outlined, Color(0xFF16A34A), 5),
+        _QuickActionConfig(
+          'Update GPS Telemetry',
+          'Live GPS & Route tracking',
+          Icons.pin_drop_outlined,
+          const Color(0xFF2563EB),
+          5,
+          onCustomTap: (context, ref) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TransporterTelemetryPage()),
+            );
+          },
+        ),
+        const _QuickActionConfig('Check Driver Wallet', 'Freight payouts & earnings', Icons.account_balance_wallet_outlined, Color(0xFF7C3AED), 16),
+        const _QuickActionConfig('Fleet Cargo Loads', 'Available freight loads', Icons.local_shipping_outlined, Color(0xFFF97316), 5),
       ];
     }
 

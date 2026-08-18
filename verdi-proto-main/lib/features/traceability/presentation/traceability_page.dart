@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../state/platform_data_state.dart';
+import '../../../state/app_state.dart';
 
 class TraceabilityPage extends ConsumerStatefulWidget {
   const TraceabilityPage({super.key});
@@ -19,7 +20,17 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
   bool _isScanning = false;
   final Map<String, List<_ScanLog>> _localScans = {}; // batchId -> scans
 
-  List<_TraceEvent> _eventsFor(String batchId) {
+  List<_TraceEvent> _eventsFor(String batchId, bool isTransporter) {
+    if (isTransporter) {
+      return [
+        _TraceEvent(eventType: 'Freight Loading', eventTime: '2026-08-14 08:30', actorName: 'Harare Packhouse', location: 'Bay 4', notes: 'Consignment palletized, weighed, and loaded onto Truck TRK-9442.'),
+        _TraceEvent(eventType: 'Seal Affixed', eventTime: '2026-08-14 09:10', actorName: 'Quality Inspector', location: 'Gate Out', notes: 'Phyto-security tamper seal #ZIM-9921 applied.'),
+        _TraceEvent(eventType: 'Corridor Dispatch', eventTime: '2026-08-14 09:30', actorName: 'Lead Driver T. Moyo', location: 'Harare A5 Toll', notes: 'Transit initiated on Harare-Bulawayo corridor.'),
+        _TraceEvent(eventType: 'Cold-Chain Check', eventTime: '2026-08-14 11:45', actorName: 'Automated Telemetry', location: 'Chivhu Waypoint', notes: 'Reefer temp maintained at 4.2°C (Optimal).'),
+        _TraceEvent(eventType: 'Weighbridge Pass', eventTime: '2026-08-14 13:20', actorName: 'Gweru Scale Station', location: 'Scale #2', notes: 'Gross axle weight compliant (11.8 Tonnes).'),
+        _TraceEvent(eventType: 'Depot Handover', eventTime: '2026-08-14 15:00', actorName: 'Consignee Receiver', location: 'Bulawayo Depot', notes: 'Offload seal verified intact and received.'),
+      ];
+    }
     return [
       _TraceEvent(eventType: 'Planting', eventTime: '2026-03-01 07:00', actorName: 'Farm Manager', location: 'Block 4', notes: 'Seed lot recorded and field mapped.'),
       _TraceEvent(eventType: 'Input Applied', eventTime: '2026-04-11 09:30', actorName: 'Field Officer', location: 'Block 4', notes: 'Fertilizer applied at recommended rate.'),
@@ -29,7 +40,15 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
     ];
   }
 
-  List<_BatchDocument> _docsFor(String batchId) {
+  List<_BatchDocument> _docsFor(String batchId, bool isTransporter) {
+    if (isTransporter) {
+      return [
+        _BatchDocument(docType: 'Bill of Lading (BoL)', fileName: '$batchId-BoL-manifest.pdf'),
+        _BatchDocument(docType: 'Phytosanitary Clearance', fileName: '$batchId-phyto-transit.pdf'),
+        _BatchDocument(docType: 'Cold-Chain Reefer Log', fileName: '$batchId-reefer-telemetry.pdf'),
+        _BatchDocument(docType: 'Weighbridge Scale Slip', fileName: '$batchId-weighbridge-pass.pdf'),
+      ];
+    }
     return [
       _BatchDocument(docType: 'Harvest Log', fileName: '$batchId-harvest.pdf'),
       _BatchDocument(docType: 'Inspection Certificate', fileName: '$batchId-inspection.pdf'),
@@ -37,8 +56,16 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
     ];
   }
 
-  List<_ScanLog> _scansFor(String batchId) {
+  List<_ScanLog> _scansFor(String batchId, bool isTransporter) {
     final custom = _localScans[batchId] ?? [];
+    if (isTransporter) {
+      return [
+        _ScanLog(scannedAt: '2026-08-14 08:45', scannerRole: 'Consignor Depot Gate', result: 'Seal Verified & Loaded'),
+        _ScanLog(scannedAt: '2026-08-14 11:50', scannerRole: 'Corridor Checkpoint Officer', result: 'Highway Transit Passed'),
+        _ScanLog(scannedAt: '2026-08-14 14:55', scannerRole: 'Bulawayo Receiver Agent', result: 'Offload Cleared'),
+        ...custom,
+      ];
+    }
     return [
       _ScanLog(scannedAt: '2026-07-18 11:50', scannerRole: 'Inspector', result: 'Verified'),
       _ScanLog(scannedAt: '2026-07-19 15:30', scannerRole: 'Driver', result: 'Loaded'),
@@ -72,25 +99,30 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
 
   @override
   Widget build(BuildContext context) {
+    final role = ref.watch(appStateProvider).role;
+    final isTransporter = role == UserRole.transporter;
     final orders = ref.watch(ordersListProvider);
     final List<_TraceBatch> batches = orders.map((o) {
-      final code = o.id.replaceAll('#', 'VER-TR-');
+      final code = isTransporter ? o.id.replaceAll('#', 'CARGO-TR-') : o.id.replaceAll('#', 'VER-TR-');
       double score = 0.95;
       String status = 'Ready';
       if (o.status.toLowerCase().contains('pending') || o.status.toLowerCase().contains('confirm')) {
         score = 0.65;
-        status = 'Review';
+        status = isTransporter ? 'Manifested' : 'Review';
       } else if (o.status.toLowerCase().contains('cancel')) {
         score = 0.30;
         status = 'Blocked';
+      } else if (isTransporter && o.status.toLowerCase().contains('transit')) {
+        score = 0.88;
+        status = 'In-Transit';
       }
       return _TraceBatch(
         id: o.id,
         batchCode: code,
         cropName: o.product,
-        farmName: o.supplier.isNotEmpty ? o.supplier : 'Mufasa Farm',
-        fieldName: 'Harvest Field 1',
-        harvestDate: '2026-07-19',
+        farmName: o.supplier.isNotEmpty ? o.supplier : 'Mufasa Farm Depot',
+        fieldName: isTransporter ? 'Harare-Bulawayo A5 Highway' : 'Harvest Field 1',
+        harvestDate: '2026-08-14',
         quantity: int.tryParse(o.quantity.replaceAll(RegExp(r'[^0-9]'), '')) ?? 100,
         unit: o.quantity.toLowerCase().contains('unit') ? 'units' : 'kg',
         status: status,
@@ -110,9 +142,9 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
         ? batches.firstWhere((b) => b.id == _selectedBatchId)
         : null;
 
-    final events = batch != null ? _eventsFor(batch.id) : <_TraceEvent>[];
-    final docs = batch != null ? _docsFor(batch.id) : <_BatchDocument>[];
-    final scans = batch != null ? _scansFor(batch.id) : <_ScanLog>[];
+    final events = batch != null ? _eventsFor(batch.id, isTransporter) : <_TraceEvent>[];
+    final docs = batch != null ? _docsFor(batch.id, isTransporter) : <_BatchDocument>[];
+    final scans = batch != null ? _scansFor(batch.id, isTransporter) : <_ScanLog>[];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -130,9 +162,17 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Traceability', style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: dark)),
+                          Text(
+                            isTransporter ? 'Freight Chain of Custody & Consignment Tracking' : 'Traceability',
+                            style: GoogleFonts.inter(fontSize: 21, fontWeight: FontWeight.w800, color: dark),
+                          ),
                           const SizedBox(height: 6),
-                          Text('Track origin, events, documents, scans, and readiness.', style: GoogleFonts.inter(color: muted)),
+                          Text(
+                            isTransporter
+                                ? 'Live cargo manifest, Bill of Lading, transit checkpoints, cold-chain integrity, and offload handovers.'
+                                : 'Track origin, events, documents, scans, and readiness.',
+                            style: GoogleFonts.inter(color: muted, fontSize: 13),
+                          ),
                         ],
                       ),
                     ),
@@ -141,8 +181,8 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999), border: Border.all(color: Colors.black12)),
                         child: Text(
-                          'Avg ${(_overallReadiness(batches) * 100).round()}%',
-                          style: const TextStyle(fontWeight: FontWeight.w700, color: dark),
+                          isTransporter ? 'Seal Verified 99.4%' : 'Avg ${(_overallReadiness(batches) * 100).round()}%',
+                          style: const TextStyle(fontWeight: FontWeight.w700, color: dark, fontSize: 12),
                         ),
                       ),
                   ],
@@ -153,18 +193,28 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.black12)),
                     child: Center(
-                      child: Text('No active batches to trace. Please check back when orders are confirmed.', style: GoogleFonts.inter(color: muted)),
+                      child: Text(
+                        isTransporter ? 'No active cargo consignments in transit. Check back when dispatch orders are assigned.' : 'No active batches to trace. Please check back when orders are confirmed.',
+                        style: GoogleFonts.inter(color: muted),
+                      ),
                     ),
                   )
                 else ...[
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final stats = [
-                        {'label': 'Batches', 'value': '${batches.length}', 'icon': Icons.inventory_2_outlined},
-                        {'label': 'Ready', 'value': '${batches.where((b) => b.status == 'Ready').length}', 'icon': Icons.verified_outlined},
-                        {'label': 'Review', 'value': '${batches.where((b) => b.status == 'Review').length}', 'icon': Icons.rate_review_outlined},
-                        {'label': 'Blocked', 'value': '${batches.where((b) => b.status == 'Blocked').length}', 'icon': Icons.block_outlined},
-                      ];
+                      final stats = isTransporter
+                          ? [
+                              {'label': 'Cargo Loads', 'value': '${batches.length}', 'icon': Icons.local_shipping_outlined},
+                              {'label': 'In-Transit', 'value': '${batches.where((b) => b.status == 'Ready' || b.status == 'In-Transit').length}', 'icon': Icons.navigation_outlined},
+                              {'label': 'Cold-Chain OK', 'value': '${batches.length}', 'icon': Icons.ac_unit_outlined},
+                              {'label': 'Cleared', 'value': '${batches.where((b) => b.status != 'Blocked').length}', 'icon': Icons.verified_user_outlined},
+                            ]
+                          : [
+                              {'label': 'Batches', 'value': '${batches.length}', 'icon': Icons.inventory_2_outlined},
+                              {'label': 'Ready', 'value': '${batches.where((b) => b.status == 'Ready').length}', 'icon': Icons.verified_outlined},
+                              {'label': 'Review', 'value': '${batches.where((b) => b.status == 'Review').length}', 'icon': Icons.rate_review_outlined},
+                              {'label': 'Blocked', 'value': '${batches.where((b) => b.status == 'Blocked').length}', 'icon': Icons.block_outlined},
+                            ];
                       if (constraints.maxWidth >= 900) {
                         return Row(
                           children: stats.map((s) => Expanded(
@@ -197,7 +247,10 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  Text('Batches', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+                  Text(
+                    isTransporter ? 'Active Consignment Manifests & Cargo Batches' : 'Batches',
+                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark),
+                  ),
                   const SizedBox(height: 10),
                   ...batches.map((b) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -208,7 +261,10 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                     ),
                   )),
                   const SizedBox(height: 16),
-                  Text('Batch QR Code & Generator', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+                  Text(
+                    isTransporter ? 'Consignment Waybill QR & Digital Seal' : 'Batch QR Code & Generator',
+                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark),
+                  ),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -300,28 +356,28 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Trace Events', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+                  Text(isTransporter ? 'Freight Transit Logs & Milestones' : 'Trace Events', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
                   const SizedBox(height: 10),
                   ...events.map((e) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: _EventCard(event: e),
                   )),
                   const SizedBox(height: 16),
-                  Text('Documents', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+                  Text(isTransporter ? 'Consignment & Transit Documents' : 'Documents', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
                   const SizedBox(height: 10),
                   ...docs.map((d) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: _DocCard(doc: d),
                   )),
                   const SizedBox(height: 16),
-                  Text('Scan Logs', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+                  Text(isTransporter ? 'Chain of Custody Scan Records' : 'Scan Logs', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
                   const SizedBox(height: 10),
                   ...scans.map((s) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: _ScanCard(scan: s),
                   )),
                   const SizedBox(height: 16),
-                  Text('Live Scan', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+                  Text(isTransporter ? 'Live Checkpoint & Waybill Scanner' : 'Live Scan', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
                   const SizedBox(height: 10),
                   Container(
                     height: 240,
@@ -341,9 +397,9 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                               children: [
                                 const Icon(Icons.qr_code_scanner, size: 50, color: Colors.white70),
                                 const SizedBox(height: 12),
-                                const Text(
-                                  'Aim camera at product QR label',
-                                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                                Text(
+                                  isTransporter ? 'Aim camera at cargo QR seal / Bill of Lading' : 'Aim camera at product QR label',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                                 ),
                                 const SizedBox(height: 16),
                                 ElevatedButton(
@@ -353,7 +409,7 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
-                                  child: const Text('Start Scan Simulation'),
+                                  child: Text(isTransporter ? 'Scan Waybill / Cargo Seal' : 'Start Scan Simulation'),
                                 ),
                               ],
                             )

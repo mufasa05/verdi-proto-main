@@ -37,15 +37,18 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
   @override
   Widget build(BuildContext context) {
     final role = ref.watch(appStateProvider).role;
-    final isReadOnly = role != UserRole.farmer && role != UserRole.admin;
+    final isTransporter = role == UserRole.transporter;
+    final isReadOnly = role != UserRole.farmer && role != UserRole.admin && role != UserRole.transporter;
 
-    final sourceFilters = ['All', 'Irrigation', 'Satellite', 'Drone', 'Crop Health', 'System'];
+    final sourceFilters = isTransporter
+        ? ['All', 'Route Hazards', 'Telematics', 'Cold Chain', 'Weighbridge & Tolls', 'Escrow Payout']
+        : ['All', 'Irrigation', 'Satellite', 'Drone', 'Crop Health', 'System'];
 
     return Scaffold(
       backgroundColor: background,
       appBar: AppBar(
         title: Text(
-          'Alerts & Exceptions Board',
+          isTransporter ? 'Transporter Road & Dispatch Alerts' : 'Alerts & Exceptions Board',
           style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: dark),
         ),
         backgroundColor: Colors.white,
@@ -56,9 +59,9 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
             color: Colors.white,
             child: TabBar(
               controller: _tabController,
-              labelColor: green,
+              labelColor: isTransporter ? const Color(0xFF2563EB) : green,
               unselectedLabelColor: muted,
-              indicatorColor: green,
+              indicatorColor: isTransporter ? const Color(0xFF2563EB) : green,
               tabs: const [
                 Tab(text: 'Critical'),
                 Tab(text: 'Warning'),
@@ -93,7 +96,7 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
                             onSelected: (val) {
                               if (val) setState(() => _selectedSourceFilter = f);
                             },
-                            selectedColor: green,
+                            selectedColor: isTransporter ? const Color(0xFF2563EB) : green,
                             backgroundColor: const Color(0xFFF1F5F9),
                             side: BorderSide.none,
                           ),
@@ -109,9 +112,9 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildAlertList(context, 'Critical', isReadOnly),
-                      _buildAlertList(context, 'Warning', isReadOnly),
-                      _buildAlertList(context, 'Info', isReadOnly),
+                      _buildAlertList(context, 'Critical', isReadOnly, isTransporter),
+                      _buildAlertList(context, 'Warning', isReadOnly, isTransporter),
+                      _buildAlertList(context, 'Info', isReadOnly, isTransporter),
                     ],
                   ),
                 ),
@@ -123,9 +126,10 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
     );
   }
 
-  Widget _buildAlertList(BuildContext context, String severity, bool isReadOnly) {
+  Widget _buildAlertList(BuildContext context, String severity, bool isReadOnly, bool isTransporter) {
+    final alertList = isTransporter ? _transporterAlerts : _allAlerts;
     // Filter alerts by severity and source
-    final alerts = _allAlerts.where((a) {
+    final alerts = alertList.where((a) {
       final matchesSeverity = a.severity == severity;
       final matchesSource = _selectedSourceFilter == 'All' || a.source == _selectedSourceFilter;
       return matchesSeverity && matchesSource;
@@ -371,6 +375,81 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
       probableCause: 'Low battery level on terminal sensor node (remaining 3%).',
       likelyImpact: 'Loss of micro-moisture data in Zone 4 (irrelevant to auto schedule).',
       ownerSuggestion: 'Admin (System Maintainer)',
+    ),
+  ];
+
+  static const List<_AlertEntry> _transporterAlerts = [
+    _AlertEntry(
+      title: 'A5 Highway Mud & Flash Flood Hazard',
+      details: 'Heavy rainfall near Chivhu has caused localized flooding and severe washaway on Highway A5 bridge approach.',
+      time: '5m ago',
+      severity: 'Critical',
+      source: 'Route Hazards',
+      icon: Icons.flood_outlined,
+      confidence: 96,
+      probableCause: '120mm flash cloudburst overflowing river drainage basin.',
+      likelyImpact: 'Potential 2-3 hour transit delay; high hydroplaning and jackknife risk for heavy 12T rigs.',
+      ownerSuggestion: 'Corridor Dispatcher / Traffic Police Advisory',
+    ),
+    _AlertEntry(
+      title: 'Refrigerated Cargo Temp Spike (8.9°C)',
+      details: 'Thermostat sensor on Truck TRK-9442 reefer container flags temperature rising above target 4.0°C.',
+      time: '18m ago',
+      severity: 'Critical',
+      source: 'Cold Chain',
+      icon: Icons.ac_unit_outlined,
+      confidence: 92,
+      probableCause: 'Auxiliary diesel compressor belt slippage in cooling bay.',
+      likelyImpact: 'Spoilage risk for 4,000 kg export-grade berries if temp remains elevated > 45 mins.',
+      ownerSuggestion: 'Lead Driver T. Moyo / Reefer Service Bay',
+    ),
+    _AlertEntry(
+      title: 'Norton Weighbridge Backlog (45m Delay)',
+      details: 'Automated axle scale queue backed up by 1.8 km due to high transit volume.',
+      time: '34m ago',
+      severity: 'Warning',
+      source: 'Weighbridge & Tolls',
+      icon: Icons.scale_outlined,
+      confidence: 89,
+      probableCause: 'Single lane operation during system calibration.',
+      likelyImpact: 'ETA for Harare-Bulawayo haul pushed back from 14:00 to 14:47 CAT.',
+      ownerSuggestion: 'ZINARA Highway Toll Control',
+    ),
+    _AlertEntry(
+      title: 'Rear Right Dual Tire Pressure Low (74 PSI)',
+      details: 'Telematics TPMS sensor flags 16 PSI drop below recommended 90 PSI operating threshold.',
+      time: '1h ago',
+      severity: 'Warning',
+      source: 'Telematics',
+      icon: Icons.tire_repair_outlined,
+      confidence: 94,
+      probableCause: 'Slow puncture or valve stem leak on rear axle #2.',
+      likelyImpact: 'Increased fuel burn by 6% and risk of highway tread blowout at cruise speeds.',
+      ownerSuggestion: 'Driver Checkpoint at Next Service Oasis',
+    ),
+    _AlertEntry(
+      title: 'Fuel Advance Escrow Released (US\$ 380.00)',
+      details: 'Smart contract escrow for Harare-Bulawayo Freight #FR-902 released to driver wallet upon loading verification.',
+      time: '2h ago',
+      severity: 'Info',
+      source: 'Escrow Payout',
+      icon: Icons.account_balance_wallet_outlined,
+      confidence: 99,
+      probableCause: 'Consignor QR handover confirmed at Harare Mbare Depot.',
+      likelyImpact: 'Driver fuel card & toll pass automatically topped up for the trip.',
+      ownerSuggestion: 'Verdi Escrow Settlement Engine',
+    ),
+    _AlertEntry(
+      title: 'e-Phyto Agricultural Cross-Border Transit Seal',
+      details: 'Electronic phytosanitary clearance certificate verified and linked to consignment manifest.',
+      time: '3h ago',
+      severity: 'Info',
+      source: 'Weighbridge & Tolls',
+      icon: Icons.verified_outlined,
+      confidence: 98,
+      probableCause: 'Ministry of Agriculture digital inspection approval.',
+      likelyImpact: 'Green-lane express bypass enabled at national inspection stations.',
+      ownerSuggestion: 'National Plant Quarantine Inspector',
     ),
   ];
 }
