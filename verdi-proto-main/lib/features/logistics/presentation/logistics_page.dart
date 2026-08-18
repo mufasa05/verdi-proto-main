@@ -1088,30 +1088,6 @@ class _Header extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final isDemo = ref.watch(isDemoModeProvider);
-                      return OutlinedButton.icon(
-                        onPressed: () {
-                          ref.read(appStateProvider.notifier).toggleDemoMode();
-                        },
-                        icon: Icon(Icons.science_outlined, size: 15, color: isDemo ? _LogisticsPageState.green : _LogisticsPageState.dark),
-                        label: Text(
-                          isDemo ? 'Demo Mode: ON' : 'Real Profile Mode',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isDemo ? _LogisticsPageState.green : _LogisticsPageState.dark,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: isDemo ? _LogisticsPageState.green : Colors.black26),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                      );
-                    },
-                  ),
                   ElevatedButton.icon(
                     onPressed: onBookDispatch,
                     icon: const Icon(Icons.local_shipping_outlined, size: 16),

@@ -729,13 +729,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               children: [
                 TextButton.icon(
                   onPressed: () {
-                    final email = _emailController.text.trim().isEmpty ? 'operator@verdi.co' : _emailController.text.trim();
+                    final email = _emailController.text.trim().isEmpty ? 'farmer@verdi.co' : _emailController.text.trim();
                     ref.read(authStateProvider.notifier).enterOfflineDemoMode(
                       email: email,
-                      fullName: 'Platform Operator',
-                      role: UserRole.admin,
+                      fullName: 'Kudakwashe Moyo',
+                      role: UserRole.farmer,
                     );
-                    _showToast('Offline Demo Mode Activated.');
+                    _showToast('Offline Demo Mode (Farmer) Activated.');
                   },
                   icon: const Icon(Icons.flash_on_outlined, size: 16, color: Color(0xFF16A34A)),
                   label: const Text('Offline Demo Mode', style: TextStyle(color: Color(0xFF16A34A), fontSize: 12, fontWeight: FontWeight.bold)),

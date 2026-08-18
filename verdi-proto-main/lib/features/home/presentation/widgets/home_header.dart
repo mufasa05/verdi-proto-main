@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../state/agent_state.dart';
-import '../../../../state/app_state.dart';
 
 class HomeHeader extends ConsumerWidget {
   final String greeting;
@@ -25,8 +24,6 @@ class HomeHeader extends ConsumerWidget {
     final isNarrow = width < 480;
     final agentState = ref.watch(agentProvider);
     final agentNotifier = ref.read(agentProvider.notifier);
-    final appState = ref.watch(appStateProvider);
-    final appNotifier = ref.read(appStateProvider.notifier);
 
     const avatar = CircleAvatar(
       radius: 24,
@@ -65,34 +62,6 @@ class HomeHeader extends ConsumerWidget {
         const SizedBox(height: 6),
         const _LiveClockWidget(),
       ],
-    );
-
-    final currencySelector = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white38),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<AppCurrency>(
-          value: appState.currency,
-          isDense: true,
-          menuMaxHeight: 200,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
-          dropdownColor: const Color(0xFF0F172A),
-          style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
-          onChanged: (c) {
-            if (c != null) appNotifier.setCurrency(c);
-          },
-          items: AppCurrency.values.map((c) {
-            return DropdownMenuItem<AppCurrency>(
-              value: c,
-              child: Text('${c.flag} ${c.code}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-            );
-          }).toList(),
-        ),
-      ),
     );
 
     final agentModeToggle = Container(
@@ -155,18 +124,11 @@ class HomeHeader extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     avatar,
-                    currencySelector,
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(child: details),
-                    const SizedBox(width: 8),
                     agentModeToggle,
                   ],
                 ),
+                const SizedBox(height: 10),
+                details,
               ],
             )
           : Row(
@@ -175,8 +137,6 @@ class HomeHeader extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(child: details),
                 const SizedBox(width: 12),
-                currencySelector,
-                const SizedBox(width: 10),
                 agentModeToggle,
               ],
             ),

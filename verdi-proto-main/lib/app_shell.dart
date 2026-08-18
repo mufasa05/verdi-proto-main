@@ -143,41 +143,6 @@ class AppShell extends ConsumerWidget {
                 ],
               ),
               actions: [
-                // Demo Mode Quick Switch Action
-                InkWell(
-                  onTap: () {
-                    ref.read(appStateProvider.notifier).toggleDemoMode();
-                  },
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: ref.watch(isDemoModeProvider)
-                          ? const Color(0xFF16A34A)
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.science_outlined,
-                          size: 14,
-                          color: ref.watch(isDemoModeProvider) ? Colors.white : Colors.black87,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ref.watch(isDemoModeProvider) ? 'DEMO' : 'REAL',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: ref.watch(isDemoModeProvider) ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
