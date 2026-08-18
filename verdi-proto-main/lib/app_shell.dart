@@ -6,6 +6,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import 'features/admin/presentation/admin_dashboard_page.dart';
+import 'features/admin/presentation/admin_user_activity_page.dart';
+import 'features/admin/presentation/admin_system_health_page.dart';
 import 'features/ai_assistant/presentation/ai_assistant_page.dart';
 import 'features/analytics/presentation/analytics_page.dart';
 import 'features/crop_health/presentation/crop_health_page.dart';
@@ -75,6 +77,8 @@ class AppShell extends ConsumerWidget {
       const AdminDashboardPage(), // index 23: Admin Command Center
       const NewsPage(), // index 24: Southern African Agri-News
       const ValueAdderProcessingPage(), // index 25: Value Addition Hub
+      const AdminUserActivityPage(), // index 26: User Activities & System Audit Logs
+      const AdminSystemHealthPage(), // index 27: System Health & Infrastructure Telemetry
     ];
 
     return ChangeNotifierProvider<WeatherProvider>(
@@ -318,6 +322,8 @@ class Sidebar extends ConsumerWidget {
     _SidebarMenuItem(index: 23, label: 'Admin Command Center', icon: LucideIcons.shieldAlert),
     _SidebarMenuItem(index: 24, label: 'News', icon: LucideIcons.newspaper),
     _SidebarMenuItem(index: 25, label: 'Value Addition Hub', icon: LucideIcons.factory),
+    _SidebarMenuItem(index: 26, label: 'User Activities & Logs', icon: LucideIcons.history),
+    _SidebarMenuItem(index: 27, label: 'System Health & Services', icon: LucideIcons.activity),
   ];
 
   @override

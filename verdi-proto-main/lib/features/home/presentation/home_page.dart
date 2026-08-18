@@ -7,8 +7,9 @@ import '../../../data/mock_app_data.dart';
 import '../../../state/app_state.dart';
 import '../../auth/state/auth_state.dart';
 import '../../admin/presentation/admin_dashboard_page.dart';
-import '../../admin/presentation/infrastructure_modules_control_page.dart';
 import '../../admin/presentation/user_identity_control_page.dart';
+import '../../admin/presentation/admin_user_activity_page.dart';
+import '../../admin/presentation/admin_system_health_page.dart';
 import '../../logistics/presentation/transporter_telemetry_page.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_insight_strip.dart';
@@ -217,7 +218,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                       isExpanded: _isRecentActivityExpanded,
                       onToggle: () => setState(() => _isRecentActivityExpanded = !_isRecentActivityExpanded),
                       actionButtonLabel: 'View All Logs',
-                      onAction: () => ref.read(appStateProvider.notifier).setNavIndex(11),
+                      onAction: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminUserActivityPage()),
+                        );
+                      },
                       child: _buildRecentActivityContent(ref),
                     ),
                     const SizedBox(height: 10),
@@ -367,32 +373,61 @@ class _HomePageState extends ConsumerState<HomePage> {
         _buildActivityItem('Solenoid Valve 2 activated', 'Automated moisture maintenance triggered in Zone 4', '12m ago', Icons.water_drop_outlined, const Color(0xFF2563EB)),
         _buildActivityItem('Drone inspection uploaded', '12 crop health zones processed with multispectral overlays', '1h ago', Icons.airplay, const Color(0xFF7C3AED)),
         _buildActivityItem('Export certificate generated', 'Traceability cert verified for export batch EXP-002', '4h ago', Icons.verified_outlined, const Color(0xFF16A34A)),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminUserActivityPage()),
+              );
+            },
+            icon: const Icon(Icons.receipt_long_outlined, size: 15),
+            label: const Text('Open All User Activities (1,428 Actions)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF2563EB),
+              side: const BorderSide(color: Color(0xFF93C5FD)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildActivityItem(String title, String desc, String time, IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 14,
-            backgroundColor: color.withOpacity(0.12),
-            child: Icon(icon, size: 14, color: color),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: HomePage.dark)),
-                Text(desc, style: GoogleFonts.inter(fontSize: 11, color: HomePage.muted)),
-              ],
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminUserActivityPage()),
+        );
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: color.withOpacity(0.12),
+              child: Icon(icon, size: 14, color: color),
             ),
-          ),
-          Text(time, style: GoogleFonts.inter(fontSize: 10.5, color: HomePage.muted)),
-        ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: HomePage.dark)),
+                  Text(desc, style: GoogleFonts.inter(fontSize: 11, color: HomePage.muted)),
+                ],
+              ),
+            ),
+            Text(time, style: GoogleFonts.inter(fontSize: 10.5, color: HomePage.muted)),
+          ],
+        ),
       ),
     );
   }
@@ -893,10 +928,7 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const AdminDashboardPage(
-                  initialSubPageTitle: 'Server Health & Infrastructure Telemetry',
-                  initialSubPageWidget: InfrastructureModulesControlPage(),
-                ),
+                builder: (_) => const AdminSystemHealthPage(),
               ),
             );
           },

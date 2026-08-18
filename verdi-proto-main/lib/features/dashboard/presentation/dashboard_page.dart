@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:verdi/core/services/verdi_api_service.dart';
 import '../../../state/app_state.dart';
 import '../../admin/presentation/ai_backbone_control_page.dart';
 import '../../admin/presentation/infrastructure_modules_control_page.dart';
 import '../../admin/presentation/marketplace_trade_oversight_page.dart';
 import '../../admin/presentation/security_compliance_vault_page.dart';
 import '../../admin/presentation/user_identity_control_page.dart';
-import '../../analytics/data/analytics_export_service.dart';
+import '../../admin/presentation/admin_user_activity_page.dart';
+import '../../admin/presentation/admin_system_health_page.dart';
+import '../../admin/presentation/admin_user_management_page.dart';
 
 /// Full-Privilege Super Administrator Sovereign Command Center & Dedicated Sub-Page Router
 class DashboardPage extends ConsumerStatefulWidget {
@@ -41,8 +42,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   String? _activeSubPageTitle;
   Widget? _activeSubPageWidget;
 
-  List<Map<String, dynamic>> _scanLogs = [];
-
   @override
   void initState() {
     super.initState();
@@ -52,22 +51,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     });
     _activeSubPageTitle = widget.initialSubPageTitle;
     _activeSubPageWidget = widget.initialSubPageWidget;
-    _fetchAuditLogs();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  Future<void> _fetchAuditLogs() async {
-    final logs = await VerdiApiService.instance.getScanLogs();
-    if (mounted) {
-      setState(() {
-        _scanLogs = logs;
-      });
-    }
   }
 
   void _openSubPage(String title, Widget child) {
@@ -346,10 +335,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                   } else if (val == 'kyc') {
                     _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage());
                   } else if (val == 'telemetry') {
-                    _openSubPage('Server Health & Infrastructure Telemetry', const InfrastructureModulesControlPage());
+                    _openSubPage('Server Health & Infrastructure Telemetry', const AdminSystemHealthPage());
+                  } else if (val == 'audit') {
+                    _openSubPage('User Activity & System Audit Hub', const AdminUserActivityPage());
                   }
                 },
                 itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'audit',
+                    child: Text('User Activities & System Audit Hub', style: TextStyle(color: accentBlue)),
+                  ),
                   PopupMenuItem(
                     value: 'lock',
                     child: Text('Emergency Safety & Lockdown Desk', style: TextStyle(color: accentDanger)),
@@ -458,20 +453,20 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             icon: Icons.person_add_outlined,
             title: 'Create any user account',
             desc: 'Register farmers, buyers, officers, admins across all roles',
-            onTap: () => _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage()),
+            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
           ),
           _buildControlCard(
             icon: Icons.manage_accounts_outlined,
             title: 'Edit any user profile',
             desc: 'Update identity, contacts, classification, and linked entities',
-            onTap: () => _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage()),
+            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
           ),
           _buildControlCard(
             icon: Icons.person_remove_outlined,
             title: 'Suspend or delete any account',
             desc: 'Immediate suspension or permanent deletion with audit log',
             isDanger: true,
-            onTap: () => _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage()),
+            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
           ),
           _buildControlCard(
             icon: Icons.admin_panel_settings_outlined,
@@ -514,7 +509,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             icon: Icons.monitor_heart_outlined,
             title: 'View system health & telemetry',
             desc: 'Full infrastructure monitoring — uptime, errors, latency',
-            onTap: () => _openSubPage('Server Health & Infrastructure Telemetry', const InfrastructureModulesControlPage()),
+            onTap: () => _openSubPage('Server Health & Infrastructure Telemetry', const AdminSystemHealthPage()),
           ),
         ]),
 
@@ -557,7 +552,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             icon: Icons.monitor_heart_outlined,
             title: 'View system health & performance',
             desc: 'Full infrastructure monitoring — uptime, errors, latency',
-            onTap: () => _openSubPage('Server Health & Infrastructure Telemetry', const InfrastructureModulesControlPage()),
+            onTap: () => _openSubPage('Server Health & Infrastructure Telemetry', const AdminSystemHealthPage()),
           ),
         ]),
 
@@ -569,7 +564,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             icon: Icons.receipt_long_outlined,
             title: 'Access full audit logs',
             desc: 'Every action by every user across all time — immutable records',
-            onTap: () => _openSubPage('Immutable Security Audit Log', _buildDedicatedAuditTrailPage()),
+            onTap: () => _openSubPage('User Activity & System Audit Hub', const AdminUserActivityPage()),
           ),
           _buildControlCard(
             icon: Icons.lock_outlined,
@@ -660,7 +655,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             title: 'Suspend or delete any account',
             desc: 'Immediate suspension or permanent deletion with audit log',
             isDanger: true,
-            onTap: () => _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage()),
+            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
           ),
         ]),
       ],
@@ -672,7 +667,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   }
 
   Widget _buildAuditTrailTab() {
-    return _buildDedicatedAuditTrailPage();
+    return const AdminUserActivityPage();
   }
 
   Widget _buildGovernancePolicyTab() {
@@ -694,86 +689,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
         ],
       ),
     );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // DEDICATED CONTROL PAGE: IMMUTABLE AUDIT TRAIL
-  // ───────────────────────────────────────────────────────────────────────────
-
-  Widget _buildDedicatedAuditTrailPage() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Immutable Security & Action Audit Trail', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                Text('Cryptographically verified system audit log across all domains.', style: GoogleFonts.inter(fontSize: 12, color: textMuted)),
-              ],
-            ),
-            ElevatedButton.icon(
-              onPressed: _exportAuditLog,
-              icon: const Icon(Icons.download_outlined, size: 16),
-              label: const Text('Export Audit Log'),
-              style: ElevatedButton.styleFrom(backgroundColor: accentGreen, foregroundColor: Colors.white),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        _scanLogs.isEmpty
-            ? const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('No audit logs recorded.', style: TextStyle(color: textMuted))))
-            : ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _scanLogs.length,
-                separatorBuilder: (_, __) => const Divider(color: cardBorder),
-                itemBuilder: (context, idx) {
-                  final item = _scanLogs[idx];
-                  return ListTile(
-                    leading: const Icon(Icons.shield_outlined, color: accentGreen),
-                    title: Text(item['batchNumber']?.toString() ?? 'SYSTEM_EVENT', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text(item['details']?.toString() ?? 'Action verified cleanly.', style: const TextStyle(color: textMuted)),
-                    trailing: Text(item['scanResult']?.toString() ?? 'PASSED', style: const TextStyle(color: accentGreen, fontWeight: FontWeight.bold)),
-                  );
-                },
-              ),
-      ],
-    );
-  }
-
-  Future<void> _exportAuditLog() async {
-    try {
-      final file = await AnalyticsExportService.exportOrderSummary(
-        orders: [
-          {
-            'id': 'AUDIT-LOG-MASTER',
-            'buyer': 'Verdi Security Operations Desk',
-            'product': 'Cryptographic Security Audit Trail',
-            'quantity': '${_scanLogs.length} Events',
-            'destination': 'Immutable Vault',
-            'status': 'VERIFIED IMMUTABLE',
-            'payment': 'System Audit',
-            'total': '0.00',
-            'date': '2026-07-24',
-            'eta': 'Complete',
-            'priority': 'High Priority',
-          }
-        ],
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Exported Security Audit Log to ${file.path}'), backgroundColor: accentGreen),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: $e'), backgroundColor: accentDanger),
-      );
-    }
   }
 
   // --- Helper Layout Components ---

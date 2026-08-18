@@ -27,7 +27,10 @@ enum VerdiScreen {
   settings(21, 'Settings', Icons.settings_outlined, Icons.settings_rounded),
   export(22, 'Export & Trade', Icons.local_shipping_outlined, Icons.local_shipping_rounded),
   admin(23, 'Admin Command Center', Icons.admin_panel_settings_outlined, Icons.admin_panel_settings_rounded),
-  processing(25, 'Value Addition Hub', Icons.factory_outlined, Icons.factory_rounded);
+  news(24, 'Agri-News', Icons.newspaper_outlined, Icons.newspaper_rounded),
+  processing(25, 'Value Addition Hub', Icons.factory_outlined, Icons.factory_rounded),
+  adminActivity(26, 'User Activities & Logs', Icons.history_outlined, Icons.history_rounded),
+  adminHealth(27, 'System Health & Services', Icons.memory_outlined, Icons.memory_rounded);
 
   final int pageIndex;
   final String title;
