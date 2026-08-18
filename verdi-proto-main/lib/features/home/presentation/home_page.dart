@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import '../../../data/mock_app_data.dart';
 import '../../../state/app_state.dart';
+import '../../../state/platform_data_state.dart';
 import '../../auth/state/auth_state.dart';
 import '../../admin/presentation/admin_dashboard_page.dart';
 import '../../admin/presentation/user_identity_control_page.dart';
@@ -286,24 +287,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildMarketPulseContent(WidgetRef ref) {
-    final isDemo = ref.watch(isDemoModeProvider);
-    if (!isDemo) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            const Icon(Icons.info_outline, size: 16, color: HomePage.muted),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'No live market price telemetry recorded yet. Rates will update automatically when trade activity commences.',
-                style: GoogleFonts.inter(fontSize: 12, color: HomePage.muted, fontStyle: FontStyle.italic),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
     return Column(
       children: [
         const SizedBox(height: 8),
@@ -311,6 +294,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         _buildMarketPulseRow('White Maize (Bulk)', '\$280.00 / Ton', '+4.2%', true),
         _buildMarketPulseRow('Soybeans (Grade A)', '\$410.00 / Ton', '-1.5%', false),
         _buildMarketPulseRow('Hass Avocados (Export)', '\$3.20 / kg', '+8.0%', true),
+        _buildMarketPulseRow('Sugar Beans (Certified)', '\$1.20 / kg', '+5.5%', true),
       ],
     );
   }
@@ -349,30 +333,36 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildRecentActivityContent(WidgetRef ref) {
-    final isDemo = ref.watch(isDemoModeProvider);
-    if (!isDemo) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            const Icon(Icons.history_toggle_off, size: 16, color: HomePage.muted),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'No system activity logs recorded in the live environment yet.',
-                style: GoogleFonts.inter(fontSize: 12, color: HomePage.muted, fontStyle: FontStyle.italic),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final liveEvents = ref.watch(platformActivityProvider);
+    final displayEvents = liveEvents.take(4).toList();
+
     return Column(
       children: [
         const SizedBox(height: 8),
-        _buildActivityItem('Solenoid Valve 2 activated', 'Automated moisture maintenance triggered in Zone 4', '12m ago', Icons.water_drop_outlined, const Color(0xFF2563EB)),
-        _buildActivityItem('Drone inspection uploaded', '12 crop health zones processed with multispectral overlays', '1h ago', Icons.airplay, const Color(0xFF7C3AED)),
-        _buildActivityItem('Export certificate generated', 'Traceability cert verified for export batch EXP-002', '4h ago', Icons.verified_outlined, const Color(0xFF16A34A)),
+        ...displayEvents.map((evt) {
+          final color = switch (evt.userRole) {
+            UserRole.farmer => const Color(0xFF16A34A),
+            UserRole.transporter => const Color(0xFFF97316),
+            UserRole.buyer => const Color(0xFF2563EB),
+            UserRole.admin => const Color(0xFF7C3AED),
+            UserRole.financier => const Color(0xFF0F766E),
+            _ => const Color(0xFF2563EB),
+          };
+          final icon = switch (evt.module.toLowerCase()) {
+            'marketplace' => Icons.storefront_outlined,
+            'logistics' => Icons.local_shipping_outlined,
+            'payments' => Icons.payments_outlined,
+            'drone inspection' => Icons.airplay_outlined,
+            _ => Icons.radar_outlined,
+          };
+          return _buildActivityItem(
+            '${evt.userName}: ${evt.actionTitle}',
+            evt.actionDescription,
+            evt.timestamp,
+            icon,
+            color,
+          );
+        }),
         const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
@@ -384,7 +374,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               );
             },
             icon: const Icon(Icons.receipt_long_outlined, size: 15),
-            label: const Text('Open All User Activities (1,428 Actions)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            label: Text('Open Full Platform Activity (${liveEvents.length} Live Records)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF2563EB),
               side: const BorderSide(color: Color(0xFF93C5FD)),
@@ -420,8 +410,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: HomePage.dark)),
-                  Text(desc, style: GoogleFonts.inter(fontSize: 11, color: HomePage.muted)),
+                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: HomePage.dark)),
+                  Text(desc, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 11, color: HomePage.muted)),
                 ],
               ),
             ),
@@ -433,57 +423,47 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildLogisticsContent(WidgetRef ref) {
-    final isDemo = ref.watch(isDemoModeProvider);
-    if (!isDemo) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            const Icon(Icons.local_shipping_outlined, size: 16, color: HomePage.muted),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'No transport trucks currently active or available in your region.',
-                style: GoogleFonts.inter(fontSize: 12, color: HomePage.muted, fontStyle: FontStyle.italic),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final trucks = ref.watch(trucksListProvider);
+    final available = trucks.where((t) => t.status != 'Offline').take(3).toList();
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        _buildTruckRow('Tafadzwa M.', 'Heavy Cargo Truck (12 Tonnes)', '\$0.20/km', 'Ready in 20 mins'),
-        _buildTruckRow('Moses K.', 'Flatbed Trailer (24 Tonnes)', '\$0.35/km', 'Ready in 35 mins'),
-        _buildTruckRow('Chipo D.', 'Refrigerated Van (4 Tonnes)', '\$0.15/km', 'Ready in 10 mins'),
+        ...available.map((t) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF97316).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.local_shipping_outlined, color: Color(0xFFF97316), size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${t.driver} • ${t.vehicle}', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: HomePage.dark)),
+                        Text('${t.from} • ETA ${t.eta} • Rating ★${t.rating}', style: GoogleFonts.inter(fontSize: 11, color: HomePage.muted)),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(t.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
+                  ),
+                ],
+              ),
+            )),
       ],
-    );
-  }
-
-  Widget _buildTruckRow(String driver, String type, String rate, String eta) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(driver, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: HomePage.dark)),
-              Text(type, style: GoogleFonts.inter(fontSize: 11, color: HomePage.muted)),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(rate, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: const Color(0xFF16A34A))),
-              Text(eta, style: GoogleFonts.inter(fontSize: 10.5, color: HomePage.muted)),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

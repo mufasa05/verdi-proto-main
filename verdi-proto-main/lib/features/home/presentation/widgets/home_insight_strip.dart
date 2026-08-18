@@ -3,28 +3,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../state/app_state.dart';
-import '../../../../core/enums/verdi_screen.dart';
+import '../../../../state/platform_data_state.dart';
+import '../../../../core/intelligence/dynamic_intelligence_synthesizer.dart';
 
 class HomeInsightStrip extends ConsumerWidget {
   final UserRole role;
   const HomeInsightStrip({super.key, required this.role});
 
-  static const green = Color(0xFF16A34A);
-  static const orange = Color(0xFFF97316);
-  static const blue = Color(0xFF2563EB);
-  static const purple = Color(0xFF7C3AED);
-  static const teal = Color(0xFF0F766E);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = switch (role) {
-      UserRole.transporter => _transporterInsights(),
-      UserRole.valueAdder => _valueAdderInsights(),
-      _ => _defaultInsights(),
-    };
+    final isDemo = ref.watch(isDemoModeProvider);
+    final orders = ref.watch(ordersListProvider);
+    final trucks = ref.watch(trucksListProvider);
+    final payments = ref.watch(paymentsListProvider);
+    final sessions = ref.watch(liveUserSessionsProvider);
+    final onlineCount = sessions.where((s) => s.isOnline).length;
+
+    final items = DynamicIntelligenceSynthesizer.synthesizeInsights(
+      role: role,
+      isDemo: isDemo,
+      orders: orders,
+      trucks: trucks,
+      payments: payments,
+      onlineUsersCount: onlineCount > 0 ? onlineCount : 8,
+      platformHealthPercent: 99.8,
+    );
 
     return SizedBox(
-      height: 200,
+      height: 205,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
@@ -33,147 +39,10 @@ class HomeInsightStrip extends ConsumerWidget {
       ),
     );
   }
-
-  static List<_InsightCardData> _valueAdderInsights() => [
-        _InsightCardData(
-          title: '15.0T Raw Crop Delivery Scheduled',
-          subtitle: 'Contracted intake batch arriving at processing line by 14:00.',
-          action: 'Log Intake',
-          imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
-          color: green,
-          confidence: 0.94,
-          targetScreen: VerdiScreen.processing,
-        ),
-        _InsightCardData(
-          title: 'High Moisture & Quality Grade',
-          subtitle: 'Optimal raw intake parameters — predicted processing yield +12%.',
-          action: 'View Yield',
-          imageUrl: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=1200&q=80',
-          color: teal,
-          confidence: 0.88,
-          targetScreen: VerdiScreen.processing,
-        ),
-        _InsightCardData(
-          title: 'Milling & Processing Line Maintenance',
-          subtitle: 'Line #1 maintenance check recommended before heavy shift run.',
-          action: 'Check Telemetry',
-          imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80',
-          color: orange,
-          confidence: 0.81,
-          targetScreen: VerdiScreen.processing,
-        ),
-        _InsightCardData(
-          title: 'Processed Crop Export Prices Up +15%',
-          subtitle: 'Bulk value-added commodity export rates rising in SADC region.',
-          action: 'See Rates',
-          imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
-          color: purple,
-          confidence: 0.92,
-          targetScreen: VerdiScreen.trade,
-        ),
-      ];
-
-  static List<_InsightCardData> _transporterInsights() => [
-        _InsightCardData(
-          title: '2 cargo loads available near Chiredzi',
-          subtitle: 'Freight pickup opportunity. Act before 14:00 today.',
-          action: 'View loads',
-          imageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
-          color: green,
-          confidence: 0.89,
-          targetScreen: VerdiScreen.logistics,
-        ),
-        _InsightCardData(
-          title: 'Fuel cost up 8% this week',
-          subtitle: 'Review route efficiency to protect your margins.',
-          action: 'View analytics',
-          imageUrl: 'https://images.unsplash.com/photo-1508444845599-5c89863b1c44?auto=format&fit=crop&w=1200&q=80',
-          color: orange,
-          confidence: 0.82,
-          targetScreen: VerdiScreen.analytics,
-        ),
-        _InsightCardData(
-          title: 'Road alert: Beitbridge corridor',
-          subtitle: 'Heavy rain may delay southern deliveries by 2–4 hrs.',
-          action: 'View forecast',
-          imageUrl: 'https://images.unsplash.com/photo-1503435824048-a799a3a84bf4?auto=format&fit=crop&w=1200&q=80',
-          color: blue,
-          confidence: 0.76,
-          targetScreen: VerdiScreen.logistics,
-        ),
-        _InsightCardData(
-          title: 'Tomato freight rate up 14%',
-          subtitle: 'High buyer demand from Harare. Lock in runs now.',
-          action: 'See trade',
-          imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
-          color: purple,
-          confidence: 0.91,
-          targetScreen: VerdiScreen.marketplace,
-        ),
-      ];
-
-  static List<_InsightCardData> _defaultInsights() => [
-        _InsightCardData(
-          title: '3 buyers in Chiredzi need tomatoes',
-          subtitle: 'Demand is high near your farm this morning.',
-          action: 'View buyers',
-          imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
-          color: green,
-          confidence: 0.94,
-          targetScreen: VerdiScreen.marketplace,
-        ),
-        _InsightCardData(
-          title: 'Tomato price trend is up 12%',
-          subtitle: 'You may want to list more inventory today.',
-          action: 'See trend',
-          imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
-          color: orange,
-          confidence: 0.85,
-          targetScreen: VerdiScreen.analytics,
-        ),
-        _InsightCardData(
-          title: 'Rain expected tomorrow',
-          subtitle: 'Delivery timing may need adjustment.',
-          action: 'View forecast',
-          imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
-          color: blue,
-          confidence: 0.78,
-          targetScreen: VerdiScreen.logistics,
-        ),
-        _InsightCardData(
-          title: 'Crop stress detected in East field',
-          subtitle: 'Monitor moisture and leaf health soon.',
-          action: 'Check field',
-          imageUrl: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80',
-          color: teal,
-          confidence: 0.91,
-          targetScreen: VerdiScreen.irrigation,
-        ),
-      ];
-}
-
-class _InsightCardData {
-  final String title;
-  final String subtitle;
-  final String action;
-  final String imageUrl;
-  final Color color;
-  final double confidence;
-  final VerdiScreen targetScreen;
-
-  _InsightCardData({
-    required this.title,
-    required this.subtitle,
-    required this.action,
-    required this.imageUrl,
-    required this.color,
-    required this.confidence,
-    required this.targetScreen,
-  });
 }
 
 class _InsightCard extends ConsumerWidget {
-  final _InsightCardData data;
+  final AiInsightItem data;
 
   const _InsightCard({required this.data});
 
@@ -185,11 +54,12 @@ class _InsightCard extends ConsumerWidget {
       },
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        width: 260,
+        width: 270,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: data.color.withValues(alpha: 0.2),
+          border: Border.all(color: data.color.withValues(alpha: 0.3)),
         ),
         child: Stack(
           children: [
@@ -208,7 +78,7 @@ class _InsightCard extends ConsumerWidget {
                       ),
                     ),
                     child: const Center(
-                      child: Icon(Icons.offline_bolt_outlined, color: Colors.white70, size: 40),
+                      child: Icon(Icons.psychology_outlined, color: Colors.white70, size: 40),
                     ),
                   );
                 },
@@ -222,8 +92,10 @@ class _InsightCard extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.85),
+                      Colors.black.withValues(alpha: 0.60),
+                      Colors.black.withValues(alpha: 0.92),
                     ],
+                    stops: const [0.0, 0.45, 1.0],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -241,53 +113,68 @@ class _InsightCard extends ConsumerWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                         decoration: BoxDecoration(
-                          color: data.color.withValues(alpha: 0.92),
+                          color: data.color,
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text(
-                          'AI Insight',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.auto_awesome, size: 11, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(
+                              'AI ${data.category.toUpperCase()}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white24),
                         ),
                         child: Text(
-                          '${(data.confidence * 100).round()}% Conf.',
-                          style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold),
+                          '${(data.confidence * 100).toInt()}% Conf',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     data.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 13,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      height: 1.25,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Text(
                     data.subtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      fontSize: 10.5,
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.88),
+                      height: 1.3,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -296,13 +183,17 @@ class _InsightCard extends ConsumerWidget {
                       Text(
                         data.action,
                         style: GoogleFonts.inter(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF6EE7B7),
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.arrow_forward, color: Colors.white, size: 10),
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 13,
+                        color: Color(0xFF6EE7B7),
+                      ),
                     ],
                   ),
                 ],

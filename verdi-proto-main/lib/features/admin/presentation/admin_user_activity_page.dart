@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
+import '../../../state/platform_data_state.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADMIN USER ACTIVITY & SYSTEM AUDIT LOGS PAGE
@@ -311,8 +312,45 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
     super.dispose();
   }
 
-  List<UserActivityEvent> get _filteredEvents {
-    return _allEvents.where((e) {
+  List<UserActivityEvent> _getMergedEvents(WidgetRef ref) {
+    final livePlatformEvents = ref.watch(platformActivityProvider);
+    final mappedLive = livePlatformEvents.map((p) {
+      final color = switch (p.status.toLowerCase()) {
+        'success' => green,
+        'warning' => orange,
+        'security alert' => red,
+        _ => blue,
+      };
+      final icon = switch (p.module.toLowerCase()) {
+        'marketplace' => Icons.storefront_outlined,
+        'logistics' => Icons.local_shipping_outlined,
+        'payments' => Icons.payments_outlined,
+        'drone inspection' => Icons.airplay_outlined,
+        _ => Icons.radar_outlined,
+      };
+      return UserActivityEvent(
+        id: p.id,
+        userName: p.userName,
+        userId: p.userId,
+        userRole: p.userRole,
+        userAvatar: p.userAvatar,
+        actionTitle: p.actionTitle,
+        actionDescription: p.actionDescription,
+        module: p.module,
+        targetResource: p.targetResource,
+        timestamp: p.timestamp,
+        exactTime: p.exactTime,
+        ipAddress: p.ipAddress,
+        device: p.device,
+        status: p.status,
+        statusColor: color,
+        icon: icon,
+        metadata: p.metadata,
+      );
+    }).toList();
+
+    final all = [...mappedLive, ..._allEvents];
+    return all.where((e) {
       final matchesQuery = _searchQuery.isEmpty ||
           e.userName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           e.actionTitle.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -497,11 +535,127 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
     );
   }
 
+  Widget _buildLiveUserPresenceSection() {
+    final sessions = ref.watch(liveUserSessionsProvider);
+    final onlineCount = sessions.where((s) => s.isOnline).length;
+    final offlineCount = sessions.length - onlineCount;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardDark,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.people_alt_outlined, color: blue, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Live Multi-Role Stakeholder Presence Radar',
+                style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: green.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: green.withOpacity(0.4)),
+                ),
+                child: Text('$onlineCount ONLINE', style: const TextStyle(color: green, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: textMuted.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: textMuted.withOpacity(0.3)),
+                ),
+                child: Text('$offlineCount OFFLINE', style: const TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 105,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: sessions.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, idx) {
+                final s = sessions[idx];
+                return Container(
+                  width: 230,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: bgDark,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: s.isOnline ? green.withOpacity(0.4) : cardBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: blue.withOpacity(0.2),
+                                child: Text(s.avatar, style: const TextStyle(color: blue, fontSize: 10, fontWeight: FontWeight.bold)),
+                              ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: s.isOnline ? green : Colors.grey,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: bgDark, width: 1.5),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                Text(s.role.name.toUpperCase(), style: TextStyle(color: s.isOnline ? green : textMuted, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(s.currentAction, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: textMuted, fontSize: 10)),
+                      Text('${s.device} • ${s.lastHeartbeat}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 9)),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 900;
-    final events = _filteredEvents;
+    final events = _getMergedEvents(ref);
 
     return Scaffold(
       backgroundColor: bgDark,
@@ -560,7 +714,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('Exporting 1,428 system audit records to CSV...'),
+                  content: Text('Exporting ${events.length} system audit records to CSV...'),
                   backgroundColor: blue,
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -580,6 +734,10 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Live Presence Radar ──
+                  _buildLiveUserPresenceSection(),
+                  const SizedBox(height: 18),
+
                   // ── Top KPI Grid ──
                   _buildKpiGrid(isDesktop),
                   const SizedBox(height: 20),

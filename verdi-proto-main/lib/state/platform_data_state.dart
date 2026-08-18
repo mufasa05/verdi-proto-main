@@ -369,11 +369,11 @@ class DeliveriesNotifier extends StateNotifier<List<DeliveryItem>> {
   static final List<DeliveryItem> _userDeliveries = [];
 
   DeliveriesNotifier({required this.isDemo})
-      : super(isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries]);
+      : super(isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries, ...LogisticsMockData.deliveries]);
 
   void addDelivery(DeliveryItem delivery) {
     _userDeliveries.insert(0, delivery);
-    state = isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries];
+    state = isDemo ? [..._userDeliveries, ...LogisticsMockData.deliveries] : [..._userDeliveries, ...LogisticsMockData.deliveries];
   }
 
   void updateDeliveryStatus(String id, String status) {
@@ -415,4 +415,282 @@ final deliveriesListProvider =
     StateNotifierProvider<DeliveriesNotifier, List<DeliveryItem>>((ref) {
   final isDemo = ref.watch(isDemoModeProvider);
   return DeliveriesNotifier(isDemo: isDemo);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLATFORM SURVEILLANCE & LIVE USER PRESENCE ENGINE
+// ─────────────────────────────────────────────────────────────────────────────
+
+class LiveUserSession {
+  final String id;
+  final String name;
+  final UserRole role;
+  final String avatar;
+  final String location;
+  final String device;
+  final String ipAddress;
+  final bool isOnline;
+  final String lastHeartbeat;
+  final String currentAction;
+
+  const LiveUserSession({
+    required this.id,
+    required this.name,
+    required this.role,
+    required this.avatar,
+    required this.location,
+    required this.device,
+    required this.ipAddress,
+    required this.isOnline,
+    required this.lastHeartbeat,
+    required this.currentAction,
+  });
+}
+
+class PlatformActivityEvent {
+  final String id;
+  final String userName;
+  final String userId;
+  final UserRole userRole;
+  final String userAvatar;
+  final String actionTitle;
+  final String actionDescription;
+  final String module;
+  final String targetResource;
+  final String timestamp;
+  final String exactTime;
+  final String ipAddress;
+  final String device;
+  final String status;
+  final Map<String, dynamic> metadata;
+
+  const PlatformActivityEvent({
+    required this.id,
+    required this.userName,
+    required this.userId,
+    required this.userRole,
+    required this.userAvatar,
+    required this.actionTitle,
+    required this.actionDescription,
+    required this.module,
+    required this.targetResource,
+    required this.timestamp,
+    required this.exactTime,
+    required this.ipAddress,
+    required this.device,
+    required this.status,
+    required this.metadata,
+  });
+}
+
+final List<LiveUserSession> _defaultLiveSessions = [
+  const LiveUserSession(
+    id: 'USR-FRM-001',
+    name: 'Kudakwashe Moyo',
+    role: UserRole.farmer,
+    avatar: 'KM',
+    location: 'Harare, Zimbabwe',
+    device: 'Verdi Mobile Android 14',
+    ipAddress: '197.221.14.82',
+    isOnline: true,
+    lastHeartbeat: 'Just now',
+    currentAction: 'Viewing Farm Agronomic Diagnostics',
+  ),
+  const LiveUserSession(
+    id: 'USR-TRP-002',
+    name: 'Tafadzwa M. (Freight Driver)',
+    role: UserRole.transporter,
+    avatar: 'TM',
+    location: 'A5 Highway, Chegutu',
+    device: 'Verdi In-Cab Telemetry Terminal',
+    ipAddress: '197.221.15.104',
+    isOnline: true,
+    lastHeartbeat: '1m ago',
+    currentAction: 'Transmitting GPS & Cold-Chain Telemetry (+3.2°C)',
+  ),
+  const LiveUserSession(
+    id: 'USR-BYR-003',
+    name: 'Farai Chimanzi (FreshMart)',
+    role: UserRole.buyer,
+    avatar: 'FC',
+    location: 'Mbare Wholesale Hub',
+    device: 'Verdi Web Dashboard Chrome',
+    ipAddress: '197.221.16.21',
+    isOnline: true,
+    lastHeartbeat: '2m ago',
+    currentAction: 'Placing Wholesale Tomato Procurement Order',
+  ),
+  const LiveUserSession(
+    id: 'USR-EXP-004',
+    name: 'Dr. Nyasha Sibanda (Agronomist)',
+    role: UserRole.expert,
+    avatar: 'NS',
+    location: 'Marondera Agri-Lab',
+    device: 'Verdi iPad Pro iOS 17',
+    ipAddress: '197.221.14.99',
+    isOnline: true,
+    lastHeartbeat: '4m ago',
+    currentAction: 'Publishing Crop Disease Advisory Memo',
+  ),
+  const LiveUserSession(
+    id: 'USR-FIN-005',
+    name: 'Stanbic Agri-Desk Lead',
+    role: UserRole.financier,
+    avatar: 'ST',
+    location: 'Harare CBD Financial Centre',
+    device: 'Verdi Treasury Desktop',
+    ipAddress: '102.130.45.12',
+    isOnline: true,
+    lastHeartbeat: '5m ago',
+    currentAction: 'Reviewing Smallholder Irrigation Credit Lines',
+  ),
+  const LiveUserSession(
+    id: 'USR-GOV-006',
+    name: 'GMB National Grain Officer',
+    role: UserRole.government,
+    avatar: 'GO',
+    location: 'National Command Center',
+    device: 'Government Secure Terminal',
+    ipAddress: '196.2.88.10',
+    isOnline: true,
+    lastHeartbeat: '7m ago',
+    currentAction: 'Monitoring National Strategic Reserve Buffer',
+  ),
+  const LiveUserSession(
+    id: 'USR-VLA-007',
+    name: 'Mazowe Processing Line Lead',
+    role: UserRole.valueAdder,
+    avatar: 'MP',
+    location: 'Mazowe Citrus Plant',
+    device: 'Factory Floor Tablet',
+    ipAddress: '197.221.80.12',
+    isOnline: true,
+    lastHeartbeat: '12m ago',
+    currentAction: 'Logging 15.0T Raw Intake Weighbridge',
+  ),
+  const LiveUserSession(
+    id: 'USR-CON-008',
+    name: 'Bulawayo Retail Consumer',
+    role: UserRole.consumer,
+    avatar: 'BC',
+    location: 'Bulawayo Central',
+    device: 'Mobile Safari iOS 18',
+    ipAddress: '197.221.90.44',
+    isOnline: false,
+    lastHeartbeat: '28m ago',
+    currentAction: 'Scanned EUDR Produce QR Certificate',
+  ),
+];
+
+class LiveUserSessionsNotifier extends StateNotifier<List<LiveUserSession>> {
+  LiveUserSessionsNotifier() : super(_defaultLiveSessions);
+
+  void setUserOnlineStatus(String userId, bool isOnline, String action) {
+    state = state.map((s) {
+      if (s.id == userId) {
+        return LiveUserSession(
+          id: s.id,
+          name: s.name,
+          role: s.role,
+          avatar: s.avatar,
+          location: s.location,
+          device: s.device,
+          ipAddress: s.ipAddress,
+          isOnline: isOnline,
+          lastHeartbeat: 'Just now',
+          currentAction: action,
+        );
+      }
+      return s;
+    }).toList();
+  }
+}
+
+final liveUserSessionsProvider =
+    StateNotifierProvider<LiveUserSessionsNotifier, List<LiveUserSession>>((ref) {
+  return LiveUserSessionsNotifier();
+});
+
+class PlatformActivityNotifier extends StateNotifier<List<PlatformActivityEvent>> {
+  PlatformActivityNotifier() : super(_initialEvents);
+
+  static final List<PlatformActivityEvent> _initialEvents = [
+    const PlatformActivityEvent(
+      id: 'ACT-9021',
+      userName: 'Kudakwashe Moyo',
+      userId: 'USR-FRM-001',
+      userRole: UserRole.farmer,
+      userAvatar: 'KM',
+      actionTitle: 'Marketplace Produce Batch Listed',
+      actionDescription: 'Listed 2,500 kg Grade-A Sugar Beans at US\$ 1.20/kg with origin certification.',
+      module: 'Marketplace',
+      targetResource: 'Batch #VER-TR-1001',
+      timestamp: 'Just now',
+      exactTime: '18 Aug 2026 21:28:10 CAT',
+      ipAddress: '197.221.14.82 (Harare)',
+      device: 'Verdi Mobile App Android 14',
+      status: 'Success',
+      metadata: {'commodity': 'Sugar Beans', 'quantity': '2,500 kg', 'price': 'US\$ 1.20/kg'},
+    ),
+    const PlatformActivityEvent(
+      id: 'ACT-9020',
+      userName: 'Tafadzwa M. (Freight Driver)',
+      userId: 'USR-TRP-002',
+      userRole: UserRole.transporter,
+      userAvatar: 'TM',
+      actionTitle: 'GPS Telemetry & Cold Chain Transmitted',
+      actionDescription: '5G Mesh waypoint heartbeat received. Reefer temp: +3.2°C, Speed: 68 km/h.',
+      module: 'Logistics',
+      targetResource: 'Vehicle SCANIA-AEB2910',
+      timestamp: '2m ago',
+      exactTime: '18 Aug 2026 21:26:00 CAT',
+      ipAddress: '197.221.15.104 (Chegutu Route)',
+      device: 'Verdi In-Cab IoT Hub',
+      status: 'Success',
+      metadata: {'temp': '+3.2°C', 'speed': '68 km/h', 'fuel': '84%'},
+    ),
+    const PlatformActivityEvent(
+      id: 'ACT-9019',
+      userName: 'Farai Chimanzi (FreshMart)',
+      userId: 'USR-BYR-003',
+      userRole: UserRole.buyer,
+      userAvatar: 'FC',
+      actionTitle: 'Escrow Payment Locked',
+      actionDescription: 'Escrow secured for Order #ORD-1001 (US\$ 96.00) via EcoCash Merchant API.',
+      module: 'Payments',
+      targetResource: 'Payment #PAY-1001',
+      timestamp: '6m ago',
+      exactTime: '18 Aug 2026 21:22:45 CAT',
+      ipAddress: '197.221.16.21 (Mbare)',
+      device: 'Verdi Web Dashboard Chrome',
+      status: 'Success',
+      metadata: {'amount': 'US\$ 96.00', 'method': 'EcoCash', 'escrow': 'Locked'},
+    ),
+    const PlatformActivityEvent(
+      id: 'ACT-9018',
+      userName: 'Autonomous Sentinel Drone #01',
+      userId: 'SYS-DRN-001',
+      userRole: UserRole.admin,
+      userAvatar: 'DR',
+      actionTitle: 'Multispectral NDVI Scan Uploaded',
+      actionDescription: 'Processed 5.2 ha scan across Zone 2. 1 moisture deficit hotspot flagged.',
+      module: 'Drone Inspection',
+      targetResource: 'Mission #MSN-8821',
+      timestamp: '14m ago',
+      exactTime: '18 Aug 2026 21:14:12 CAT',
+      ipAddress: '10.0.4.18 (Gutu 5G Mesh)',
+      device: 'Verdi Sentinel SkyController 4',
+      status: 'Success',
+      metadata: {'area': '5.2 ha', 'avgNdvi': '0.78', 'hotspots': '1'},
+    ),
+  ];
+
+  void logActivity(PlatformActivityEvent event) {
+    state = [event, ...state];
+  }
+}
+
+final platformActivityProvider =
+    StateNotifierProvider<PlatformActivityNotifier, List<PlatformActivityEvent>>((ref) {
+  return PlatformActivityNotifier();
 });
