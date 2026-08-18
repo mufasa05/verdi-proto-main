@@ -370,7 +370,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             'marketplace' => Icons.storefront_outlined,
             'logistics' => Icons.local_shipping_outlined,
             'payments' => Icons.payments_outlined,
-            'drone inspection' => Icons.airplay_outlined,
+            'geospatial' => Icons.map_outlined,
             _ => Icons.radar_outlined,
           };
           return _buildActivityItem(

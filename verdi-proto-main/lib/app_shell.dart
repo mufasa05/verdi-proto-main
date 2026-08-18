@@ -258,11 +258,6 @@ class Sidebar extends ConsumerWidget {
     _SidebarMenuItem(index: 6, label: 'Payments', icon: LucideIcons.creditCard),
     _SidebarMenuItem(index: 7, label: 'Notifications', icon: LucideIcons.bell),
     _SidebarMenuItem(
-      index: 10,
-      label: 'Drone Inspection',
-      icon: LucideIcons.airplay,
-    ),
-    _SidebarMenuItem(
       index: 11,
       label: 'Farm Operations',
       icon: LucideIcons.hammer,
@@ -317,7 +312,7 @@ class Sidebar extends ConsumerWidget {
       switch (role) {
         case UserRole.farmer:
         case UserRole.expert:
-          return item.index == 10 ||
+          return item.index == 11 ||
               item.index == 13 ||
               item.index == 14 ||
               item.index == 17 ||

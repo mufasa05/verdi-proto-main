@@ -326,7 +326,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
         'marketplace' => Icons.storefront_outlined,
         'logistics' => Icons.local_shipping_outlined,
         'payments' => Icons.payments_outlined,
-        'drone inspection' => Icons.airplay_outlined,
+        'geospatial' => Icons.map_outlined,
         _ => Icons.radar_outlined,
       };
       return UserActivityEvent(
@@ -677,71 +677,61 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
 
     return Scaffold(
       backgroundColor: bgDark,
-      appBar: AppBar(
-        backgroundColor: cardDark,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.pop(context);
-            } else {
-              ref.read(appStateProvider.notifier).setNavIndex(0);
-            }
-          },
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'User Activity & System Audit Hub',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 17, color: Colors.white),
+      appBar: Navigator.canPop(context)
+          ? AppBar(
+              backgroundColor: cardDark,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Row(
+                children: [
+                  Text(
+                    'Audit Hub',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: (_isLiveStreaming ? green : orange).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: (_isLiveStreaming ? green : orange).withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(width: 6, height: 6, decoration: BoxDecoration(color: _isLiveStreaming ? green : orange, shape: BoxShape.circle)),
+                        const SizedBox(width: 4),
+                        Text(_isLiveStreaming ? 'LIVE AUDIT' : 'STREAM PAUSED', style: TextStyle(color: _isLiveStreaming ? green : orange, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(_isLiveStreaming ? Icons.pause_circle_outline : Icons.play_circle_outline, color: Colors.white70),
+                  tooltip: _isLiveStreaming ? 'Pause Live Stream' : 'Resume Live Stream',
+                  onPressed: () => setState(() => _isLiveStreaming = !_isLiveStreaming),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.download_rounded, color: Colors.white70),
+                  tooltip: 'Export Audit Log (CSV)',
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Exporting ${events.length} system audit records to CSV...'),
+                        backgroundColor: blue,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: (_isLiveStreaming ? green : orange).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: (_isLiveStreaming ? green : orange).withOpacity(0.4)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(width: 6, height: 6, decoration: BoxDecoration(color: _isLiveStreaming ? green : orange, shape: BoxShape.circle)),
-                      const SizedBox(width: 4),
-                      Text(_isLiveStreaming ? 'LIVE AUDIT' : 'STREAM PAUSED', style: TextStyle(color: _isLiveStreaming ? green : orange, fontSize: 9.5, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
               ],
-            ),
-            Text('Omni-Channel Stakeholder Action & Mutation Stream', style: GoogleFonts.inter(fontSize: 11, color: textMuted)),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(_isLiveStreaming ? Icons.pause_circle_outline : Icons.play_circle_outline, color: Colors.white70),
-            tooltip: _isLiveStreaming ? 'Pause Live Stream' : 'Resume Live Stream',
-            onPressed: () => setState(() => _isLiveStreaming = !_isLiveStreaming),
-          ),
-          IconButton(
-            icon: const Icon(Icons.download_rounded, color: Colors.white70),
-            tooltip: 'Export Audit Log (CSV)',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Exporting ${events.length} system audit records to CSV...'),
-                  backgroundColor: blue,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+            )
+          : null,
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
@@ -757,7 +747,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                   const SizedBox(height: 18),
 
                   // ── Top KPI Grid ──
-                  _buildKpiGrid(isDesktop),
+                  _buildKpiGrid(isDesktop, events),
                   const SizedBox(height: 20),
 
                   // ── Search & Multi-Filter Rail ──
@@ -835,13 +825,29 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
     );
   }
 
-  Widget _buildKpiGrid(bool isDesktop) {
-    final kpis = [
-      _KpiSummary('1,428', 'Total User Actions', '+84 this hour', Icons.analytics_outlined, green),
-      _KpiSummary('86', 'Active Sessions', 'Across 8 provinces', Icons.people_alt_outlined, blue),
-      _KpiSummary('US\$ 48.2k', 'Trade Volume Logged', '100% in escrow', Icons.account_balance_wallet_outlined, purple),
-      _KpiSummary('0', 'Critical Security Breaches', 'All nodes safe', Icons.shield_outlined, green),
-    ];
+  Widget _buildKpiGrid(bool isDesktop, List<UserActivityEvent> events) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final orders = ref.watch(ordersListProvider);
+    final sessions = ref.watch(liveUserSessionsProvider);
+    final onlineCount = sessions.where((s) => s.isOnline).length;
+    final double liveGmv = orders.fold(0.0, (sum, o) {
+      final val = double.tryParse(o.total.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+      return sum + val;
+    });
+
+    final kpis = isDemo
+        ? [
+            _KpiSummary('1,428', 'Total User Actions', '+84 this hour', Icons.analytics_outlined, green),
+            _KpiSummary('86', 'Active Sessions', 'Across 8 provinces', Icons.people_alt_outlined, blue),
+            _KpiSummary('US\$ 48.2k', 'Trade Volume Logged', '100% in escrow', Icons.account_balance_wallet_outlined, purple),
+            _KpiSummary('0', 'Critical Security Breaches', 'All nodes safe', Icons.shield_outlined, green),
+          ]
+        : [
+            _KpiSummary('${events.length}', 'Total User Actions', events.isEmpty ? 'Awaiting live traffic' : 'Live stream active', Icons.analytics_outlined, green),
+            _KpiSummary('$onlineCount', 'Active Sessions', 'Live platform users', Icons.people_alt_outlined, blue),
+            _KpiSummary('US\$ ${liveGmv.toStringAsFixed(0)}', 'Trade Volume Logged', 'Real escrow locks', Icons.account_balance_wallet_outlined, purple),
+            _KpiSummary('0', 'Critical Security Breaches', '5G Mesh secure', Icons.shield_outlined, green),
+          ];
 
     return GridView.builder(
       shrinkWrap: true,
@@ -989,69 +995,56 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(14),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Avatar
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: _roleColor(e.userRole).withOpacity(0.2),
-                child: Text(
-                  e.userAvatar,
-                  style: TextStyle(color: _roleColor(e.userRole), fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(e.userName, style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white)),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: _roleColor(e.userRole).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            e.userRole.name.toUpperCase(),
-                            style: TextStyle(color: _roleColor(e.userRole), fontSize: 9.5, fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(e.timestamp, style: const TextStyle(color: textMuted, fontSize: 11)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(e.actionTitle, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold, color: const Color(0xFFE2E8F0))),
-                    const SizedBox(height: 2),
-                    Text(e.actionDescription, style: const TextStyle(color: textMuted, fontSize: 11.5), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 8),
-
-                    // Tags row
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        _tag(Icons.layers_outlined, e.module, blue),
-                        _tag(Icons.pin_outlined, e.targetResource, purple),
-                        _tag(Icons.location_on_outlined, e.ipAddress.split(' ').first, textMuted),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 8),
-              // Status pill & chevron
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              // Top Header: Avatar + User info + Status Badge
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: _roleColor(e.userRole).withOpacity(0.2),
+                    child: Text(
+                      e.userAvatar,
+                      style: TextStyle(color: _roleColor(e.userRole), fontWeight: FontWeight.bold, fontSize: 11),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                e.userName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: _roleColor(e.userRole).withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                e.userRole.name.toUpperCase(),
+                                style: TextStyle(color: _roleColor(e.userRole), fontSize: 9.5, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(e.timestamp, style: const TextStyle(color: textMuted, fontSize: 10.5)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
@@ -1061,7 +1054,29 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                     ),
                     child: Text(e.status, style: TextStyle(color: e.statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(height: 12),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Action Title & Description
+              Text(e.actionTitle, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFE2E8F0))),
+              const SizedBox(height: 3),
+              Text(e.actionDescription, style: const TextStyle(color: textMuted, fontSize: 11.5), maxLines: 2, overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 10),
+              // Tags Row & Chevron
+              Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        _tag(Icons.layers_outlined, e.module, blue),
+                        _tag(Icons.pin_outlined, e.targetResource, purple),
+                        _tag(Icons.location_on_outlined, e.ipAddress.split(' ').first, textMuted),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 4),
                   const Icon(Icons.chevron_right_rounded, color: textMuted, size: 18),
                 ],
               ),

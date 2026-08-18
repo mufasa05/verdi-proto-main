@@ -119,12 +119,6 @@ class AppNavigationDrawer extends StatelessWidget {
                     onTap: () => _go(context, '/logistics'),
                   ),
                   _DrawerItem(
-                    icon: Icons.flight_outlined,
-                    title: 'Drone Inspection',
-                    selected: currentRoute == '/drone-inspection',
-                    onTap: () => _go(context, '/drone-inspection'),
-                  ),
-                  _DrawerItem(
                     icon: Icons.fact_check_outlined,
                     title: 'Traceability',
                     selected: currentRoute == '/traceability',
