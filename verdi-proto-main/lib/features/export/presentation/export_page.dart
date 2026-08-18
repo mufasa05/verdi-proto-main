@@ -346,34 +346,45 @@ class _ExportPageState extends ConsumerState<ExportPage> with TickerProviderStat
           }),
         ),
         const SizedBox(height: 24),
-        ..._exporters.map((e) {
-          final isActive = e['status'] == 'Active';
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(20),
+        if (activeExporters.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFE2E8F0))),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text(e['company'], style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15)),
-                _StatusChip(label: e['status'], color: isActive ? ExportPage.green : ExportPage.orange),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.business_outlined, size: 40, color: ExportPage.muted),
+                  const SizedBox(height: 10),
+                  Text('No registered exporters on live directory.', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: ExportPage.dark)),
+                  const SizedBox(height: 4),
+                  const Text('Registered AMA export license holders will populate here.', style: TextStyle(color: ExportPage.muted, fontSize: 12)),
+                ],
+              ),
+            ),
+          )
+        else
+          ...activeExporters.map((e) {
+            final isActive = e['status'] == 'Active';
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFE2E8F0))),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Text(e['company'], style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15)),
+                  _StatusChip(label: e['status'], color: isActive ? ExportPage.green : ExportPage.orange),
+                ]),
+                const SizedBox(height: 8),
+                _DetailRow('Contact:', '${e['contact']}  •  ${e['phone']}'),
+                _DetailRow('AMA License:', '${e['amaLicenseNo']}  (Expires: ${e['amaExpiry']})'),
+                _DetailRow('SAZ Certificate:', '${e['sazCert']}'),
+                _DetailRow('Corridors:', '${e['corridors']}'),
+                _DetailRow('Export Crops:', '${e['crops']}'),
+                _DetailRow('Markets:', '${e['markets']}'),
+                _DetailRow('Annual Volume:', '${((e['annualVolKg'] as int) / 1000).toStringAsFixed(1)} tonnes / year'),
               ]),
-              const SizedBox(height: 8),
-              _DetailRow('Contact:', '${e['contact']}  •  ${e['phone']}'),
-              _DetailRow('AMA License:', '${e['amaLicenseNo']}  (Expires: ${e['amaExpiry']})'),
-              _DetailRow('SAZ Certificate:', e['sazCert']),
-              _DetailRow('Corridor:', e['corridors']),
-              _DetailRow('Export Crops:', e['crops']),
-              _DetailRow('Markets:', e['markets']),
-              _DetailRow('Annual Volume:', '${((e['annualVolKg'] as int) / 1000).toStringAsFixed(1)} tonnes / year'),
-              const SizedBox(height: 10),
-              Row(children: [
-                OutlinedButton.icon(icon: const Icon(Icons.verified_outlined, size: 14), label: const Text('View ePhyto History', style: TextStyle(fontSize: 11)), onPressed: () {}),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(icon: const Icon(Icons.picture_as_pdf_outlined, size: 14), label: const Text('Download AMA Certificate', style: TextStyle(fontSize: 11)), onPressed: () {}),
-              ]),
-            ]),
-          );
-        }),
+            );
+          }),
       ],
     );
   }
@@ -387,7 +398,24 @@ class _ExportPageState extends ConsumerState<ExportPage> with TickerProviderStat
       children: [
         _SectionHeader(title: 'Live Consignments & ePhyto Certificate Tracker', icon: Icons.local_shipping_outlined, color: ExportPage.green),
         const SizedBox(height: 16),
-        ..._consignments.map((c) {
+        if (activeConsignments.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFE2E8F0))),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.local_shipping_outlined, size: 40, color: ExportPage.muted),
+                  const SizedBox(height: 10),
+                  Text('No active export consignments.', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: ExportPage.dark)),
+                  const SizedBox(height: 4),
+                  const Text('Active cross-border reefer consignments and phytosanitary manifests will stream here.', style: TextStyle(color: ExportPage.muted, fontSize: 12)),
+                ],
+              ),
+            ),
+          )
+        else
+          ...activeConsignments.map((c) {
           final cleared = c['ePhytoStatus'] == 'Cleared';
           final onHold = c['ePhytoStatus'].toString().contains('Hold') || c['ePhytoStatus'].toString().contains('Pending');
           final statusColor = cleared ? ExportPage.green : onHold ? ExportPage.orange : ExportPage.blue;
@@ -473,6 +501,7 @@ class _ExportPageState extends ConsumerState<ExportPage> with TickerProviderStat
   // TAB 4: COLD CHAIN TELEMETRY
   // ═══════════════════════════════════════════════════════════════
   Widget _buildColdChainTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
@@ -480,30 +509,60 @@ class _ExportPageState extends ConsumerState<ExportPage> with TickerProviderStat
         const SizedBox(height: 16),
         _SectionCard(
           title: 'Active Reefer / Cold Chain Sensors',
-          child: Column(children: [
-            _ReeferCard(rfid: 'RFC-0041', crop: 'Sugar Snaps', tempC: 2.1, humidity: 92, status: 'In Transit', tempTarget: '2°C ±0.5', battPct: 84, lastPing: '2 min ago', breach: false),
-            const Divider(height: 16),
-            _ReeferCard(rfid: 'RFC-0022', crop: 'Blueberries', tempC: 0.3, humidity: 88, status: 'Port Hold', tempTarget: '0°C ±0.5', battPct: 61, lastPing: '5 min ago', breach: false),
-            const Divider(height: 16),
-            _ReeferCard(rfid: 'RFC-0065', crop: 'Avocados (Hass)', tempC: 7.8, humidity: 82, status: '⚠️ Breach Detected', tempTarget: '5°C ±0.5', battPct: 45, lastPing: '14 min ago', breach: true),
-            const Divider(height: 16),
-            _ReeferCard(rfid: 'RFC-0018', crop: 'Mange Tout', tempC: 3.0, humidity: 90, status: 'Packhouse Loading', tempTarget: '2°C ±0.5', battPct: 97, lastPing: '1 min ago', breach: false),
-          ]),
+          child: isDemo
+              ? Column(children: [
+                  _ReeferCard(rfid: 'RFC-0041', crop: 'Sugar Snaps', tempC: 2.1, humidity: 92, status: 'In Transit', tempTarget: '2°C ±0.5', battPct: 84, lastPing: '2 min ago', breach: false),
+                  const Divider(height: 16),
+                  _ReeferCard(rfid: 'RFC-0022', crop: 'Blueberries', tempC: 0.3, humidity: 88, status: 'Port Hold', tempTarget: '0°C ±0.5', battPct: 61, lastPing: '5 min ago', breach: false),
+                  const Divider(height: 16),
+                  _ReeferCard(rfid: 'RFC-0065', crop: 'Avocados (Hass)', tempC: 7.8, humidity: 82, status: '⚠️ Breach Detected', tempTarget: '5°C ±0.5', battPct: 45, lastPing: '14 min ago', breach: true),
+                  const Divider(height: 16),
+                  _ReeferCard(rfid: 'RFC-0018', crop: 'Mange Tout', tempC: 3.0, humidity: 90, status: 'Packhouse Loading', tempTarget: '2°C ±0.5', battPct: 97, lastPing: '1 min ago', breach: false),
+                ])
+              : Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const Icon(Icons.thermostat_outlined, size: 36, color: ExportPage.muted),
+                        const SizedBox(height: 8),
+                        Text('No active cold chain sensors connected.', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: ExportPage.dark)),
+                        const SizedBox(height: 4),
+                        const Text('Reefer temperature and humidity streams will populate upon dispatch.', style: TextStyle(color: ExportPage.muted, fontSize: 11.5)),
+                      ],
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(height: 24),
         _SectionCard(
           title: 'Cold Chain Breach Incident Log',
-          child: Column(children: [
-            _BreachItem(
-              rfid: 'RFC-0065', time: 'Today 09:22', tempRecorded: '7.8°C', target: '5.0°C',
-              location: 'Mutare Packhouse → Forbes (En Route)', action: 'Alert Raised. Exporter notified. Quality hold pending.',
-            ),
-            const SizedBox(height: 10),
-            _BreachItem(
-              rfid: 'RFC-0009', time: '14 Jul, 14:40', tempRecorded: '8.2°C', target: '2.0°C',
-              location: 'Forbes Border Post — Customs Hold', action: 'Consignment rejected. Partial write-off. Insurance claim initiated.',
-            ),
-          ]),
+          child: isDemo
+              ? Column(children: [
+                  _BreachItem(
+                    rfid: 'RFC-0065', time: 'Today 09:22', tempRecorded: '7.8°C', target: '5.0°C',
+                    location: 'Mutare Packhouse → Forbes (En Route)', action: 'Alert Raised. Exporter notified. Quality hold pending.',
+                  ),
+                  const SizedBox(height: 10),
+                  _BreachItem(
+                    rfid: 'RFC-0009', time: '14 Jul, 14:40', tempRecorded: '8.2°C', target: '2.0°C',
+                    location: 'Forbes Border Post — Customs Hold', action: 'Consignment rejected. Partial write-off. Insurance claim initiated.',
+                  ),
+                ])
+              : Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const Icon(Icons.check_circle_outline, size: 36, color: ExportPage.green),
+                        const SizedBox(height: 8),
+                        Text('Zero thermal breach incidents.', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: ExportPage.dark)),
+                        const SizedBox(height: 4),
+                        const Text('All cold chain shipments maintaining compliant temperature thresholds.', style: TextStyle(color: ExportPage.muted, fontSize: 11.5)),
+                      ],
+                    ),
+                  ),
+                ),
         ),
       ],
     );

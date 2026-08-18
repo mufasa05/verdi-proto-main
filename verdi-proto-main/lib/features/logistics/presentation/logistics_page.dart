@@ -964,7 +964,7 @@ class _LogisticsPageState extends ConsumerState<LogisticsPage> {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   final bool isCompact;
   final String selectedFilter;
   final List<String> filters;
@@ -984,7 +984,15 @@ class _Header extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final trucks = ref.watch(trucksListProvider);
+    final deliveries = ref.watch(deliveriesListProvider);
+
+    final tickerText = isDemo
+        ? '12 Active Heavy Vehicles • Cold Storage Sensors: 100% OK • On-Time SLA: 98.4% • 0 Critical Alerts • SADC Corridor Clearing: ONLINE'
+        : '${trucks.length} Registered Transport Units • ${deliveries.length} Live Freight Dispatches • Cold Storage: ONLINE • SADC Corridor: ACTIVE';
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -1033,7 +1041,7 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '12 Active Heavy Vehicles • Cold Storage Sensors: 100% OK • On-Time SLA: 98.4% • 0 Critical Alerts • SADC Corridor Clearing: ONLINE',
+                    tickerText,
                     style: GoogleFonts.inter(fontSize: 10.5, color: Colors.white70, fontWeight: FontWeight.w500),
                   ),
                 ],

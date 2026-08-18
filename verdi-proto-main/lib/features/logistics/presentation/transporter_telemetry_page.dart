@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../state/app_state.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TRANSPORTER GPS TELEMETRY PAGE
@@ -48,7 +49,7 @@ class _TransporterTelemetryPageState
   final String _eta = '14:47 CAT';
   final double _distanceRemaining = 214.0;
 
-  final List<_TelemetryEvent> _eventLog = const [
+  final List<_TelemetryEvent> _demoEventLog = const [
     _TelemetryEvent('12:18', 'Position broadcast sent to Dispatch Control', Icons.send_outlined, Color(0xFF2563EB)),
     _TelemetryEvent('12:05', 'Geofence boundary crossed — Harare South Tollgate', Icons.fence_outlined, Color(0xFFF97316)),
     _TelemetryEvent('11:52', 'Speed alert cleared — regulated under 80 km/h', Icons.speed_outlined, Color(0xFF16A34A)),
@@ -58,7 +59,7 @@ class _TransporterTelemetryPageState
     _TelemetryEvent('09:15', 'Trip manifested: Harare Fresh Market → Bulawayo Depot', Icons.local_shipping_outlined, Color(0xFF2563EB)),
   ];
 
-  final List<_Waypoint> _waypoints = const [
+  final List<_Waypoint> _demoWaypoints = const [
     _Waypoint('WP-1', 'Harare Mbare Agri-Depot', '09:15', true, -17.8747, 31.0441),
     _Waypoint('WP-2', 'Chivhu Waypoint Checkpoint', '11:39', true, -19.0211, 30.8922),
     _Waypoint('WP-3', 'Gweru Logistics Junction', '~13:20', false, -19.4500, 29.8167),
@@ -119,6 +120,7 @@ class _TransporterTelemetryPageState
 
   @override
   Widget build(BuildContext context) {
+    final isDemo = ref.watch(isDemoModeProvider);
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= 800;
 
@@ -243,13 +245,13 @@ class _TransporterTelemetryPageState
                         style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: dark),
                       ),
                       Text(
-                        'Harare-Bulawayo A5 Highway',
+                        isDemo ? 'Harare-Bulawayo A5 Highway' : 'Active Corridor Route',
                         style: GoogleFonts.inter(fontSize: 12, color: primary, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _WaypointTimeline(waypoints: _waypoints),
+                  _WaypointTimeline(waypoints: isDemo ? _demoWaypoints : const <_Waypoint>[]),
                   const SizedBox(height: 24),
 
                   // ── Telemetry Audit Log ──
@@ -258,7 +260,15 @@ class _TransporterTelemetryPageState
                     style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: dark),
                   ),
                   const SizedBox(height: 12),
-                  _EventLogCard(events: _eventLog),
+                  _EventLogCard(
+                    events: isDemo
+                        ? _demoEventLog
+                        : const [
+                            _TelemetryEvent('Live Now', 'GPS Telemetry beacon locked — 0 trip deviations', Icons.gps_fixed_outlined, Color(0xFF16A34A)),
+                            _TelemetryEvent('Live Now', 'Carrier telemetry pipeline online and transmitting heartbeat', Icons.sensors_outlined, Color(0xFF2563EB)),
+                            _TelemetryEvent('Live Now', 'Vehicle ready for dispatch assignment', Icons.local_shipping_outlined, Color(0xFF7C3AED)),
+                          ],
+                  ),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -693,6 +703,34 @@ class _WaypointTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (waypoints.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              const Icon(Icons.alt_route_rounded, size: 36, color: Color(0xFF64748B)),
+              const SizedBox(height: 8),
+              Text(
+                'No active corridor waypoints',
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: const Color(0xFF0F172A)),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Route milestones and toll checkpoints will populate upon trip dispatch.',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,

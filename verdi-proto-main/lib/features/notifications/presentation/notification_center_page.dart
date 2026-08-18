@@ -38,18 +38,23 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
   Widget build(BuildContext context) {
     final role = ref.watch(appStateProvider).role;
     final isTransporter = role == UserRole.transporter;
+    final isAdmin = role == UserRole.admin;
     final isReadOnly = role != UserRole.farmer && role != UserRole.admin && role != UserRole.transporter;
 
-    final sourceFilters = isTransporter
-        ? ['All', 'Route Hazards', 'Telematics', 'Cold Chain', 'Weighbridge & Tolls', 'Escrow Payout']
-        : ['All', 'Irrigation', 'Satellite', 'Drone', 'Crop Health', 'System'];
+    final sourceFilters = isAdmin
+        ? ['All', 'Security & KYC', 'Escrow Vault', 'API Gateway', 'Satellite Telemetry', 'System Health']
+        : (isTransporter
+            ? ['All', 'Route Hazards', 'Telematics', 'Cold Chain', 'Weighbridge & Tolls', 'Escrow Payout']
+            : ['All', 'Irrigation', 'Satellite', 'Crop Health', 'System']);
 
     return Scaffold(
       backgroundColor: background,
       appBar: AppBar(
         title: Text(
-          isTransporter ? 'Transporter Road & Dispatch Alerts' : 'Alerts & Exceptions Board',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: dark),
+          isAdmin
+              ? 'Security & Infrastructure Notification Center'
+              : (isTransporter ? 'Transporter Road & Dispatch Alerts' : 'Alerts & Exceptions Board'),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: dark, fontSize: 16),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -59,9 +64,9 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
             color: Colors.white,
             child: TabBar(
               controller: _tabController,
-              labelColor: isTransporter ? const Color(0xFF2563EB) : green,
+              labelColor: isAdmin ? const Color(0xFF7C3AED) : (isTransporter ? const Color(0xFF2563EB) : green),
               unselectedLabelColor: muted,
-              indicatorColor: isTransporter ? const Color(0xFF2563EB) : green,
+              indicatorColor: isAdmin ? const Color(0xFF7C3AED) : (isTransporter ? const Color(0xFF2563EB) : green),
               tabs: const [
                 Tab(text: 'Critical'),
                 Tab(text: 'Warning'),
@@ -96,7 +101,7 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
                             onSelected: (val) {
                               if (val) setState(() => _selectedSourceFilter = f);
                             },
-                            selectedColor: isTransporter ? const Color(0xFF2563EB) : green,
+                            selectedColor: isAdmin ? const Color(0xFF7C3AED) : (isTransporter ? const Color(0xFF2563EB) : green),
                             backgroundColor: const Color(0xFFF1F5F9),
                             side: BorderSide.none,
                           ),
@@ -112,9 +117,9 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildAlertList(context, 'Critical', isReadOnly, isTransporter),
-                      _buildAlertList(context, 'Warning', isReadOnly, isTransporter),
-                      _buildAlertList(context, 'Info', isReadOnly, isTransporter),
+                      _buildAlertList(context, 'Critical', isReadOnly, role),
+                      _buildAlertList(context, 'Warning', isReadOnly, role),
+                      _buildAlertList(context, 'Info', isReadOnly, role),
                     ],
                   ),
                 ),
@@ -126,8 +131,13 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
     );
   }
 
-  Widget _buildAlertList(BuildContext context, String severity, bool isReadOnly, bool isTransporter) {
-    final alertList = isTransporter ? _transporterAlerts : _allAlerts;
+  Widget _buildAlertList(BuildContext context, String severity, bool isReadOnly, UserRole role) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final alertList = role == UserRole.admin
+        ? (isDemo ? _adminAlerts : <_AlertEntry>[])
+        : (role == UserRole.transporter
+            ? (isDemo ? _transporterAlerts : <_AlertEntry>[])
+            : (isDemo ? _allAlerts : <_AlertEntry>[]));
     // Filter alerts by severity and source
     final alerts = alertList.where((a) {
       final matchesSeverity = a.severity == severity;
@@ -353,15 +363,15 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
       ownerSuggestion: 'Agronomist Chingama',
     ),
     _AlertEntry(
-      title: 'Armyworm canopy signature flagged',
-      details: 'Drone inspection media shows leaf damage consistent with pest migration.',
+      title: 'Satellite NDVI Vegetative Health Anomaly',
+      details: 'Sentinel-2 multispectral pass indicates localized leaf biomass drop in Maize block.',
       time: '1h ago',
       severity: 'Critical',
-      source: 'Drone',
-      icon: Icons.flight_outlined,
-      confidence: 78,
-      probableCause: 'Localized infestation spreading from western pasture boundary.',
-      likelyImpact: '15% crop loss in Maize block within 48 hours.',
+      source: 'Satellite',
+      icon: Icons.satellite_alt_outlined,
+      confidence: 85,
+      probableCause: 'Localized moisture stress spreading from western sector boundary.',
+      likelyImpact: 'Potential 10% yield reduction if irrigation cycle is delayed.',
       ownerSuggestion: 'Field Scout Ndlovu',
     ),
     _AlertEntry(
@@ -375,6 +385,81 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
       probableCause: 'Low battery level on terminal sensor node (remaining 3%).',
       likelyImpact: 'Loss of micro-moisture data in Zone 4 (irrelevant to auto schedule).',
       ownerSuggestion: 'Admin (System Maintainer)',
+    ),
+  ];
+
+  static const List<_AlertEntry> _adminAlerts = [
+    _AlertEntry(
+      title: 'High API Rate Spike Flagged on Public Gateway',
+      details: 'Traffic surge of 18.4k req/sec detected from external IP range. Automated DDoS mitigation activated.',
+      time: '4m ago',
+      severity: 'Critical',
+      source: 'API Gateway',
+      icon: Icons.security_outlined,
+      confidence: 98,
+      probableCause: 'Potential unauthorized scraping bot hitting marketplace produce listings.',
+      likelyImpact: 'Sub-second latency increase for mobile clients if burst continues.',
+      ownerSuggestion: 'Super Admin / DevOps Security Desk',
+    ),
+    _AlertEntry(
+      title: 'Escrow Dispute Initiated for Order #ORD-1004',
+      details: 'Buyer and supplier requested mediator resolution. Escrow amount US\$ 144.00 locked in vault.',
+      time: '15m ago',
+      severity: 'Critical',
+      source: 'Escrow Vault',
+      icon: Icons.gavel_outlined,
+      confidence: 95,
+      probableCause: 'Consignee flagged weight discrepancy upon weighbridge arrival.',
+      likelyImpact: 'Funds held in smart escrow until sovereign admin dispute review.',
+      ownerSuggestion: 'Admin Escrow Arbitration Officer',
+    ),
+    _AlertEntry(
+      title: 'Sentinel-2 Satellite Telemetry Ingestion Latency (320ms)',
+      details: 'Copernicus Hub data ingestion pipeline experiencing elevated queuing latency.',
+      time: '42m ago',
+      severity: 'Warning',
+      source: 'Satellite Telemetry',
+      icon: Icons.satellite_alt_outlined,
+      confidence: 92,
+      probableCause: 'Upstream cloud processing queue during European pass window.',
+      likelyImpact: 'NDVI vegetative health maps refreshed with 4-minute delay.',
+      ownerSuggestion: 'Sentinel Geospatial Pipeline Maintainer',
+    ),
+    _AlertEntry(
+      title: 'Exporter AMA License Pending Sovereign Renewal',
+      details: 'Mutare Fresh Holdings AMA Export License (AMA-ZIM-2024-0031) expires in 7 days.',
+      time: '1h ago',
+      severity: 'Warning',
+      source: 'Security & KYC',
+      icon: Icons.badge_outlined,
+      confidence: 96,
+      probableCause: 'Annual Agricultural Marketing Authority renewal cycle due.',
+      likelyImpact: 'Cross-border consignment dispatch blocked after expiry date.',
+      ownerSuggestion: 'KYC & Exporter Certification Desk',
+    ),
+    _AlertEntry(
+      title: 'Daily Automated Escrow Settlement Reconciliation Complete',
+      details: '100% automated ledger reconciliation matched across all EcoCash, OneMoney & RTGS transactions.',
+      time: '2h ago',
+      severity: 'Info',
+      source: 'System Health',
+      icon: Icons.account_balance_outlined,
+      confidence: 100,
+      probableCause: 'Scheduled midnight treasury batch execution.',
+      likelyImpact: 'All stakeholder balances verified and audited on immutable log.',
+      ownerSuggestion: 'Verdi Treasury Ledger Engine',
+    ),
+    _AlertEntry(
+      title: 'New Exporter KYC Registration Approved',
+      details: 'Eastern Highlands Growers verified with valid SAZ and AMA export credentials.',
+      time: '3h ago',
+      severity: 'Info',
+      source: 'Security & KYC',
+      icon: Icons.verified_user_outlined,
+      confidence: 99,
+      probableCause: 'Admin verification and document authenticity clearance.',
+      likelyImpact: 'Exporter unlocked for EUDR-compliant Forbes corridor dispatches.',
+      ownerSuggestion: 'National Exporter Registry Desk',
     ),
   ];
 

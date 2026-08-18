@@ -1106,22 +1106,34 @@ class _RoleScopeBanner extends StatelessWidget {
   }
 }
 
-class _AiAdvisoryCard extends StatelessWidget {
+class _AiAdvisoryCard extends ConsumerWidget {
   final UserRole role;
   const _AiAdvisoryCard({required this.role});
 
   @override
-  Widget build(BuildContext context) {
-    final advisory = switch (role) {
-      UserRole.admin => (title: 'Macro Value Chain Expansion & Export Bottleneck Warning', text: 'Regional trade volume is up 18.4% with strong Beira corridor exports. Recommended action: Accelerate EUDR polygon verification for smallholder suppliers to prevent customs delays.'),
-      UserRole.farmer => (title: 'Irrigation & Frost Advisory for Tomato & Potato Blocks', text: 'Moisture dip registered in Sector 4. Recommended action: Schedule early morning fertigation and verify frost protection covers before night temperature drop.'),
-      UserRole.buyer || UserRole.consumer => (title: 'Grade A White Maize Procurement Opportunity', text: 'Masvingo grain silos reporting 3,200 MT fresh harvest arrival. Recommended action: Place forward orders to lock in lower farmgate floor pricing.'),
-      UserRole.transporter => (title: 'Beira Customs Corridor Freight Clearance Peak', text: 'Port scanner queues down to 20 minutes. Recommended action: Accept refrigerated container dispatches for immediate transport.'),
-      UserRole.financier => (title: 'Low Portfolio Default Risk across Smallholder Credit Lines', text: 'Repayment compliance reaches 96.8%. Recommended action: Expand working capital loans for certified macadamia and blueberry growers.'),
-      UserRole.valueAdder => (title: 'Oilseed Processing Throughput Optimization', text: 'Soybean crushing margin increased to 42.5%. Recommended action: Maximize shift capacity during low electricity tariff hours.'),
-      UserRole.expert => (title: 'Targeted Pest Control Advisory for Fall Armyworm', text: 'Multispectral drone imagery flagged early leaf damage in Zone 2. Recommended action: Send targeted bio-pesticide spray alerts to field managers.'),
-      UserRole.government => (title: 'National Strategic Food Security & EUDR Trade Compliance', text: 'Maize reserves are 18.5% above strategic threshold. EUDR deforestation compliance reaches 98.4% across southern corridors.'),
-    };
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final advisory = isDemo
+        ? switch (role) {
+            UserRole.admin => (title: 'Macro Value Chain Expansion & Export Bottleneck Warning', text: 'Regional trade volume is up 18.4% with strong Beira corridor exports. Recommended action: Accelerate EUDR polygon verification for smallholder suppliers to prevent customs delays.'),
+            UserRole.farmer => (title: 'Irrigation & Frost Advisory for Tomato & Potato Blocks', text: 'Moisture dip registered in Sector 4. Recommended action: Schedule early morning fertigation and verify frost protection covers before night temperature drop.'),
+            UserRole.buyer || UserRole.consumer => (title: 'Grade A White Maize Procurement Opportunity', text: 'Masvingo grain silos reporting 3,200 MT fresh harvest arrival. Recommended action: Place forward orders to lock in lower farmgate floor pricing.'),
+            UserRole.transporter => (title: 'Beira Customs Corridor Freight Clearance Peak', text: 'Port scanner queues down to 20 minutes. Recommended action: Accept refrigerated container dispatches for immediate transport.'),
+            UserRole.financier => (title: 'Low Portfolio Default Risk across Smallholder Credit Lines', text: 'Repayment compliance reaches 96.8%. Recommended action: Expand working capital loans for certified macadamia and blueberry growers.'),
+            UserRole.valueAdder => (title: 'Oilseed Processing Throughput Optimization', text: 'Soybean crushing margin increased to 42.5%. Recommended action: Maximize shift capacity during low electricity tariff hours.'),
+            UserRole.expert => (title: 'Targeted Pest Control Advisory for Fall Armyworm', text: 'Multispectral satellite imagery flagged early leaf biomass change in Zone 2. Recommended action: Send targeted bio-pesticide spray alerts to field managers.'),
+            UserRole.government => (title: 'National Strategic Food Security & EUDR Trade Compliance', text: 'Maize reserves are 18.5% above strategic threshold. EUDR deforestation compliance reaches 98.4% across southern corridors.'),
+          }
+        : switch (role) {
+            UserRole.admin => (title: 'Live Value Chain Surveillance Active', text: 'Distributed ecosystem nodes operational. Live stakeholder mutations and trade transactions are being synthesized into predictive AI models in real time.'),
+            UserRole.farmer => (title: 'Field Telemetry & Soil Sensing Bus Ready', text: 'Map your farm parcel boundaries and log harvest yields to activate automated agronomic AI crop health forecasting and soil fertigation schedules.'),
+            UserRole.buyer || UserRole.consumer => (title: 'Real-Time Farmgate Sourcing Engine Ready', text: 'Live marketplace catalog connected to verified outgrowers. AI price arbitration will optimize orders as farmers publish produce batches.'),
+            UserRole.transporter => (title: 'GPS Corridor Telemetry & Freight Routing Ready', text: 'Register your transport fleet to enable automated corridor route planning, reefer temperature monitoring, and smart escrow settlements.'),
+            UserRole.financier => (title: 'Agri-Credit Portfolio Risk Engine Active', text: 'Underwriting algorithms connected to live field data. Credit evaluations will compute automatically as smallholders apply for input financing.'),
+            UserRole.valueAdder => (title: 'Processing Batch & Supply Pipeline Ready', text: 'Connect plant processing capacity to track input crushing yields, supplier quality grades, and energy tariff schedules.'),
+            UserRole.expert => (title: 'Diagnostic AI & Agronomic Knowledge Mesh Ready', text: 'Agronomy advisory engine standing by to ingest field anomaly reports and dispatch targeted pesticide recommendations.'),
+            UserRole.government => (title: 'National Grain Reserves & Trade Compliance Stream', text: 'Sovereign food security telemetry active. SADC border clearance queues and ePhyto certification records will stream continuously.'),
+          };
 
     return Container(
       width: double.infinity,
@@ -1135,7 +1147,7 @@ class _AiAdvisoryCard extends StatelessWidget {
               Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: AnalyticsPage.purple, borderRadius: BorderRadius.circular(8)), child: Row(children: const [Icon(Icons.smart_toy_outlined, color: Colors.white, size: 14), SizedBox(width: 4), Text('AI STRATEGIC ADVISORY', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))])),
               const Spacer(),
               const Text('Confidence: ', style: TextStyle(color: AnalyticsPage.muted, fontSize: 12)),
-              const Text('94%', style: TextStyle(color: AnalyticsPage.purple, fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text('98%', style: TextStyle(color: AnalyticsPage.purple, fontWeight: FontWeight.bold, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 10),

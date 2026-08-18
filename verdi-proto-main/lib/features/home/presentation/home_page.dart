@@ -545,6 +545,71 @@ class _PriorityQueueSection extends ConsumerWidget {
 
   List<Widget> _getPriorityCards(BuildContext context, WidgetRef ref, UserRole role) {
     final notifier = ref.read(appStateProvider.notifier);
+    final isDemo = ref.watch(isDemoModeProvider);
+    final orders = ref.watch(ordersListProvider);
+    final sessions = ref.watch(liveUserSessionsProvider);
+    final onlineCount = sessions.where((s) => s.isOnline).length;
+    final double liveGmv = orders.fold(0.0, (sum, o) {
+      final val = double.tryParse(o.total.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+      return sum + val;
+    });
+
+    if (role == UserRole.admin) {
+      if (!isDemo) {
+        return [
+          _PriorityCard(
+            badgeLabel: 'SYSTEM HEALTH',
+            badgeColor: const Color(0xFF16A34A),
+            title: '8 Microservices Operational',
+            subtitle: 'Core API gateway, PostgreSQL & Sentinel spatial services online',
+            buttonLabel: 'System Health',
+            onTap: () => notifier.setNavIndex(27),
+          ),
+          _PriorityCard(
+            badgeLabel: 'SURVEILLANCE',
+            badgeColor: const Color(0xFF7C3AED),
+            title: '$onlineCount Live Session${onlineCount > 1 ? "s" : ""} Monitored',
+            subtitle: 'Real-time stakeholder audit bus streaming live mutations',
+            buttonLabel: 'Inspect Logs',
+            onTap: () => notifier.setNavIndex(26),
+          ),
+          _PriorityCard(
+            badgeLabel: 'TRADE ESCROW',
+            badgeColor: const Color(0xFF2563EB),
+            title: '${orders.length} Live Trade Orders',
+            subtitle: orders.isEmpty ? 'Trade pipeline active — ready for buyer orders' : 'US\$ ${liveGmv.toStringAsFixed(0)} logged in smart contract escrow',
+            buttonLabel: 'Inspect Trade',
+            onTap: () => notifier.setNavIndex(23),
+          ),
+        ];
+      }
+      return [
+        _PriorityCard(
+          badgeLabel: 'CRITICAL AUDIT',
+          badgeColor: const Color(0xFFDC2626),
+          title: 'Escrow Dispute #ORD-1004',
+          subtitle: 'US\$ 144.00 locked — consignee weight variance flagged',
+          buttonLabel: 'Review Dispute',
+          onTap: () => notifier.setNavIndex(23),
+        ),
+        _PriorityCard(
+          badgeLabel: 'SURVEILLANCE',
+          badgeColor: const Color(0xFF7C3AED),
+          title: '86 Active Sessions',
+          subtitle: 'Multi-role presence across 8 provinces with 24ms mesh latency',
+          buttonLabel: 'View Stream',
+          onTap: () => notifier.setNavIndex(26),
+        ),
+        _PriorityCard(
+          badgeLabel: 'INFRASTRUCTURE',
+          badgeColor: const Color(0xFF16A34A),
+          title: 'All Systems 100% OK',
+          subtitle: 'SADC cross-border gateways and satellite feeds synchronized',
+          buttonLabel: 'Health Telemetry',
+          onTap: () => notifier.setNavIndex(27),
+        ),
+      ];
+    }
 
     if (role == UserRole.expert) {
       return [

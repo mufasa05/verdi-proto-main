@@ -1000,7 +1000,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
             children: [
               // Top Header: Avatar + User info + Status Badge
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
                     radius: 16,
@@ -1015,17 +1015,15 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                          e.userName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                        const SizedBox(height: 3),
                         Row(
                           children: [
-                            Flexible(
-                              child: Text(
-                                e.userName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
@@ -1034,13 +1032,15 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                               ),
                               child: Text(
                                 e.userRole.name.toUpperCase(),
-                                style: TextStyle(color: _roleColor(e.userRole), fontSize: 9.5, fontWeight: FontWeight.w800),
+                                style: TextStyle(color: _roleColor(e.userRole), fontSize: 9, fontWeight: FontWeight.w800),
                               ),
                             ),
+                            const SizedBox(width: 6),
+                            const Text('•', style: TextStyle(color: textMuted, fontSize: 10)),
+                            const SizedBox(width: 6),
+                            Text(e.timestamp, style: const TextStyle(color: textMuted, fontSize: 10.5)),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(e.timestamp, style: const TextStyle(color: textMuted, fontSize: 10.5)),
                       ],
                     ),
                   ),
