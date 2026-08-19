@@ -38,6 +38,9 @@ class SupabaseService {
   final _sessionsStreamController = StreamController<LiveUserSession>.broadcast();
   Stream<LiveUserSession> get sessionsStream => _sessionsStreamController.stream;
 
+  final _chatStreamController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get chatStream => _chatStreamController.stream;
+
   Future<void> initialize() async {
     // 1. Start High-Speed Cross-Device Cloud Sync Poller
     _startCloudSyncListener();
@@ -170,10 +173,31 @@ class SupabaseService {
           currentAction: payload['currentAction']?.toString() ?? 'Connected to Sovereign Node',
         );
         _sessionsStreamController.add(session);
+      } else if (msgType == 'chat_message') {
+        _chatStreamController.add(payload);
       }
     } catch (e) {
       debugPrint('[SupabaseService] Incoming message decode err: $e');
     }
+  }
+
+  Future<void> broadcastChatMessage(Map<String, dynamic> messagePayload) async {
+    _chatStreamController.add(messagePayload);
+
+    final payload = {
+      'type': 'chat_message',
+      'payload': messagePayload,
+    };
+
+    final rawJson = jsonEncode(payload);
+
+    try {
+      http.post(
+        Uri.parse(_cloudRelayEndpoint),
+        headers: {'Content-Type': 'text/plain'},
+        body: rawJson,
+      ).timeout(const Duration(seconds: 3)).catchError((_) => http.Response('', 500));
+    } catch (_) {}
   }
 
   void _setupRealtimeSubscriptions() {
