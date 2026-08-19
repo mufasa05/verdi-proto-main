@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
+import '../../../core/services/supabase_service.dart';
+import '../../../features/auth/state/auth_state.dart';
+import '../../../state/platform_data_state.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TRANSPORTER GPS TELEMETRY PAGE
@@ -71,9 +74,9 @@ class _TransporterTelemetryPageState
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1600),
     )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(begin: 0.7, end: 1.0).animate(
+    _pulseAnim = Tween<double>(begin: 0.4, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
@@ -96,6 +99,31 @@ class _TransporterTelemetryPageState
       _speedKmh = 72 + rng.nextDouble() * 14;
       _lastSync = 'Just now';
     });
+
+    final authUser = ref.read(authStateProvider).user;
+    final driverName = authUser?.fullName ?? 'Tendai Moyo (TR-8821)';
+    final userId = authUser?.id ?? 'usr_transporter_live';
+
+    SupabaseService.instance.broadcastActivityEvent(
+      PlatformActivityEvent(
+        id: 'ACT_GPS_${DateTime.now().millisecondsSinceEpoch}',
+        userName: driverName,
+        userId: userId,
+        userRole: UserRole.transporter,
+        userAvatar: 'TM',
+        actionTitle: 'GPS Telemetry & Reefer Cold Chain Transmitted',
+        actionDescription: 'Beacon broadcast: Speed ${_speedKmh.toStringAsFixed(1)} km/h, Location [${_lat.toStringAsFixed(4)}, ${_lon.toStringAsFixed(4)}].',
+        module: 'Logistics',
+        targetResource: 'Vehicle TRK-9442',
+        timestamp: 'Just now',
+        exactTime: '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+        ipAddress: 'In-Cab IoT Gateway',
+        device: 'Verdi Fleet Terminal',
+        status: 'Success',
+        metadata: const <String, dynamic>{},
+      ),
+    );
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

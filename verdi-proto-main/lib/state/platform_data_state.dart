@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:verdi/features/logistics/data/logistics_data.dart';
 import 'package:verdi/state/app_state.dart';
+import '../core/services/supabase_service.dart';
 
 class OrderItem {
   final String id;
@@ -585,9 +587,22 @@ final List<LiveUserSession> _defaultLiveSessions = [
 class LiveUserSessionsNotifier extends StateNotifier<List<LiveUserSession>> {
   final bool isDemo;
   static final List<LiveUserSession> _userLiveSessions = [];
+  StreamSubscription<LiveUserSession>? _sub;
 
   LiveUserSessionsNotifier({required this.isDemo})
-      : super(isDemo ? _defaultLiveSessions : _userLiveSessions);
+      : super(isDemo ? _defaultLiveSessions : _userLiveSessions) {
+    if (!isDemo) {
+      _sub = SupabaseService.instance.sessionsStream.listen((session) {
+        registerLiveUser(session);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
 
   void registerLiveUser(LiveUserSession session) {
     _userLiveSessions.removeWhere((s) => s.id == session.id);
@@ -625,9 +640,31 @@ final liveUserSessionsProvider =
 class PlatformActivityNotifier extends StateNotifier<List<PlatformActivityEvent>> {
   final bool isDemo;
   static final List<PlatformActivityEvent> _userLiveEvents = [];
+  StreamSubscription<PlatformActivityEvent>? _sub;
 
   PlatformActivityNotifier({required this.isDemo})
-      : super(isDemo ? _initialEvents : _userLiveEvents);
+      : super(isDemo ? _initialEvents : _userLiveEvents) {
+    if (!isDemo) {
+      _sub = SupabaseService.instance.activityStream.listen((event) {
+        _onRemoteActivityReceived(event);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  void _onRemoteActivityReceived(PlatformActivityEvent event) {
+    if (!_userLiveEvents.any((e) => e.id == event.id)) {
+      _userLiveEvents.insert(0, event);
+      if (!isDemo) {
+        state = [..._userLiveEvents];
+      }
+    }
+  }
 
   static final List<PlatformActivityEvent> _initialEvents = [
     const PlatformActivityEvent(
@@ -701,8 +738,13 @@ class PlatformActivityNotifier extends StateNotifier<List<PlatformActivityEvent>
   ];
 
   void logActivity(PlatformActivityEvent event) {
+    _userLiveEvents.removeWhere((e) => e.id == event.id);
     _userLiveEvents.insert(0, event);
     state = isDemo ? [event, ...state] : [..._userLiveEvents];
+
+    if (!isDemo) {
+      SupabaseService.instance.broadcastActivityEvent(event);
+    }
   }
 }
 

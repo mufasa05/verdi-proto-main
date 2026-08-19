@@ -45,6 +45,7 @@ dependencies:
   flutter_tts: ^4.2.5
   flutter_joystick: ^0.2.2
   url_launcher: ^6.3.2
+  supabase_flutter: ^2.8.0
 
 dev_dependencies:
   flutter_test:

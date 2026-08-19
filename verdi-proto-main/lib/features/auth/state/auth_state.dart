@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:verdi/core/services/verdi_api_service.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../state/app_state.dart';
+import '../../../state/platform_data_state.dart';
 
 class AppUser {
   final String id;
@@ -255,6 +257,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
 
         _setRole(user.role);
+        _broadcastAuthEvent(user, isRegistration: false);
         state = state.copyWith(
           user: user,
           isAuthenticated: true,
@@ -311,6 +314,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
 
       _setRole(user.role);
+      _broadcastAuthEvent(user, isRegistration: false);
       state = state.copyWith(
         user: user,
         isAuthenticated: true,
@@ -373,6 +377,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
 
         _setRole(user.role);
+        _broadcastAuthEvent(user, isRegistration: true);
         state = state.copyWith(
           user: user,
           isAuthenticated: true,
@@ -398,6 +403,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
 
     _setRole(role);
+    _broadcastAuthEvent(user, isRegistration: true);
     state = state.copyWith(
       user: user,
       isAuthenticated: true,
@@ -407,8 +413,45 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return true;
   }
 
+  void _broadcastAuthEvent(AppUser user, {required bool isRegistration}) {
+    try {
+      SupabaseService.instance.broadcastUserPresence(
+        userId: user.id,
+        fullName: user.fullName,
+        role: user.role,
+        isOnline: true,
+      );
+
+      final initials = user.fullName.trim().split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase();
+      final idSuffix = user.id.length > 6 ? user.id.substring(user.id.length - 6) : user.id;
+
+      SupabaseService.instance.broadcastActivityEvent(
+        PlatformActivityEvent(
+          id: 'ACT_${DateTime.now().millisecondsSinceEpoch}',
+          userName: user.fullName,
+          userId: user.id,
+          userRole: user.role,
+          userAvatar: initials.isEmpty ? 'U' : initials,
+          actionTitle: isRegistration ? 'New Stakeholder Account Registered' : 'Stakeholder Authenticated to Sovereign Network',
+          actionDescription: isRegistration
+              ? '${user.fullName} registered a new verified ${user.role.name.toUpperCase()} account.'
+              : '${user.fullName} logged into node session via secure JWT.',
+          module: 'Security & Auth',
+          targetResource: 'Session #$idSuffix',
+          timestamp: 'Just now',
+          exactTime: '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+          ipAddress: 'Sovereign Node (${user.role.name.toUpperCase()})',
+          device: 'Verdi Mobile / Web Client',
+          status: 'Success',
+          metadata: const <String, dynamic>{},
+        ),
+      );
+    } catch (_) {}
+  }
+
   void authenticateUser(AppUser user) {
     _setRole(user.role);
+    _broadcastAuthEvent(user, isRegistration: false);
     state = state.copyWith(
       user: user,
       isAuthenticated: true,
@@ -440,6 +483,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> signOut() async {
+    final curUser = state.user;
+    if (curUser != null) {
+      try {
+        SupabaseService.instance.broadcastUserPresence(
+          userId: curUser.id,
+          fullName: curUser.fullName,
+          role: curUser.role,
+          isOnline: false,
+        );
+      } catch (_) {}
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
     await prefs.remove('verdi.auth.token');

@@ -11,8 +11,11 @@ import 'features/assistant/repositories/assistant_repository.dart';
 import 'features/traceability/providers/traceability_provider.dart';
 import 'features/traceability/models/repositories/in_memory_traceability_repository.dart';
 
-void main() {
+import 'core/services/supabase_service.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseService.instance.initialize();
 
   runApp(
     ProviderScope(
