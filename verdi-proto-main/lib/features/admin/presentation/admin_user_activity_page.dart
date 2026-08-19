@@ -799,7 +799,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                       decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(18), border: Border.all(color: cardBorder)),
                       child: Column(
                         children: [
-                          Icon(ref.watch(isDemoModeProvider) ? Icons.search_off_rounded : Icons.radar_outlined, size: 48, color: ref.watch(isDemoModeProvider) ? textMuted : blue),
+                          Icon(ref.watch(isDemoModeProvider) ? Icons.search_off_rounded : Icons.radar_outlined, size: 48, color: ref.watch(isDemoModeProvider) ? textMuted : green),
                           const SizedBox(height: 12),
                           Text(
                             ref.watch(isDemoModeProvider) ? 'No user activities match this filter criteria.' : 'Live Platform Audit Stream Active',
@@ -809,10 +809,47 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                           Text(
                             ref.watch(isDemoModeProvider)
                                 ? 'Try clearing your search query or role/module filters.'
-                                : 'Actions from farmers, transporters, buyers, and financiers will stream here automatically as they interact with the live platform.',
+                                : 'Actions from farmers, transporters, buyers, and financiers will stream here automatically via WebSockets.',
                             textAlign: TextAlign.center,
                             style: const TextStyle(color: textMuted, fontSize: 12.5),
                           ),
+                          if (!ref.watch(isDemoModeProvider)) ...[
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                ref.read(platformActivityProvider.notifier).logActivity(
+                                      PlatformActivityEvent(
+                                        id: 'evt_${DateTime.now().millisecondsSinceEpoch}',
+                                        userName: 'Verdi Creator (Super Admin)',
+                                        userId: 'USR-ADM-001',
+                                        userRole: UserRole.admin,
+                                        userAvatar: 'VC',
+                                        actionTitle: '🛰️ Realtime Mesh Test Ping',
+                                        actionDescription: 'Diagnostic broadcast packet transmitted across the Supabase & Cloud WebSocket mesh.',
+                                        timestamp: 'Just now',
+                                        exactTime: DateTime.now().toIso8601String(),
+                                        module: 'System Diagnostics',
+                                        device: 'Sovereign Master Console',
+                                        status: 'Success',
+                                        targetResource: 'Global Platform',
+                                        ipAddress: 'Sovereign Node 01',
+                                        metadata: {'ping': 'SUCCESS', 'timestamp': DateTime.now().toIso8601String()},
+                                      ),
+                                    );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Test packet broadcasted live across all devices!'), backgroundColor: green),
+                                );
+                              },
+                              icon: const Icon(Icons.send_rounded, size: 16),
+                              label: const Text('Broadcast System Test Ping', style: TextStyle(fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     )

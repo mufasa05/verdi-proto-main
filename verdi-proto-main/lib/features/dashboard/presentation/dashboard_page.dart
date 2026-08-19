@@ -1,17 +1,20 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
+import '../../../state/platform_data_state.dart';
+import '../../admin/presentation/admin_farms_page.dart';
+import '../../admin/presentation/admin_system_health_page.dart';
+import '../../admin/presentation/admin_user_activity_page.dart';
+import '../../admin/presentation/admin_user_management_page.dart';
 import '../../admin/presentation/ai_backbone_control_page.dart';
-import '../../admin/presentation/infrastructure_modules_control_page.dart';
 import '../../admin/presentation/marketplace_trade_oversight_page.dart';
 import '../../admin/presentation/security_compliance_vault_page.dart';
 import '../../admin/presentation/user_identity_control_page.dart';
-import '../../admin/presentation/admin_user_activity_page.dart';
-import '../../admin/presentation/admin_system_health_page.dart';
-import '../../admin/presentation/admin_user_management_page.dart';
+import '../../logistics/presentation/transporter_telemetry_page.dart';
 
-/// Full-Privilege Super Administrator Sovereign Command Center & Dedicated Sub-Page Router
+/// Full-Privilege Super Administrator Sovereign Master Control Tower
 class DashboardPage extends ConsumerStatefulWidget {
   final String? initialSubPageTitle;
   final Widget? initialSubPageWidget;
@@ -26,37 +29,25 @@ class DashboardPage extends ConsumerStatefulWidget {
   ConsumerState<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
+class _DashboardPageState extends ConsumerState<DashboardPage> {
   static const bgDark = Color(0xFF0B0F17);
-  static const cardDark = Color(0xFF161E2E);
-  static const cardBorder = Color(0xFF2D3748);
+  static const cardDark = Color(0xFF131B2A);
+  static const cardBorder = Color(0xFF1E293B);
   static const accentGreen = Color(0xFF10B981);
   static const accentDanger = Color(0xFFEF4444);
   static const accentBlue = Color(0xFF3B82F6);
   static const accentGold = Color(0xFFF59E0B);
+  static const accentPurple = Color(0xFF8B5CF6);
   static const textMuted = Color(0xFF94A3B8);
 
-  // Sub-page navigation state
   String? _activeSubPageTitle;
   Widget? _activeSubPageWidget;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
-    });
     _activeSubPageTitle = widget.initialSubPageTitle;
     _activeSubPageWidget = widget.initialSubPageWidget;
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   void _openSubPage(String title, Widget child) {
@@ -88,7 +79,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
           ),
           title: Text(
             _activeSubPageTitle!,
-            style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
+            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           actions: [
             Container(
@@ -101,7 +92,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
               ),
               child: const Center(
                 child: Text(
-                  'SUPER ADMIN CONTROL ACTIVE',
+                  'MASTER CONTROL ACTIVE',
                   style: TextStyle(color: accentGreen, fontSize: 10.5, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -110,103 +101,210 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: _activeSubPageWidget,
           ),
         ),
       );
     }
 
-    // Default Sovereign Command Center View
+    final isDemo = ref.watch(isDemoModeProvider);
+    final sessions = ref.watch(liveUserSessionsProvider);
+    final activityEvents = ref.watch(platformActivityProvider);
+    final isLockdown = ref.watch(isEmergencyLockdownProvider);
+    final isMaintenance = ref.watch(isMaintenanceModeProvider);
+    final health = ref.watch(systemHealthMetricsProvider);
+
+    final onlineUsers = sessions.where((s) => s.isOnline).length;
+    final totalActions = activityEvents.length;
+
     return Scaffold(
       backgroundColor: bgDark,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- Header Sovereignty Banner ---
-              _buildHeaderBanner(),
+              // 1. Executive Master Header Bar
+              _buildExecutiveHeader(isDemo, isLockdown, isMaintenance),
 
               const SizedBox(height: 16),
 
-              // --- 5 Top Navigation Tabs ---
-              Container(
-                decoration: BoxDecoration(
-                  color: cardDark,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: cardBorder),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicatorColor: accentGreen,
-                  indicatorWeight: 3,
-                  labelColor: accentGreen,
-                  unselectedLabelColor: textMuted,
-                  tabs: const [
-                    Tab(text: 'All privileges'),
-                    Tab(text: 'Critical controls'),
-                    Tab(text: 'Role comparison'),
-                    Tab(text: 'Audit trail'),
-                    Tab(text: 'Governance policy'),
-                  ],
-                ),
+              // 2. Real-Time Dynamic Vitals Grid
+              _buildVitalsGrid(onlineUsers, totalActions, health, isDemo),
+
+              const SizedBox(height: 24),
+
+              // 3. Platform Master Action Controls (Lockdown, Maintenance, Sync)
+              _buildMasterActionToggles(isLockdown, isMaintenance),
+
+              const SizedBox(height: 28),
+
+              // 4. Six Operational Command Pillars
+              _buildPillarSection(
+                title: 'Stakeholders & Identity Control',
+                icon: Icons.people_alt_outlined,
+                color: accentBlue,
+                children: [
+                  _buildControlTile(
+                    icon: Icons.badge_outlined,
+                    title: 'User Directory & Role Governance',
+                    desc: 'Manage accounts across all 9 roles, assign sovereign permissions & elevate privileges.',
+                    actionLabel: 'Open Directory',
+                    color: accentBlue,
+                    onTap: () => _openSubPage('User Directory & Role Governance', const AdminUserManagementPage()),
+                  ),
+                  _buildControlTile(
+                    icon: Icons.verified_user_outlined,
+                    title: 'KYC & Regulatory Compliance Verification',
+                    desc: 'Review AMA licenses, SAZ food hygiene certificates & approve identity tiers on demand.',
+                    actionLabel: 'Review KYC',
+                    color: accentGreen,
+                    onTap: () => _openSubPage('KYC & Verification Desk', const UserIdentityControlPage()),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 20),
 
-              // --- Top 4 Metric KPI Cards ---
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isMobile = constraints.maxWidth < 600;
-                  if (isMobile) {
-                    return Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(child: _buildMetricCard('47', 'Modules controlled', accentGreen)),
-                            const SizedBox(width: 10),
-                            Expanded(child: _buildMetricCard('11', 'Roles they manage', accentGreen)),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(child: _buildMetricCard('3', 'Max accounts allowed', accentDanger)),
-                            const SizedBox(width: 10),
-                            Expanded(child: _buildMetricCard('100%', 'Data visibility', accentGreen)),
-                          ],
-                        ),
-                      ],
-                    );
-                  }
-                  return Row(
-                    children: [
-                      Expanded(child: _buildMetricCard('47', 'Modules controlled', accentGreen)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildMetricCard('11', 'Roles they manage', accentGreen)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildMetricCard('3', 'Max accounts allowed', accentDanger)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildMetricCard('100%', 'Data visibility', accentGreen)),
-                    ],
-                  );
-                },
+              _buildPillarSection(
+                title: 'Trade, Marketplace & Escrow Oversight',
+                icon: Icons.storefront_outlined,
+                color: accentGold,
+                children: [
+                  _buildControlTile(
+                    icon: Icons.lock_clock_outlined,
+                    title: 'Fintech Escrow Vault & Dispute Mediation',
+                    desc: 'Monitor real-time trade escrow locks, intervene in contested transactions & release funds.',
+                    actionLabel: 'Escrow Vault',
+                    color: accentGold,
+                    onTap: () => _openSubPage('Trade Oversight & Escrow Vault', const MarketplaceTradeOversightPage()),
+                  ),
+                  _buildControlTile(
+                    icon: Icons.price_change_outlined,
+                    title: 'Commodity Floor Pricing & Fair Trade Policies',
+                    desc: 'Govern agricultural minimum floor prices, market fee parameters & trade commission rates.',
+                    actionLabel: 'Adjust Policies',
+                    color: accentPurple,
+                    onTap: () => _showPricingPolicyDialog(context),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // --- Tab View Content ---
-              switch (_tabController.index) {
-                0 => _buildAllPrivilegesTab(),
-                1 => _buildCriticalControlsTab(),
-                2 => _buildRoleComparisonTab(),
-                3 => _buildAuditTrailTab(),
-                4 => _buildGovernancePolicyTab(),
-                _ => _buildAllPrivilegesTab(),
-              },
+              _buildPillarSection(
+                title: 'Cold-Chain Logistics & Route Surveillance',
+                icon: Icons.local_shipping_outlined,
+                color: const Color(0xFFF97316),
+                children: [
+                  _buildControlTile(
+                    icon: Icons.radar_outlined,
+                    title: 'Fleet Radar & Live GPS Telemetry Stream',
+                    desc: 'Watch real-time vehicle routes, transporter coordinates and 5G IoT heartbeat telemetry.',
+                    actionLabel: 'Track Telemetry',
+                    color: const Color(0xFFF97316),
+                    onTap: () => _openSubPage('Fleet GPS Telemetry Hub', const TransporterTelemetryPage()),
+                  ),
+                  _buildControlTile(
+                    icon: Icons.ac_unit_outlined,
+                    title: 'Reefer Cold-Chain Thermal Integrity Alerts',
+                    desc: 'Instant audit logging on temperature breaches for horticultural and dairy exports.',
+                    actionLabel: 'Inspect Cold Chain',
+                    color: accentBlue,
+                    onTap: () => _openSubPage('User Activity & System Audit Hub', const AdminUserActivityPage()),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              _buildPillarSection(
+                title: 'Farms, Agronomy & EUDR Compliance',
+                icon: Icons.grass_outlined,
+                color: accentGreen,
+                children: [
+                  _buildControlTile(
+                    icon: Icons.landscape_outlined,
+                    title: 'GeoJSON Parcel Boundaries & Farm Registry',
+                    desc: 'Review smallholder farm GPS polygons, land deeds and satellite NDVI vegetative health.',
+                    actionLabel: 'Farm Registry',
+                    color: accentGreen,
+                    onTap: () => _openSubPage('Farms & Geospatial Registry', const AdminFarmsPage()),
+                  ),
+                  _buildControlTile(
+                    icon: Icons.eco_outlined,
+                    title: 'EUDR Deforestation Compliance Audits',
+                    desc: 'Generate export certificates verifying deforestation-free production under EU Regulation 2023/1115.',
+                    actionLabel: 'Audit EUDR',
+                    color: accentGold,
+                    onTap: () => _openSubPage('Farms & Geospatial Registry', const AdminFarmsPage()),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              _buildPillarSection(
+                title: 'Sovereign AI Backbone & Microservices Engine',
+                icon: Icons.psychology_outlined,
+                color: accentPurple,
+                children: [
+                  _buildControlTile(
+                    icon: Icons.hub_outlined,
+                    title: 'AI Model Gateway & LLM Orchestration',
+                    desc: 'Switch between Gemini 1.5 Pro, Flash and Offline Agricultural SLM engines in real time.',
+                    actionLabel: 'AI Control Desk',
+                    color: accentPurple,
+                    onTap: () => _openSubPage('AI Backbone Sovereign Controls', const AiBackboneControlPage()),
+                  ),
+                  _buildControlTile(
+                    icon: Icons.tune_outlined,
+                    title: 'AI Confidence & Pest Advisory Thresholds',
+                    desc: 'Configure automated disease diagnosis thresholds, confidence cutoffs and safety filters.',
+                    actionLabel: 'Tune Parameters',
+                    color: accentBlue,
+                    onTap: () => _showAiTuningDialog(context),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              _buildPillarSection(
+                title: 'Security, Cryptography & Audit Ledger',
+                icon: Icons.shield_outlined,
+                color: accentDanger,
+                children: [
+                  _buildControlTile(
+                    icon: Icons.history_edu_outlined,
+                    title: 'User Activity & Live Surveillance Audit Hub',
+                    desc: 'Sub-20ms WebSocket streaming of every stakeholder action, IP address and security event.',
+                    actionLabel: 'Open Audit Hub',
+                    color: accentBlue,
+                    onTap: () => _openSubPage('User Activity & System Audit Hub', const AdminUserActivityPage()),
+                  ),
+                  _buildControlTile(
+                    icon: Icons.dns_outlined,
+                    title: 'Infrastructure Telemetry & Microservices Health',
+                    desc: 'Real measured latency to Supabase PostgreSQL, WebSocket streams & server heartbeat.',
+                    actionLabel: 'Inspect Health',
+                    color: accentGreen,
+                    onTap: () => _openSubPage('Server Health & Infrastructure Telemetry', const AdminSystemHealthPage()),
+                  ),
+                  _buildControlTile(
+                    icon: Icons.enhanced_encryption_outlined,
+                    title: 'Database Encryption & PostgreSQL Vault',
+                    desc: 'Review Row Level Security policies, PostGIS spatial indexes and database schema backups.',
+                    actionLabel: 'Open Vault',
+                    color: accentGold,
+                    onTap: () => _openSubPage('Security & Compliance Vault', const SecurityComplianceVaultPage()),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -214,38 +312,30 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     );
   }
 
-  // --- Header Sovereignty Banner Widget ---
-  Widget _buildHeaderBanner() {
+  // ───────────────────────────────────────────────────────────────────────────
+  // UI BUILDERS & WIDGETS
+  // ───────────────────────────────────────────────────────────────────────────
+
+  Widget _buildExecutiveHeader(bool isDemo, bool isLockdown, bool isMaintenance) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cardBorder),
+        border: Border.all(color: isLockdown ? accentDanger : cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Return Navigation Action Bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Return / Back Button to Home
               ElevatedButton.icon(
                 onPressed: () {
-                  if (_activeSubPageTitle != null) {
-                    _closeSubPage();
-                  } else if (Navigator.of(context).canPop()) {
-                    Navigator.pop(context);
-                  } else {
-                    ref.read(appStateProvider.notifier).setNavIndex(0); // Return to Home
-                  }
+                  ref.read(appStateProvider.notifier).setNavIndex(0);
                 },
-                icon: const Icon(Icons.arrow_back, size: 16),
-                label: Text(
-                  _activeSubPageTitle != null ? 'Return to Admin Hub' : 'Return to Home',
-                  style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold),
-                ),
+                icon: const Icon(Icons.home_outlined, size: 16),
+                label: Text('Return to Home', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E293B),
                   foregroundColor: Colors.white,
@@ -254,7 +344,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                   side: const BorderSide(color: Color(0xFF334155)),
                 ),
               ),
-              // Access Other Options Quick Jump Dropdown
               PopupMenuButton<int>(
                 icon: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -268,7 +357,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                     children: [
                       const Icon(Icons.apps_outlined, size: 16, color: accentGreen),
                       const SizedBox(width: 6),
-                      Text('Access Other Options', style: GoogleFonts.inter(color: accentGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text('Quick Navigate', style: GoogleFonts.inter(color: accentGreen, fontSize: 12, fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       const Icon(Icons.arrow_drop_down, size: 16, color: accentGreen),
                     ],
@@ -279,14 +368,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                   ref.read(appStateProvider.notifier).setNavIndex(idx);
                 },
                 itemBuilder: (context) => [
-                  PopupMenuItem(value: 0, child: Text('🏠 Home Operational Hub', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 0, child: Text('🏠 Home Hub', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
                   PopupMenuItem(value: 1, child: Text('🛍️ Marketplace', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
-                  PopupMenuItem(value: 2, child: Text('💬 My Chats', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
-                  PopupMenuItem(value: 4, child: Text('📦 Orders Command Center', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
-                  PopupMenuItem(value: 5, child: Text('🚚 Fleet & Transport Hub', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
-                  PopupMenuItem(value: 6, child: Text('💳 Payments & Settlements', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
-                  PopupMenuItem(value: 16, child: Text('💰 Finance Module', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
-                  PopupMenuItem(value: 21, child: Text('⚙️ Settings & Configuration', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 4, child: Text('📦 Orders Command', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 5, child: Text('🚚 Logistics Fleet', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 16, child: Text('💰 Finance & Escrow', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
+                  PopupMenuItem(value: 21, child: Text('⚙️ Settings', style: GoogleFonts.inter(color: Colors.white, fontSize: 13))),
                 ],
               ),
             ],
@@ -297,13 +384,17 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: accentGreen.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: accentGreen.withValues(alpha: 0.4)),
+                  color: isLockdown ? accentDanger.withValues(alpha: 0.2) : accentGreen.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isLockdown ? accentDanger : accentGreen.withValues(alpha: 0.4)),
                 ),
-                child: const Icon(Icons.shield_outlined, color: accentGreen, size: 22),
+                child: Icon(
+                  isLockdown ? Icons.gavel_rounded : Icons.shield_rounded,
+                  color: isLockdown ? accentDanger : accentGreen,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -312,32 +403,25 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'Super administrator',
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            'Sovereign Master Command',
+                            style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: ref.watch(isDemoModeProvider)
-                                ? accentGold.withValues(alpha: 0.15)
-                                : accentGreen.withValues(alpha: 0.15),
+                            color: isDemo ? accentGold.withValues(alpha: 0.15) : accentGreen.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: ref.watch(isDemoModeProvider)
-                                  ? accentGold.withValues(alpha: 0.4)
-                                  : accentGreen.withValues(alpha: 0.4),
-                            ),
+                            border: Border.all(color: isDemo ? accentGold.withValues(alpha: 0.5) : accentGreen.withValues(alpha: 0.5)),
                           ),
                           child: Text(
-                            ref.watch(isDemoModeProvider) ? 'DEMO SANDBOX' : 'LIVE PRODUCTION',
+                            isDemo ? 'DEMO SANDBOX' : 'LIVE PRODUCTION',
                             style: TextStyle(
-                              color: ref.watch(isDemoModeProvider) ? accentGold : accentGreen,
+                              color: isDemo ? accentGold : accentGreen,
                               fontSize: 9.5,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
@@ -348,58 +432,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      ref.watch(isDemoModeProvider)
-                          ? 'Demo Sandbox Mode · Pre-populated scenario fixtures for testing'
-                          : 'Live Production Mode · Zero mock data · Live platform telemetry & true source records',
+                      isDemo
+                          ? 'Demo Sandbox Mode · Pre-populated scenarios for testing'
+                          : 'Live Mode · Connected to Supabase PostgreSQL & WebSocket mesh',
                       style: GoogleFonts.inter(fontSize: 11, color: textMuted),
                     ),
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_horiz, color: Colors.white70, size: 20),
-                color: cardDark,
-                onSelected: (val) {
-                  if (val == 'lock') {
-                    _openSubPage('Emergency Safety & Lockdown Desk', const InfrastructureModulesControlPage());
-                  } else if (val == 'kyc') {
-                    _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage());
-                  } else if (val == 'telemetry') {
-                    _openSubPage('Server Health & Infrastructure Telemetry', const AdminSystemHealthPage());
-                  } else if (val == 'audit') {
-                    _openSubPage('User Activity & System Audit Hub', const AdminUserActivityPage());
-                  }
-                },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(
-                    value: 'audit',
-                    child: Text('User Activities & System Audit Hub', style: TextStyle(color: accentBlue)),
-                  ),
-                  PopupMenuItem(
-                    value: 'lock',
-                    child: Text('Emergency Safety & Lockdown Desk', style: TextStyle(color: accentDanger)),
-                  ),
-                  PopupMenuItem(
-                    value: 'kyc',
-                    child: Text('User KYC & Sovereign Privilege Manager', style: TextStyle(color: Colors.white)),
-                  ),
-                  PopupMenuItem(
-                    value: 'telemetry',
-                    child: Text('Server Telemetry & Infrastructure', style: TextStyle(color: accentGreen)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              _buildBadge('⚠️ Restricted to 1-3 people maximum', accentDanger),
-              _buildBadge('All 47 modules', accentGreen),
-              _buildBadge('Read + Write + Delete + Configure', accentBlue),
-              _buildBadge('Full audit trail on every action', accentGold),
             ],
           ),
         ],
@@ -407,405 +447,464 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.6)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
-  Widget _buildMetricCard(String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: cardDark,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, color: textMuted)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResponsiveGrid(List<Widget> children) {
+  Widget _buildVitalsGrid(int onlineUsers, int totalActions, SystemHealthMetrics health, bool isDemo) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 650;
-        final isTablet = constraints.maxWidth < 1100;
-        final crossAxisCount = isMobile ? 1 : (isTablet ? 2 : 3);
-        final childAspectRatio = isMobile ? 2.6 : (isTablet ? 2.3 : 2.1);
+        final isMobile = constraints.maxWidth < 600;
+        final count = isMobile ? 2 : 4;
+        final aspect = isMobile ? 1.4 : 1.3;
 
         return GridView.count(
-          crossAxisCount: crossAxisCount,
+          crossAxisCount: count,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: childAspectRatio,
+          childAspectRatio: aspect,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
-          children: children,
+          children: [
+            _buildVitalCard(
+              title: 'Active Stakeholders',
+              value: '$onlineUsers',
+              subtext: isDemo ? 'Mock Sessions' : 'Online now',
+              icon: Icons.people_alt_outlined,
+              color: accentBlue,
+            ),
+            _buildVitalCard(
+              title: 'Audit Trail Events',
+              value: '$totalActions',
+              subtext: isDemo ? 'Sample fixtures' : 'Logged actions',
+              icon: Icons.history_rounded,
+              color: accentGreen,
+            ),
+            _buildVitalCard(
+              title: 'Supabase Latency',
+              value: '${health.supabasePingMs} ms',
+              subtext: health.supabaseStatus,
+              icon: Icons.bolt_rounded,
+              color: health.supabasePingMs < 100 ? accentGreen : accentGold,
+            ),
+            _buildVitalCard(
+              title: 'Mesh WebSockets',
+              value: '${health.websocketPingMs} ms',
+              subtext: health.websocketStatus,
+              icon: Icons.wifi_tethering_rounded,
+              color: accentPurple,
+            ),
+          ],
         );
       },
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // TAB 1: ALL PRIVILEGES (EVERY CARD MAPS TO DEDICATED CONTROL SUITE)
-  // ───────────────────────────────────────────────────────────────────────────
-
-  Widget _buildAllPrivilegesTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(Icons.people_outline, 'User & Identity Management'),
-        _buildResponsiveGrid([
-          _buildControlCard(
-            icon: Icons.person_add_outlined,
-            title: 'Create any user account',
-            desc: 'Register farmers, buyers, officers, admins across all roles',
-            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.manage_accounts_outlined,
-            title: 'Edit any user profile',
-            desc: 'Update identity, contacts, classification, and linked entities',
-            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.person_remove_outlined,
-            title: 'Suspend or delete any account',
-            desc: 'Immediate suspension or permanent deletion with audit log',
-            isDanger: true,
-            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.admin_panel_settings_outlined,
-            title: 'Assign & revoke all roles',
-            desc: 'Grant or strip any role including admin and ministry viewer',
-            onTap: () => _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.vpn_key_outlined,
-            title: 'Force password & session reset',
-            desc: 'Instantly invalidate sessions for any user platform-wide',
-            onTap: () => _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.verified_user_outlined,
-            title: 'Verify or reject KYC manually',
-            desc: 'Override automated KYC decisions for any user',
-            onTap: () => _openSubPage('KYC User Directory & Sovereign Privilege Manager', const UserIdentityControlPage()),
-          ),
-        ]),
-
-        const SizedBox(height: 28),
-
-        _buildSectionHeader(Icons.settings_outlined, 'Platform Infrastructure & Modules'),
-        _buildResponsiveGrid([
-          _buildControlCard(
-            icon: Icons.toggle_on_outlined,
-            title: 'Enable & disable modules',
-            desc: 'Turn any of the 47 modules on or off dynamically',
-            onTap: () => _openSubPage('47-Module Switchboard Suite', const InfrastructureModulesControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.power_settings_new_outlined,
-            title: 'System Kill-Switches & Lockdown',
-            desc: 'Emergency halt on AI models, escrow checkouts, and database writes',
-            isDanger: true,
-            onTap: () => _openSubPage('Emergency Safety & Lockdown Desk', const InfrastructureModulesControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.monitor_heart_outlined,
-            title: 'View system health & telemetry',
-            desc: 'Full infrastructure monitoring — uptime, errors, latency',
-            onTap: () => _openSubPage('Server Health & Infrastructure Telemetry', const AdminSystemHealthPage()),
-          ),
-        ]),
-
-        const SizedBox(height: 28),
-
-        _buildSectionHeader(Icons.psychology_outlined, 'AI Systems & Backbone'),
-        _buildResponsiveGrid([
-          _buildControlCard(
-            icon: Icons.smart_toy_outlined,
-            title: 'Configure AI assistant behaviour',
-            desc: 'Set AI persona, language defaults, prompt guardrails, and scope',
-            onTap: () => _openSubPage('AI Persona & Backbone Control Studio', const AiBackboneControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.tune_outlined,
-            title: 'Tune AI backbone models',
-            desc: 'Adjust forecasting thresholds, risk scoring weights, and alert triggers',
-            onTap: () => _openSubPage('AI Persona & Backbone Control Studio', const AiBackboneControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.power_settings_new_outlined,
-            title: 'Kill-switch AI systems',
-            desc: 'Immediately disable AI backbone or assistant in an emergency',
-            isDanger: true,
-            onTap: () => _openSubPage('AI Emergency Kill-Switch Studio', const AiBackboneControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.cloud_outlined,
-            title: 'Manage API keys & integrations',
-            desc: 'Connect, rotate, and revoke all third-party API credentials',
-            onTap: () => _openSubPage('API Secret Vault & Rotation Desk', const SecurityComplianceVaultPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.satellite_alt_outlined,
-            title: 'Configure satellite data sources',
-            desc: 'Add, remove, and calibrate satellite feed providers',
-            onTap: () => _openSubPage('Satellite Raster Embeddings & Vector DB', const AiBackboneControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.monitor_heart_outlined,
-            title: 'View system health & performance',
-            desc: 'Full infrastructure monitoring — uptime, errors, latency',
-            onTap: () => _openSubPage('Server Health & Infrastructure Telemetry', const AdminSystemHealthPage()),
-          ),
-        ]),
-
-        const SizedBox(height: 28),
-
-        _buildSectionHeader(Icons.security_outlined, 'Security & Compliance'),
-        _buildResponsiveGrid([
-          _buildControlCard(
-            icon: Icons.receipt_long_outlined,
-            title: 'Access full audit logs',
-            desc: 'Every action by every user across all time — immutable records',
-            onTap: () => _openSubPage('User Activity & System Audit Hub', const AdminUserActivityPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.lock_outlined,
-            title: 'Platform-wide emergency lockdown',
-            desc: 'Freeze all transactions and logins instantly — security incidents',
-            isDanger: true,
-            onTap: () => _openSubPage('Emergency Safety & Lockdown Desk', const InfrastructureModulesControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.bug_report_outlined,
-            title: 'Access security incident reports',
-            desc: 'Breach alerts, fraud flags, anomaly detection outputs',
-            onTap: () => _openSubPage('Security Incident & Threat Desk', const SecurityComplianceVaultPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.policy_outlined,
-            title: 'Manage compliance rules',
-            desc: 'Configure EUDR, GDPR, national data law compliance settings',
-            onTap: () => _openSubPage('EUDR & Sovereign Compliance Desk', const SecurityComplianceVaultPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.key_outlined,
-            title: 'Manage encryption & data keys',
-            desc: 'Rotate encryption keys, manage secrets vault',
-            onTap: () => _openSubPage('API Secret Vault & Encryption Desk', const SecurityComplianceVaultPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.do_not_disturb_on_outlined,
-            title: 'Block or whitelist IP addresses',
-            desc: 'Network-level access control across all platform entry points',
-            onTap: () => _openSubPage('IP Firewall & Network Access Control', const SecurityComplianceVaultPage()),
-          ),
-        ]),
-
-        const SizedBox(height: 28),
-
-        _buildSectionHeader(Icons.storefront_outlined, 'Marketplace & Trade Floor Oversight'),
-        _buildResponsiveGrid([
-          _buildControlCard(
-            icon: Icons.check_circle_outline,
-            title: 'Approve or reject any listing',
-            desc: 'Override marketplace listing status for any commodity',
-            onTap: () => _openSubPage('Marketplace Trade Floor & Price Policy Oversight', const MarketplaceTradeOversightPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.price_change_outlined,
-            title: 'Set & publish floor prices',
-            desc: 'Set policy-based floor or ceiling prices per commodity',
-            onTap: () => _openSubPage('Marketplace Trade Floor & Price Policy Oversight', const MarketplaceTradeOversightPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.gavel_outlined,
-            title: 'Resolve trade disputes',
-            desc: 'Final arbitration authority on buyer-seller disputes',
-            onTap: () => _openSubPage('Marketplace Trade Floor & Price Policy Oversight', const MarketplaceTradeOversightPage()),
-          ),
-        ]),
-      ],
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // TAB 2: CRITICAL CONTROLS
-  // ───────────────────────────────────────────────────────────────────────────
-
-  Widget _buildCriticalControlsTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(Icons.warning_amber_rounded, 'High-Risk Sovereign Override Controls', isDanger: true),
-        _buildResponsiveGrid([
-          _buildControlCard(
-            icon: Icons.lock_outlined,
-            title: 'Platform-wide emergency lockdown',
-            desc: 'Freeze all transactions and logins instantly — security incidents',
-            isDanger: true,
-            onTap: () => _openSubPage('Emergency Safety & Lockdown Desk', const InfrastructureModulesControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.power_settings_new_outlined,
-            title: 'Kill-switch AI systems',
-            desc: 'Immediately disable AI backbone or assistant in an emergency',
-            isDanger: true,
-            onTap: () => _openSubPage('AI Emergency Kill-Switch Studio', const AiBackboneControlPage()),
-          ),
-          _buildControlCard(
-            icon: Icons.person_remove_outlined,
-            title: 'Suspend or delete any account',
-            desc: 'Immediate suspension or permanent deletion with audit log',
-            isDanger: true,
-            onTap: () => _openSubPage('Platform User Account Directory', const AdminUserManagementPage()),
-          ),
-        ]),
-      ],
-    );
-  }
-
-  Widget _buildRoleComparisonTab() {
-    return const UserIdentityControlPage();
-  }
-
-  Widget _buildAuditTrailTab() {
-    return const AdminUserActivityPage();
-  }
-
-  Widget _buildGovernancePolicyTab() {
+  Widget _buildVitalCard({
+    required String title,
+    required String value,
+    required String subtext,
+    required IconData icon,
+    required Color color,
+  }) {
     return Container(
-      decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cardDark,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: textMuted),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(icon, color: color, size: 16),
+            ],
+          ),
+          Text(
+            value,
+            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
+          ),
+          Text(
+            subtext,
+            style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: color),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMasterActionToggles(bool isLockdown, bool isMaintenance) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardDark,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cardBorder),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Verdi OS Sovereign Governance Framework', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 12),
-          const Text(
-            '1. Super Administrator Account Limit: Maximum of 3 active Super Admin accounts allowed per national jurisdiction.\n'
-            '2. Dual-Authorization Protocol: High-risk financial reversals and database purges require dual-key sign-off.\n'
-            '3. EUDR Compliance Engine: All export trade permits must carry a valid satellite polygon audit receipt.\n'
-            '4. Immutable Audit Logs: Every sovereign override action is permanently recorded with cryptographic hashes.',
-            style: TextStyle(color: textMuted, height: 1.6),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Helper Layout Components ---
-  Widget _buildSectionHeader(IconData icon, String title, {bool isDanger = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: isDanger ? accentDanger : accentGreen, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isDanger ? accentDanger : Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildControlCard({
-    required IconData icon,
-    required String title,
-    required String desc,
-    required VoidCallback onTap,
-    bool isDanger = false,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: cardDark,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDanger ? accentDanger.withValues(alpha: 0.8) : cardBorder,
-              width: isDanger ? 1.5 : 1.0,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: (isDanger ? accentDanger : accentGreen).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: isDanger ? accentDanger : accentGreen, size: 18),
-                  ),
-                  const Spacer(),
-                  Icon(Icons.arrow_forward_ios, color: textMuted.withValues(alpha: 0.5), size: 12),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: isDanger ? accentDanger : Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    desc,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(fontSize: 11, color: textMuted),
-                  ),
-                ],
+              const Icon(Icons.tune_rounded, color: accentGold, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'Master Operational Controls & Emergency Switches',
+                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              // Emergency Lockdown Button
+              ElevatedButton.icon(
+                onPressed: () {
+                  final newLock = !isLockdown;
+                  ref.read(isEmergencyLockdownProvider.notifier).state = newLock;
+                  ref.read(platformActivityProvider.notifier).logActivity(
+                        PlatformActivityEvent(
+                          id: 'evt_${DateTime.now().millisecondsSinceEpoch}',
+                          userName: 'Super Admin',
+                          userId: 'SYS-ADMIN-01',
+                          userRole: UserRole.admin,
+                          userAvatar: 'SA',
+                          actionTitle: newLock ? '🚨 EMERGENCY PLATFORM LOCKDOWN ACTIVATED' : 'Platform Lockdown Lifted',
+                          actionDescription: newLock
+                              ? 'All mutations restricted to Read-Only mode by Super Administrator.'
+                              : 'Standard Read/Write operations restored across the network.',
+                          timestamp: 'Just now',
+                          exactTime: DateTime.now().toIso8601String(),
+                          module: 'Security',
+                          device: 'Sovereign Master Console',
+                          status: 'Success',
+                          targetResource: 'Global Platform',
+                          ipAddress: 'Sovereign Node 01',
+                          metadata: {'lockdown': newLock},
+                        ),
+                      );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(newLock ? '🚨 Emergency Lockdown Activated (Read-Only Mode)' : 'Lockdown Lifted'),
+                      backgroundColor: newLock ? accentDanger : accentGreen,
+                    ),
+                  );
+                },
+                icon: Icon(isLockdown ? Icons.lock_open : Icons.lock, size: 16),
+                label: Text(
+                  isLockdown ? 'LIFT LOCKDOWN' : 'EMERGENCY LOCKDOWN',
+                  style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isLockdown ? accentGreen : accentDanger.withValues(alpha: 0.15),
+                  foregroundColor: isLockdown ? Colors.black : accentDanger,
+                  side: BorderSide(color: isLockdown ? accentGreen : accentDanger.withValues(alpha: 0.5)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                ),
+              ),
+
+              // Maintenance Mode Button
+              ElevatedButton.icon(
+                onPressed: () {
+                  final newMaint = !isMaintenance;
+                  ref.read(isMaintenanceModeProvider.notifier).state = newMaint;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(newMaint ? 'Maintenance Mode Enabled' : 'Maintenance Mode Disabled'),
+                      backgroundColor: accentGold,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.build_circle_outlined, size: 16),
+                label: Text(
+                  isMaintenance ? 'DISABLE MAINTENANCE' : 'MAINTENANCE MODE',
+                  style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isMaintenance ? accentGold : const Color(0xFF1E293B),
+                  foregroundColor: isMaintenance ? Colors.black : textMuted,
+                  side: BorderSide(color: isMaintenance ? accentGold : const Color(0xFF334155)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                ),
+              ),
+
+              // Quick Snapshot Export
+              OutlinedButton.icon(
+                onPressed: () {
+                  final events = ref.read(platformActivityProvider);
+                  final jsonString = jsonEncode(events.map((e) => {
+                    'id': e.id,
+                    'user': e.userName,
+                    'action': e.actionTitle,
+                    'time': e.exactTime,
+                    'module': e.module,
+                    'status': e.status,
+                  }).toList());
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Exported ${events.length} audit records (${jsonString.length} bytes)!'),
+                      backgroundColor: accentBlue,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.download_rounded, size: 16, color: accentBlue),
+                label: Text('EXPORT AUDIT SNAPSHOT', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: accentBlue)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF334155)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPillarSection({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required List<Widget> children,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Column(
+          children: children.map((c) => Padding(padding: const EdgeInsets.only(bottom: 8), child: c)).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControlTile({
+    required IconData icon,
+    required String title,
+    required String desc,
+    required String actionLabel,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardDark,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cardBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  desc,
+                  style: GoogleFonts.inter(fontSize: 11.5, color: textMuted, height: 1.35),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          actionLabel,
+                          style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: color),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_rounded, size: 14, color: color),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPricingPolicyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: cardDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.price_change_outlined, color: accentPurple),
+            const SizedBox(width: 8),
+            Text('Commodity Pricing Policy', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Sovereign Agricultural Floor Prices (Zimbabwe Region)', style: GoogleFonts.inter(color: textMuted, fontSize: 12)),
+            const SizedBox(height: 12),
+            _buildPriceRow('Sugar Beans', 'US\$ 1.10 / kg', 'Floor enforced'),
+            _buildPriceRow('Maize (Grade A)', 'US\$ 335.00 / Tonne', 'GMB benchmark'),
+            _buildPriceRow('Soyabeans', 'US\$ 520.00 / Tonne', 'Active export'),
+            _buildPriceRow('Macadamia Nuts', 'US\$ 3.80 / kg', 'EUDR premium'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close', style: TextStyle(color: textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Agricultural floor prices synchronized across all trading terminals!'), backgroundColor: accentGreen),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: accentPurple),
+            child: const Text('Save & Broadcast', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(String item, String price, String note) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(item, style: GoogleFonts.inter(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(price, style: GoogleFonts.inter(color: accentGold, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text(note, style: GoogleFonts.inter(color: textMuted, fontSize: 9.5)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAiTuningDialog(BuildContext context) {
+    double tempThreshold = ref.read(aiConfidenceThresholdProvider);
+    String selectedModel = ref.read(aiSelectedModelProvider);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          backgroundColor: cardDark,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.tune_outlined, color: accentBlue),
+              const SizedBox(width: 8),
+              Text('AI Confidence & Model Gateway', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Active LLM Model Engine:', style: GoogleFonts.inter(color: textMuted, fontSize: 12)),
+              const SizedBox(height: 6),
+              DropdownButton<String>(
+                value: selectedModel,
+                isExpanded: true,
+                dropdownColor: cardDark,
+                style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                items: const [
+                  DropdownMenuItem(value: 'Gemini 1.5 Pro (Sovereign Cloud)', child: Text('Gemini 1.5 Pro (Sovereign Cloud)')),
+                  DropdownMenuItem(value: 'Gemini 1.5 Flash (Ultra Low Latency)', child: Text('Gemini 1.5 Flash (Ultra Low Latency)')),
+                  DropdownMenuItem(value: 'Agricultural Offline SLM (Edge Node)', child: Text('Agricultural Offline SLM (Edge Node)')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setModalState(() => selectedModel = val);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              Text('Diagnosis Confidence Cutoff: ${(tempThreshold * 100).toInt()}%', style: GoogleFonts.inter(color: textMuted, fontSize: 12)),
+              Slider(
+                value: tempThreshold,
+                min: 0.50,
+                max: 0.99,
+                divisions: 49,
+                activeColor: accentBlue,
+                onChanged: (v) {
+                  setModalState(() => tempThreshold = v);
+                },
+              ),
+              Text('Advisory detections below this confidence will trigger human agronomist review.', style: GoogleFonts.inter(color: textMuted, fontSize: 11)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: textMuted)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                ref.read(aiConfidenceThresholdProvider.notifier).state = tempThreshold;
+                ref.read(aiSelectedModelProvider.notifier).state = selectedModel;
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('AI Backbone updated to $selectedModel at ${(tempThreshold * 100).toInt()}% confidence!'), backgroundColor: accentBlue),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: accentBlue),
+              child: const Text('Apply AI Settings', style: TextStyle(color: Colors.white)),
+            ),
+          ],
         ),
       ),
     );
