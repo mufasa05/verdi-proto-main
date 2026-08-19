@@ -63,10 +63,10 @@ class AppShell extends ConsumerWidget {
       const GovernmentIrrigationView(), // index 8: Irrigation
       const FarmerIrrigationView(), // index 9: Farmer Irrigation
       const DroneInspectionView(), // index 10: Drone Inspection
-      const FarmOperationsPage(), // index 11: Farm Operations
+      const FarmOperationsPage(), // index 11: Farm Operations & Agronomy Hub
       const DashboardPage(), // index 12: Dashboard
       const GeospatialPage(), // index 13: Geospatial
-      const CropHealthPage(), // index 14: Crop Health
+      const FarmOperationsPage(), // index 14: Crop Health (Merged into Farm Operations & Agronomy Hub)
       const TraceabilityPage(), // index 15: Traceability
       const FinancePage(), // index 16: Finance
       const WeatherPage(), // index 17: Weather
