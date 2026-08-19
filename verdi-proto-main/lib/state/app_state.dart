@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// All stakeholder types in the VERDI agricultural value chain.
 enum UserRole {
@@ -172,7 +173,7 @@ class AppState {
     required this.role,
     required this.navIndex,
     this.currency = AppCurrency.zig,
-    this.isDemoMode = true,
+    this.isDemoMode = false,
   });
 
   AppState copyWith({
@@ -193,12 +194,39 @@ class AppState {
     role: UserRole.farmer,
     navIndex: 0,
     currency: AppCurrency.zig,
-    isDemoMode: true,
+    isDemoMode: false,
   );
 }
 
 class AppStateNotifier extends StateNotifier<AppState> {
-  AppStateNotifier() : super(AppState.initial);
+  static const _prefDemoModeKey = 'verdi.app.is_demo_mode';
+  static const _prefCurrencyKey = 'verdi.app.selected_currency';
+
+  AppStateNotifier() : super(AppState.initial) {
+    _loadPersistedPreferences();
+  }
+
+  Future<void> _loadPersistedPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasDemoPref = prefs.containsKey(_prefDemoModeKey);
+      final isDemo = hasDemoPref ? (prefs.getBool(_prefDemoModeKey) ?? false) : false;
+      final currencyCode = prefs.getString(_prefCurrencyKey);
+
+      AppCurrency selectedCurrency = AppCurrency.zig;
+      if (currencyCode != null) {
+        selectedCurrency = AppCurrency.values.firstWhere(
+          (c) => c.name == currencyCode,
+          orElse: () => AppCurrency.zig,
+        );
+      }
+
+      state = state.copyWith(
+        isDemoMode: isDemo,
+        currency: selectedCurrency,
+      );
+    } catch (_) {}
+  }
 
   void setRole(UserRole role) {
     state = state.copyWith(role: role, navIndex: 0);
@@ -210,14 +238,17 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
   void setCurrency(AppCurrency currency) {
     state = state.copyWith(currency: currency);
+    SharedPreferences.getInstance().then((p) => p.setString(_prefCurrencyKey, currency.name)).catchError((_) => false);
   }
 
   void setDemoMode(bool enabled) {
     state = state.copyWith(isDemoMode: enabled);
+    SharedPreferences.getInstance().then((p) => p.setBool(_prefDemoModeKey, enabled)).catchError((_) => false);
   }
 
   void toggleDemoMode() {
-    state = state.copyWith(isDemoMode: !state.isDemoMode);
+    final newMode = !state.isDemoMode;
+    setDemoMode(newMode);
   }
 }
 

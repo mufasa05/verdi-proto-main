@@ -123,6 +123,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final user = AppUser.fromJson(jsonDecode(rawSession));
       _setRole(user.role);
+      final isDemoSaved = prefs.getBool('verdi.app.is_demo_mode') ?? false;
+      if (_ref != null) {
+        _ref.read(appStateProvider.notifier).setDemoMode(isDemoSaved);
+      } else if (_container != null) {
+        _container.read(appStateProvider.notifier).setDemoMode(isDemoSaved);
+      }
       state = state.copyWith(
         user: user,
         isAuthenticated: true,
@@ -255,8 +261,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
         await prefs.setString('verdi.auth.token', token);
         await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
+        await prefs.setBool('verdi.app.is_demo_mode', false);
 
         _setRole(user.role);
+        if (_ref != null) {
+          _ref.read(appStateProvider.notifier).setDemoMode(false);
+        } else if (_container != null) {
+          _container.read(appStateProvider.notifier).setDemoMode(false);
+        }
         _broadcastAuthEvent(user, isRegistration: false);
         state = state.copyWith(
           user: user,
@@ -312,8 +324,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
       await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
+      await prefs.setBool('verdi.app.is_demo_mode', false);
 
       _setRole(user.role);
+      if (_ref != null) {
+        _ref.read(appStateProvider.notifier).setDemoMode(false);
+      } else if (_container != null) {
+        _container.read(appStateProvider.notifier).setDemoMode(false);
+      }
       _broadcastAuthEvent(user, isRegistration: false);
       state = state.copyWith(
         user: user,

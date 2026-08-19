@@ -203,46 +203,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     ),
   ];
 
-  static final List<ChatThread> _liveThreads = [
-    ChatThread(
-      id: 'th_ai_advisor',
-      title: 'Verdi AI Agronomist',
-      subtitle: 'Sovereign Agricultural Copilot · 24/7',
-      category: 'AI',
-      messages: [
-        ChatMessage(
-          id: 'msg_live_001',
-          threadId: 'th_ai_advisor',
-          senderId: 'SYS_AI',
-          senderName: 'Verdi AI',
-          senderRole: 'AI Engine',
-          text: 'Welcome to Verdi Sovereign Terminal. Ask me about real-time market prices, transport rates, pest advisory, or export documentation.',
-          timestamp: 'Just now',
-          exactTime: DateTime.now().toIso8601String(),
-          isUser: false,
-        ),
-      ],
-    ),
-    ChatThread(
-      id: 'th_global_trade',
-      title: 'Global Stakeholder Trade Room',
-      subtitle: 'Live multi-device chat channel across all users',
-      category: 'Marketplace',
-      messages: [
-        ChatMessage(
-          id: 'msg_live_002',
-          threadId: 'th_global_trade',
-          senderId: 'SYS_VERDI',
-          senderName: 'Verdi Network',
-          senderRole: 'System',
-          text: '🛰️ Real-time stakeholder communication mesh online. Messages sent here appear instantly across all devices.',
-          timestamp: 'Just now',
-          exactTime: DateTime.now().toIso8601String(),
-          isUser: false,
-        ),
-      ],
-    ),
-  ];
+  static final List<ChatThread> _liveThreads = [];
 
   ChatNotifier({required this.isDemo, required this.ref})
       : super(ChatState(

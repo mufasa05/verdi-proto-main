@@ -12,6 +12,7 @@ import '../../../state/platform_data_state.dart';
 import '../../../state/chat_state.dart';
 import '../../../widgets/cart_drawer.dart';
 import '../../../widgets/nearby_transport_panel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../features/auth/state/auth_state.dart';
 import 'package:verdi/core/services/verdi_api_service.dart';
 
@@ -982,16 +983,53 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
     ),
   ];
 
+  static const _userListingsPrefKey = 'verdi.marketplace.user_products_v2';
+
   @override
   void initState() {
     super.initState();
     _allProducts = List.from(_defaultProducts);
+    _loadPersistedUserListings();
     _loadBackendListings();
     _tabController = TabController(length: _categories.length, vsync: this);
     _tabController.addListener(() {
       if (!mounted) return;
       setState(() {});
     });
+  }
+
+  Future<void> _loadPersistedUserListings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_userListingsPrefKey);
+      if (raw != null && raw.isNotEmpty) {
+        final List list = jsonDecode(raw);
+        final userProducts = list.map((item) => MarketplaceProduct.fromJson(item as Map<String, dynamic>)).toList();
+        if (mounted && userProducts.isNotEmpty) {
+          setState(() {
+            for (final up in userProducts) {
+              if (!_allProducts.any((p) => p.name == up.name && p.price == up.price)) {
+                _allProducts.insert(0, up);
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading persisted user listings: $e');
+    }
+  }
+
+  Future<void> _saveUserProduct(MarketplaceProduct product) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_userListingsPrefKey);
+      final List list = raw != null && raw.isNotEmpty ? jsonDecode(raw) : [];
+      list.insert(0, product.toJson());
+      await prefs.setString(_userListingsPrefKey, jsonEncode(list));
+    } catch (e) {
+      debugPrint('Error saving user listing: $e');
+    }
   }
 
   Future<void> _loadBackendListings() async {
@@ -1246,13 +1284,35 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
                       'status': 'Active',
                     });
 
+                    _saveUserProduct(newProduct);
+
+                    ref.read(platformActivityProvider.notifier).logActivity(
+                          PlatformActivityEvent(
+                            id: 'evt_listing_${DateTime.now().millisecondsSinceEpoch}',
+                            userName: user?.fullName ?? 'Producer',
+                            userId: user?.id ?? 'USR-CURRENT',
+                            userRole: ref.read(appStateProvider).role,
+                            userAvatar: (user?.fullName ?? 'PR').split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join(),
+                            actionTitle: '🛍️ Listed Produce on Marketplace',
+                            actionDescription: 'Listed $name ($qty) for $price in ${newProduct.location}',
+                            timestamp: 'Just now',
+                            exactTime: DateTime.now().toIso8601String(),
+                            module: 'Marketplace',
+                            device: 'Verdi Web / Mobile',
+                            status: 'Success',
+                            targetResource: name,
+                            ipAddress: 'Active Node',
+                            metadata: {'name': name, 'price': price, 'quantity': qty},
+                          ),
+                        );
+
                     setState(() {
                       _allProducts.insert(0, newProduct);
                     });
 
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('$name listed successfully!')),
+                      SnackBar(content: Text('$name listed successfully!'), backgroundColor: green),
                     );
                   },
                   style: ElevatedButton.styleFrom(

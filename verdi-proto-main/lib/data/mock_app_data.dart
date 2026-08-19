@@ -72,6 +72,33 @@ class MarketplaceProduct {
     required this.imageUrl,
     this.sellerId,
   });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'category': category,
+        'description': description,
+        'price': price,
+        'seller': seller,
+        'location': location,
+        'quantity': quantity,
+        'distance': distance,
+        'imageUrl': imageUrl,
+        'sellerId': sellerId,
+      };
+
+  factory MarketplaceProduct.fromJson(Map<String, dynamic> json) => MarketplaceProduct(
+        name: json['name']?.toString() ?? 'Harvest Produce',
+        category: json['category']?.toString() ?? 'Vegetables',
+        description: json['description']?.toString() ?? '',
+        price: json['price']?.toString() ?? '\$1.00 / kg',
+        seller: json['seller']?.toString() ?? 'Producer',
+        location: json['location']?.toString() ?? 'Harare, ZW',
+        quantity: json['quantity']?.toString() ?? '100 kg',
+        distance: json['distance']?.toString() ?? '2.0 km',
+        imageUrl: json['imageUrl']?.toString() ??
+            'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?auto=format&fit=crop&w=900&q=80',
+        sellerId: json['sellerId']?.toString(),
+      );
 }
 
 class MockAppData {

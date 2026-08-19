@@ -29,7 +29,7 @@ class SupabaseService {
   RealtimeChannel? _presenceChannel;
 
   Timer? _pollingTimer;
-  int _lastFetchedTime = (DateTime.now().millisecondsSinceEpoch ~/ 1000) - 30;
+  int _lastFetchedTime = (DateTime.now().millisecondsSinceEpoch ~/ 1000) - (24 * 3600);
   final Set<String> _processedMessageIds = {};
 
   final _activityStreamController = StreamController<PlatformActivityEvent>.broadcast();
