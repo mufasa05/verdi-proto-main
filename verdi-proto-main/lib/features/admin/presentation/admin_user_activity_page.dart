@@ -568,33 +568,46 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              const Icon(Icons.people_alt_outlined, color: blue, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Live Multi-Role Stakeholder Presence Radar',
-                style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.people_alt_outlined, color: blue, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Stakeholder Presence Radar',
+                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                  ),
+                ],
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: green.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: green.withOpacity(0.4)),
-                ),
-                child: Text('$onlineCount ONLINE', style: const TextStyle(color: green, fontSize: 10, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: textMuted.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: textMuted.withOpacity(0.3)),
-                ),
-                child: Text('$offlineCount OFFLINE', style: const TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.bold)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: green.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: green.withOpacity(0.4)),
+                    ),
+                    child: Text('$onlineCount ONLINE', style: const TextStyle(color: green, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: textMuted.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: textMuted.withOpacity(0.3)),
+                    ),
+                    child: Text('$offlineCount OFFLINE', style: const TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
             ],
           ),
