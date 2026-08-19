@@ -1103,7 +1103,7 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
     }).toList();
   }
 
-  void _showAddProductDialog() {
+  void _showSellProductDialog() {
     final nameController = TextEditingController();
     final priceController = TextEditingController();
     final quantityController = TextEditingController();
@@ -1752,7 +1752,7 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
                                   alignment: Alignment.center,
                                   child: Column(
                                     children: [
-                                      const Icon(Icons.search_off_rounded, size: 54, color: muted),
+                                      const Icon(Icons.storefront_outlined, size: 54, color: muted),
                                       const SizedBox(height: 12),
                                       Text(
                                         'No matching produce found',
@@ -1760,8 +1760,21 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
-                                        'Try adjusting search keywords or category filters.',
+                                        'Be the first to list fresh produce, grains, or livestock on the live marketplace.',
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.inter(fontSize: 13, color: muted),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton.icon(
+                                        onPressed: _showSellProductDialog,
+                                        icon: const Icon(Icons.add_circle_outline, size: 18),
+                                        label: const Text('Sell Produce Now'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: green,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -2209,15 +2222,15 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
               Expanded(child: _buildSearchBox()),
               const SizedBox(width: 8),
               ElevatedButton.icon(
-                onPressed: _showAddProductDialog,
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Edit Produce'),
+                onPressed: _showSellProductDialog,
+                icon: const Icon(Icons.add_circle_outline, size: 18),
+                label: const Text('Sell Produce'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: green,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 ),
               ),
             ],
@@ -2251,9 +2264,9 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
         Expanded(child: _buildSearchBox()),
         const SizedBox(width: 14),
         ElevatedButton.icon(
-          onPressed: _showAddProductDialog,
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Edit Produce'),
+          onPressed: _showSellProductDialog,
+          icon: const Icon(Icons.add_circle_outline, size: 18),
+          label: const Text('Sell Produce'),
           style: ElevatedButton.styleFrom(
             backgroundColor: green,
             foregroundColor: Colors.white,
@@ -2632,24 +2645,24 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Color(0x0A0F172A),
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Stack Container with distance pill overlay & favorite button
+            // Image Stack Container with category badge, distance pill & favorite button
             SizedBox(
-              height: widget.isMobile ? 125 : 140,
+              height: widget.isMobile ? 135 : 148,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -2667,29 +2680,70 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                                 imageUrl: p.imageUrl,
                                 fit: BoxFit.cover,
                                 placeholder: (context, url) => Container(
-                                  color: Colors.grey.shade200,
+                                  color: Colors.grey.shade100,
                                   child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
                                 ),
                                 errorWidget: (context, url, error) => Container(
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(Icons.broken_image_outlined),
+                                  color: Colors.grey.shade100,
+                                  child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
                                 ),
                               )),
                   ),
 
-                  // Distance Tag Pill Overlay (Top Left)
+                  // Top Gradient Overlay for readability
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 48,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.black54, Colors.transparent],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Category Badge (Top Left)
                   Positioned(
                     top: 8,
                     left: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.65),
+                        color: _MarketplacePageState.green,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        p.distance,
-                        style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        p.category,
+                        style: GoogleFonts.inter(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+
+                  // Distance Chip (Bottom Right)
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.65),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.location_on, size: 10, color: Colors.white),
+                          const SizedBox(width: 3),
+                          Text(
+                            p.distance,
+                            style: GoogleFonts.inter(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -2707,13 +2761,13 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: Colors.white.withOpacity(0.92),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
-                          size: 16,
-                          color: isFavorite ? Colors.red : Colors.black87,
+                          size: 15,
+                          color: isFavorite ? Colors.red : const Color(0xFF0F172A),
                         ),
                       ),
                     ),
@@ -2723,16 +2777,16 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                   if (widget.canDelete && widget.onDelete != null)
                     Positioned(
                       top: 6,
-                      left: 54,
+                      left: 70,
                       child: GestureDetector(
                         onTap: widget.onDelete,
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: Colors.white.withOpacity(0.92),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                          child: const Icon(Icons.delete_outline, size: 15, color: Colors.red),
                         ),
                       ),
                     ),
@@ -2755,6 +2809,7 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: _MarketplacePageState.dark,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -2763,7 +2818,7 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
-                        fontSize: 12,
+                        fontSize: 11.5,
                         color: _MarketplacePageState.muted,
                       ),
                     ),
@@ -2771,7 +2826,7 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                     Text(
                       p.price,
                       style: GoogleFonts.inter(
-                        fontSize: 15,
+                        fontSize: 15.5,
                         fontWeight: FontWeight.w900,
                         color: _MarketplacePageState.green,
                       ),
@@ -2780,30 +2835,38 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                     Row(
                       children: [
                         CircleAvatar(
-                          radius: 9,
-                          backgroundColor: _MarketplacePageState.green.withValues(alpha: 0.2),
+                          radius: 8.5,
+                          backgroundColor: _MarketplacePageState.green.withOpacity(0.18),
                           child: Text(
                             p.seller.substring(0, 1),
-                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: _MarketplacePageState.green),
+                            style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: _MarketplacePageState.green),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 5),
                         Expanded(
-                          child: Text(
-                            '${p.seller} • ${p.location}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(fontSize: 11, color: _MarketplacePageState.dark),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  p.seller,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: _MarketplacePageState.dark),
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              const Icon(Icons.verified_rounded, size: 12, color: _MarketplacePageState.green),
+                            ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      p.quantity,
+                      '${p.location} • ${p.quantity}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(fontSize: 11, color: _MarketplacePageState.muted),
+                      style: GoogleFonts.inter(fontSize: 10.5, color: _MarketplacePageState.muted),
                     ),
                     const Spacer(),
                     Row(
@@ -2813,7 +2876,7 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                             onPressed: widget.onViewDetails,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: _MarketplacePageState.dark,
-                              side: BorderSide(color: Colors.black.withValues(alpha: 0.12)),
+                              side: const BorderSide(color: Color(0xFFE2E8F0)),
                               padding: const EdgeInsets.symmetric(vertical: 9),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -2828,9 +2891,9 @@ class _MarketplaceProductCardState extends ConsumerState<_MarketplaceProductCard
                         const SizedBox(width: 6),
                         IconButton(
                           onPressed: widget.onAddToCart,
-                          icon: const Icon(Icons.add_shopping_cart_rounded, size: 18, color: _MarketplacePageState.green),
+                          icon: const Icon(Icons.add_shopping_cart_rounded, size: 18, color: Colors.white),
                           style: IconButton.styleFrom(
-                            backgroundColor: _MarketplacePageState.green.withValues(alpha: 0.12),
+                            backgroundColor: _MarketplacePageState.green,
                             padding: const EdgeInsets.all(9),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),

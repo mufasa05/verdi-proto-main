@@ -8,7 +8,8 @@ import 'package:provider/provider.dart';
 import 'features/admin/presentation/admin_dashboard_page.dart';
 import 'features/admin/presentation/admin_user_activity_page.dart';
 import 'features/admin/presentation/admin_system_health_page.dart';
-import 'features/ai_assistant/presentation/ai_assistant_page.dart';
+import 'features/chat/presentation/chats_page.dart';
+import 'features/assistant/presentation/ai_copilot_page.dart';
 import 'features/analytics/presentation/analytics_page.dart';
 import 'features/crop_health/presentation/crop_health_page.dart';
 import 'features/dashboard/presentation/dashboard_page.dart';
@@ -53,7 +54,7 @@ class AppShell extends ConsumerWidget {
     final pages = [
       const HomePage(), // index 0: Home
       const MarketplacePage(), // index 1: Marketplace
-      const AssistantPage(), // index 2: Chats (AI Assistant)
+      const ChatsPage(), // index 2: My Chats (Direct Stakeholder Messaging)
       const AnalyticsPage(), // index 3: Analytics
       const OrdersPage(), // index 4: Orders
       const LogisticsPage(), // index 5: Logistics
@@ -79,6 +80,7 @@ class AppShell extends ConsumerWidget {
       const ValueAdderProcessingPage(), // index 25: Value Addition Hub
       const AdminUserActivityPage(), // index 26: User Activities & System Audit Logs
       const AdminSystemHealthPage(), // index 27: System Health & Infrastructure Telemetry
+      const AiCopilotPage(), // index 28: Sovereign AI Agronomist Copilot
     ];
 
     return ChangeNotifierProvider<WeatherProvider>(
