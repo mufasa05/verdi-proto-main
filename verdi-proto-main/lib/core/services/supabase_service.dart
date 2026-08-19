@@ -18,9 +18,9 @@ class SupabaseService {
   static const String _cloudRelayEndpoint = 'https://ntfy.sh/verdi_live_platform_sync_v2';
   static const String _cloudRelayStream = 'https://ntfy.sh/verdi_live_platform_sync_v2/sse';
 
-  // Default production Supabase credentials (optional user override)
-  static const String defaultUrl = 'https://ihujrsqjfgznknvqqpku.supabase.co';
-  static const String defaultAnonKey = '';
+  // Default production Supabase credentials
+  static const String defaultUrl = 'https://ctlczfokxexgxwtdztbu.supabase.co';
+  static const String defaultAnonKey = 'sb_publishable_QcurCLLt4o6GZjcD-NOKEQ_gLYQcrU1';
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
@@ -42,13 +42,23 @@ class SupabaseService {
     // 1. Start Zero-Config High-Speed Cloud Sync Engine
     _startCloudRelayListener();
 
-    // 2. Initialize Supabase if valid credentials configured
+    // 2. Initialize Supabase with clean project credentials
     try {
       final prefs = await SharedPreferences.getInstance();
-      final url = prefs.getString(_prefUrlKey) ?? defaultUrl;
-      final anonKey = prefs.getString(_prefAnonKey) ?? defaultAnonKey;
+      String url = (prefs.getString(_prefUrlKey) ?? defaultUrl).trim();
+      final anonKey = (prefs.getString(_prefAnonKey) ?? defaultAnonKey).trim();
 
-      if (url.isNotEmpty && anonKey.isNotEmpty && !anonKey.contains('dummy')) {
+      // Clean URL suffix if /rest/v1/ was provided
+      if (url.endsWith('/rest/v1/')) {
+        url = url.substring(0, url.length - '/rest/v1/'.length);
+      } else if (url.endsWith('/rest/v1')) {
+        url = url.substring(0, url.length - '/rest/v1'.length);
+      }
+      if (url.endsWith('/')) {
+        url = url.substring(0, url.length - 1);
+      }
+
+      if (url.isNotEmpty && anonKey.isNotEmpty) {
         await Supabase.initialize(
           url: url,
           anonKey: anonKey,
