@@ -11,7 +11,6 @@ import 'features/admin/presentation/admin_system_health_page.dart';
 import 'features/chat/presentation/chats_page.dart';
 import 'features/assistant/presentation/ai_copilot_page.dart';
 import 'features/analytics/presentation/analytics_page.dart';
-import 'features/crop_health/presentation/crop_health_page.dart';
 import 'features/dashboard/presentation/dashboard_page.dart';
 import 'features/drone_inspection/presentation/drone_inspection_view.dart';
 import 'features/farm_operations/presentation/farm_operations_page.dart';

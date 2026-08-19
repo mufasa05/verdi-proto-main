@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/chat_state.dart';
 import '../../../state/app_state.dart';
-import '../../../state/platform_data_state.dart';
 
 /// Clean, Dedicated Stakeholder-to-Stakeholder Direct Messaging Console
 class ChatsPage extends ConsumerStatefulWidget {
