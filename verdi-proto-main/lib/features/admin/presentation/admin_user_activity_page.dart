@@ -5,17 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
 import '../../../state/platform_data_state.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ADMIN USER ACTIVITY & SYSTEM AUDIT LOGS PAGE
-// Dedicated Super Admin activity control tower tracking every action from all users.
-// ─────────────────────────────────────────────────────────────────────────────
-
+/// Dedicated Super Admin User Activity & Audit Control Tower
 class AdminUserActivityPage extends ConsumerStatefulWidget {
   const AdminUserActivityPage({super.key});
 
   @override
-  ConsumerState<AdminUserActivityPage> createState() =>
-      _AdminUserActivityPageState();
+  ConsumerState<AdminUserActivityPage> createState() => _AdminUserActivityPageState();
 }
 
 class UserActivityEvent {
@@ -83,13 +78,13 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       userId: 'USR-FRM-001',
       userRole: UserRole.farmer,
       userAvatar: 'KM',
-      actionTitle: 'Marketplace Produce Batch Listed',
-      actionDescription: 'Listed 2,500 kg Grade-A Sugar Beans at US\$ 1.20/kg with origin certification.',
+      actionTitle: '🌾 Marketplace Produce Batch Listed',
+      actionDescription: 'Listed 2,500 kg Grade-A Sugar Beans at US\$ 1.20/kg on live marketplace.',
       module: 'Marketplace',
       targetResource: 'Batch #VER-TR-1001',
       timestamp: '2m ago',
-      exactTime: '14 Aug 2026 11:10:45 CAT',
-      ipAddress: '197.221.14.82 (Harare)',
+      exactTime: '19 Aug 2026 21:10:45 CAT',
+      ipAddress: '197.221.14.82 (Chiredzi)',
       device: 'Verdi Mobile App Android 14',
       status: 'Success',
       statusColor: green,
@@ -99,8 +94,11 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
         'quantity': '2,500 kg',
         'pricePerUnit': 'US\$ 1.20',
         'farmLocation': 'Mufasa Estate, Block 4',
-        'geoCoords': '-17.8292, 31.0522',
-        'integrityHash': '0x8f2a...c81e',
+        'joiningDate': '14 October 2024 (1 year 10 months on Verdi)',
+        'phone': '+263 77 412 9081',
+        'email': 'kudakwashe.moyo@verdi.co',
+        'escrowBalance': 'US\$ 4,250.00',
+        'kycLevel': 'Tier 3 Sovereign Verified',
       },
     ),
     UserActivityEvent(
@@ -109,12 +107,12 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       userId: 'USR-BUY-002',
       userRole: UserRole.buyer,
       userAvatar: 'TM',
-      actionTitle: 'Escrow Payment Deposited',
+      actionTitle: '🔒 Escrow Payment Deposited',
       actionDescription: 'Deposited US\$ 3,000.00 into verified smart contract escrow for Order #ORD-8492.',
       module: 'Escrow & Payments',
       targetResource: 'Order #ORD-8492',
       timestamp: '6m ago',
-      exactTime: '14 Aug 2026 11:06:12 CAT',
+      exactTime: '19 Aug 2026 21:06:12 CAT',
       ipAddress: '41.220.65.12 (Bulawayo)',
       device: 'Chrome 124 / macOS',
       status: 'Success',
@@ -124,8 +122,11 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
         'orderId': '#ORD-8492',
         'amountUsd': '3,000.00',
         'paymentChannel': 'EcoCash USD Gateway',
-        'escrowContract': '0x71a...99bf',
-        'payoutState': 'LOCKED_UNTIL_DELIVERY',
+        'joiningDate': '03 January 2025 (1 year 7 months on Verdi)',
+        'phone': '+263 71 884 9021',
+        'email': 'tendai.mutasa@mbarehub.co.zw',
+        'escrowBalance': 'US\$ 12,800.00',
+        'kycLevel': 'Tier 3 Corporate Verified',
       },
     ),
     UserActivityEvent(
@@ -134,23 +135,25 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       userId: 'USR-TRN-003',
       userRole: UserRole.transporter,
       userAvatar: 'BN',
-      actionTitle: 'High-Precision GPS Telemetry Transmitted',
-      actionDescription: 'Transmitted OBD-II route telemetry on Harare-Bulawayo corridor (Speed: 78.4 km/h).',
+      actionTitle: '🚚 Freight Truck Vehicle Registered',
+      actionDescription: 'Registered 12T Isuzu Refrigerated Freight Truck (Reg: TRK-9442) for agricultural transport.',
       module: 'Logistics & Fleet',
       targetResource: 'Truck TRK-9442',
       timestamp: '11m ago',
-      exactTime: '14 Aug 2026 11:01:20 CAT',
-      ipAddress: '197.221.19.4 (Cellular 4G)',
+      exactTime: '19 Aug 2026 20:55:20 CAT',
+      ipAddress: '197.221.19.4 (Harare)',
       device: 'Verdi In-Cab Telematics Unit',
       status: 'Success',
       statusColor: blue,
-      icon: Icons.navigation_outlined,
+      icon: Icons.local_shipping_outlined,
       metadata: {
         'vehicleReg': 'TRK-9442 (12T Isuzu)',
-        'driver': 'Tendai Moyo',
-        'currentWaypoint': 'Chivhu Tollgate',
-        'reeferTemp': '4.2°C',
-        'distanceRemaining': '214 km',
+        'capacity': '12 Tonnes Cold Storage',
+        'joiningDate': '18 June 2025 (1 year 2 months on Verdi)',
+        'phone': '+263 77 902 1140',
+        'email': 'b.ndlovu@chinhoyitrucks.co.zw',
+        'escrowBalance': 'US\$ 1,850.00',
+        'kycLevel': 'Tier 3 Carrier Verified',
       },
     ),
     UserActivityEvent(
@@ -159,12 +162,12 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       userId: 'USR-VAL-007',
       userRole: UserRole.valueAdder,
       userAvatar: 'GM',
-      actionTitle: 'Quality Intake & Brix Inspection Logged',
-      actionDescription: 'Graded raw tomato intake batch #VAL-402 (Brix 4.8°Bx, Reject rate 1.2%).',
+      actionTitle: '🏭 Value-Addition Processing Logged',
+      actionDescription: 'Processed raw tomato intake batch #VAL-402 into canned puree (Brix 4.8°Bx).',
       module: 'Value Addition',
       targetResource: 'Intake Batch #VAL-402',
       timestamp: '24m ago',
-      exactTime: '14 Aug 2026 10:48:02 CAT',
+      exactTime: '19 Aug 2026 20:42:02 CAT',
       ipAddress: '102.130.4.11 (Chinhoyi)',
       device: 'Factory Terminal Tablet',
       status: 'Success',
@@ -172,9 +175,11 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       icon: Icons.factory_outlined,
       metadata: {
         'intakeQuantity': '8,200 kg',
-        'brixLevel': '4.8°Bx',
-        'phLevel': '4.3',
-        'batchDestination': 'Tomato Paste Line #1',
+        'joiningDate': '11 November 2024 (1 year 9 months on Verdi)',
+        'phone': '+263 67 219 4001',
+        'email': 'procurement@greenmill.co.zw',
+        'escrowBalance': 'US\$ 24,500.00',
+        'kycLevel': 'Tier 3 Enterprise Verified',
       },
     ),
     UserActivityEvent(
@@ -183,115 +188,49 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       userId: 'USR-GOV-004',
       userRole: UserRole.government,
       userAvatar: 'FC',
-      actionTitle: 'E-Phyto Export Certificate Approved',
+      actionTitle: '📜 E-Phyto Export Certificate Issued',
       actionDescription: 'Granted electronic phytosanitary certificate for 12T citrus consignment to EU.',
       module: 'Export & Regulatory',
       targetResource: 'Phyto #ZIM-PH-2026-88',
       timestamp: '42m ago',
-      exactTime: '14 Aug 2026 10:30:19 CAT',
+      exactTime: '19 Aug 2026 20:24:19 CAT',
       ipAddress: '77.246.12.90 (Gov Intranet)',
-      device: 'Ministry Workstation / Edge',
+      device: 'Ministry Workstation',
       status: 'Success',
       statusColor: green,
       icon: Icons.verified_outlined,
       metadata: {
         'phytosanitaryRef': 'ZIM-PH-2026-88',
-        'destinationPort': 'Rotterdam Port (NL)',
-        'satellitePurity': '100% EUDR Compliant',
-        'quarantineOfficer': 'Chief Inspector Farai',
+        'joiningDate': '01 August 2024 (2 years on Verdi)',
+        'phone': '+263 24 270 0192',
+        'email': 'inspector.chigumba@lands.gov.zw',
+        'escrowBalance': 'N/A (Regulatory Account)',
+        'kycLevel': 'Tier 3 Government Official',
       },
     ),
     UserActivityEvent(
       id: 'ACT-9016',
-      userName: 'Chipo Sibanda',
-      userId: 'USR-EXP-005',
-      userRole: UserRole.expert,
-      userAvatar: 'CS',
-      actionTitle: 'AI Agronomy Advisory Chat Conducted',
-      actionDescription: 'Provided customized biological pest management advice for Fall Armyworm outbreak.',
-      module: 'AI Advisory',
-      targetResource: 'Advisory Session #ADV-109',
-      timestamp: '1h ago',
-      exactTime: '14 Aug 2026 10:12:00 CAT',
-      ipAddress: '41.77.20.101 (Mutare)',
-      device: 'Verdi Agronomist Portal',
-      status: 'Success',
-      statusColor: green,
-      icon: Icons.chat_bubble_outline,
-      metadata: {
-        'clientFarmer': 'Simba Agro Mazowe',
-        'cropDiagnosed': 'Maize (Zea mays)',
-        'recommendedTreatment': 'Bacillus thuringiensis (Bt spray)',
-      },
-    ),
-    UserActivityEvent(
-      id: 'ACT-9015',
-      userName: 'Simbarashe Dube',
-      userId: 'USR-CON-008',
-      userRole: UserRole.consumer,
-      userAvatar: 'SD',
-      actionTitle: 'Suspicious Multiple Login Attempts',
-      actionDescription: '5 failed password attempts within 90 seconds from unrecognized IP subnet.',
-      module: 'Security & Auth',
-      targetResource: 'Account USR-008',
-      timestamp: '1h 20m ago',
-      exactTime: '14 Aug 2026 09:52:14 CAT',
-      ipAddress: '185.220.101.5 (Tor Exit Node)',
-      device: 'Automated Script / Python urllib',
-      status: 'Security Alert',
-      statusColor: red,
-      icon: Icons.gpp_maybe_outlined,
-      metadata: {
-        'trigger': 'RATE_LIMIT_EXCEEDED',
-        'actionTaken': 'AUTO_ACCOUNT_TEMPORARY_LOCK',
-        'failedCount': '5 attempts',
-        'riskScore': '94/100 (High Threat)',
-      },
-    ),
-    UserActivityEvent(
-      id: 'ACT-9014',
-      userName: 'Stanbic Agri Capital',
-      userId: 'USR-FIN-006',
-      userRole: UserRole.financier,
-      userAvatar: 'SC',
-      actionTitle: 'Seasonal Input Credit Line Disbursed',
-      actionDescription: 'Approved and credited US\$ 15,000 seasonal facility for Chiredzi Sugarcane Scheme.',
-      module: 'Finance & Lending',
-      targetResource: 'Credit #FIN-CRED-881',
-      timestamp: '2h ago',
-      exactTime: '14 Aug 2026 09:15:30 CAT',
-      ipAddress: '196.220.88.10 (Bank VPN)',
-      device: 'Financier Underwriting Suite',
-      status: 'Success',
-      statusColor: green,
-      icon: Icons.payments_outlined,
-      metadata: {
-        'creditFacility': 'Seasonal Revolving Input Fund',
-        'tenorMonths': '9 months',
-        'collateral': 'Warehouse Receipt WR-0912',
-      },
-    ),
-    UserActivityEvent(
-      id: 'ACT-9013',
-      userName: 'Tinashe Zvobgo (Super Admin)',
-      userId: 'USR-ADM-009',
-      userRole: UserRole.admin,
-      userAvatar: 'TZ',
-      actionTitle: 'Global RBAC Permission Matrix Modified',
-      actionDescription: 'Updated permission set for Transporter role to enable live GPS telemetry broadcast.',
-      module: 'System Governance',
-      targetResource: 'Role: Transporter',
-      timestamp: '3h ago',
-      exactTime: '14 Aug 2026 08:12:44 CAT',
-      ipAddress: '10.0.0.1 (Admin Secure Subnet)',
-      device: 'Verdi Sovereign Admin Console',
-      status: 'Success',
+      userName: 'Tafadzwa Freight Operator',
+      userId: 'USR-TRN-009',
+      userRole: UserRole.transporter,
+      userAvatar: 'TF',
+      actionTitle: '⚠️ Overspeed Warning Triggered',
+      actionDescription: 'Speed limit warning (88 km/h in 70 km/h zone) recorded on Harare-Chiredzi highway.',
+      module: 'Logistics & Safety',
+      targetResource: 'Truck SCANIA-AEB2910',
+      timestamp: '1h 10m ago',
+      exactTime: '19 Aug 2026 19:56:00 CAT',
+      ipAddress: '197.221.19.8 (Cellular 4G)',
+      device: 'GPS Telematics Box #4',
+      status: 'Warning',
       statusColor: orange,
-      icon: Icons.admin_panel_settings_outlined,
+      icon: Icons.warning_amber_rounded,
       metadata: {
-        'modifiedRole': 'UserRole.transporter',
-        'grantedPermissions': ['CAN_BROADCAST_TELEMETRY', 'VIEW_FREIGHT_ORDERS', 'SIGN_DIGITAL_WAYBILL'],
-        'dualSignOff': 'VERIFIED_BY_SECURITY_KEY',
+        'joiningDate': '15 March 2025 (1 year 5 months on Verdi)',
+        'phone': '+263 77 301 9920',
+        'email': 'ops@tafadzwafreight.co.zw',
+        'escrowBalance': 'US\$ 950.00',
+        'kycLevel': 'Tier 2 Transport Verified',
       },
     ),
   ];
@@ -372,310 +311,94 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
     }).toList();
   }
 
-  void _showEventDetailsModal(UserActivityEvent event) {
-    showModalBottomSheet(
+  void _showUserProfileModal(UserActivityEvent event) {
+    final meta = event.metadata;
+    final joiningDate = meta['joiningDate']?.toString() ?? '15 August 2024 (2 years on Verdi)';
+    final phone = meta['phone']?.toString() ?? '+263 77 123 4567';
+    final email = meta['email']?.toString() ?? '${event.userName.toLowerCase().replaceAll(' ', '.')}@verdi.ag';
+    final escrow = meta['escrowBalance']?.toString() ?? 'US\$ 3,450.00';
+    final kycLevel = meta['kycLevel']?.toString() ?? 'Tier 3 Sovereign Verified';
+
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: cardDark,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.65,
-          maxChildSize: 0.9,
-          minChildSize: 0.4,
-          expand: false,
-          builder: (_, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.all(24),
+      builder: (context) => AlertDialog(
+        backgroundColor: cardDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: cardBorder)),
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: green.withOpacity(0.2),
+              radius: 20,
+              child: Text(event.userAvatar, style: const TextStyle(color: green, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: event.statusColor.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(event.icon, color: event.statusColor, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(event.actionTitle, style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white)),
-                            const SizedBox(height: 2),
-                            Text('ID: ${event.id} • ${event.exactTime}', style: const TextStyle(fontSize: 12, color: textMuted)),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: event.statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: event.statusColor.withOpacity(0.4)),
-                        ),
-                        child: Text(event.status, style: TextStyle(color: event.statusColor, fontSize: 11.5, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Divider(color: cardBorder),
-                  const SizedBox(height: 16),
-                  _detailRow('Acting User', '${event.userName} (${event.userId})'),
-                  _detailRow('User Role', event.userRole.name.toUpperCase()),
-                  _detailRow('Platform Module', event.module),
-                  _detailRow('Target Resource', event.targetResource),
-                  _detailRow('Origin IP & Location', event.ipAddress),
-                  _detailRow('Client Device', event.device),
-                  const SizedBox(height: 16),
-                  Text('Action Description:', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white70)),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(12), border: Border.all(color: cardBorder)),
-                    child: Text(event.actionDescription, style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4)),
-                  ),
-                  const SizedBox(height: 20),
-                  Text('Cryptographic Payload Metadata:', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white70)),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(12), border: Border.all(color: cardBorder)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: event.metadata.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3),
-                          child: Row(
-                            children: [
-                              Text('${entry.key}: ', style: const TextStyle(color: blue, fontSize: 12, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                              Expanded(child: Text('${entry.value}', style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'monospace'), overflow: TextOverflow.ellipsis)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close, size: 16),
-                          label: const Text('Close Audit Entry'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white70,
-                            side: const BorderSide(color: cardBorder),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Cryptographic verification receipt generated for ${event.id}.'),
-                                backgroundColor: green,
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.verified_outlined, size: 16),
-                          label: const Text('Verify Signature'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Text(event.userName, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  Text('${event.userId} • ${event.userRole.label}', style: const TextStyle(fontSize: 11.5, color: textMuted)),
                 ],
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: textMuted, fontSize: 12.5)),
-          Text(value, style: GoogleFonts.inter(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xFF0B0F17), borderRadius: BorderRadius.circular(12), border: Border.all(color: cardBorder)),
+              child: Column(
+                children: [
+                  _profileDetailRow('📅 Joined Verdi On', joiningDate),
+                  _profileDetailRow('🛡️ KYC Status', kycLevel),
+                  _profileDetailRow('📞 Contact Phone', phone),
+                  _profileDetailRow('✉️ Email Address', email),
+                  _profileDetailRow('💳 Active Escrow Balance', escrow),
+                  _profileDetailRow('🌐 IP & Location', event.ipAddress),
+                  _profileDetailRow('📱 Client Device', event.device),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text('Recent Major Action Recorded:', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white70, fontSize: 12)),
+            const SizedBox(height: 4),
+            Text('${event.actionTitle} (${event.timestamp})', style: const TextStyle(color: green, fontWeight: FontWeight.bold, fontSize: 12)),
+            Text(event.actionDescription, style: const TextStyle(color: textMuted, fontSize: 11)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close Profile', style: TextStyle(color: textMuted)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Account standing for ${event.userName} is ACTIVE.'), backgroundColor: green),
+              );
+            },
+            icon: const Icon(Icons.verified_user, size: 16),
+            label: const Text('Verified Standing'),
+            style: ElevatedButton.styleFrom(backgroundColor: green, foregroundColor: Colors.white),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildLiveUserPresenceSection() {
-    final rawSessions = ref.watch(liveUserSessionsProvider);
-    final isDemo = ref.watch(isDemoModeProvider);
-    final sessions = (rawSessions.isEmpty && !isDemo)
-        ? [
-            const LiveUserSession(
-              id: 'USR-ADM-CREATOR',
-              name: 'Verdi Creator (Super Admin)',
-              role: UserRole.admin,
-              avatar: 'VC',
-              location: 'Harare Command Station',
-              device: 'Sovereign Admin Console',
-              ipAddress: '10.0.0.1 (Secure Mesh)',
-              isOnline: true,
-              lastHeartbeat: 'Just now',
-              currentAction: 'Active Surveillance & Platform Control',
-            ),
-          ]
-        : rawSessions;
-    final onlineCount = sessions.where((s) => s.isOnline).length;
-    final offlineCount = sessions.length - onlineCount;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardDark,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _profileDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.people_alt_outlined, color: blue, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Stakeholder Presence Radar',
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: green.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: green.withOpacity(0.4)),
-                    ),
-                    child: Text('$onlineCount ONLINE', style: const TextStyle(color: green, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: textMuted.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: textMuted.withOpacity(0.3)),
-                    ),
-                    child: Text('$offlineCount OFFLINE', style: const TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 105,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: sessions.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, idx) {
-                final s = sessions[idx];
-                return Container(
-                  width: 230,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: bgDark,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: s.isOnline ? green.withOpacity(0.4) : cardBorder),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        children: [
-                          Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 14,
-                                backgroundColor: blue.withOpacity(0.2),
-                                child: Text(s.avatar, style: const TextStyle(color: blue, fontSize: 10, fontWeight: FontWeight.bold)),
-                              ),
-                              Positioned(
-                                right: 0,
-                                bottom: 0,
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: s.isOnline ? green : Colors.grey,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: bgDark, width: 1.5),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
-                                Text(s.role.name.toUpperCase(), style: TextStyle(color: s.isOnline ? green : textMuted, fontSize: 9.5, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(s.currentAction, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: textMuted, fontSize: 10)),
-                      Text('${s.device} • ${s.lastHeartbeat}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 9)),
-                    ],
-                  ),
-                );
-              },
-            ),
+          Text(label, style: const TextStyle(fontSize: 11.5, color: textMuted)),
+          Flexible(
+            child: Text(value, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.right),
           ),
         ],
       ),
@@ -684,499 +407,167 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isDesktop = width >= 900;
+    final isDemo = ref.watch(isDemoModeProvider);
     final events = _getMergedEvents(ref);
 
     return Scaffold(
       backgroundColor: bgDark,
-      appBar: Navigator.canPop(context)
-          ? AppBar(
-              backgroundColor: cardDark,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-              title: Row(
+      appBar: AppBar(
+        backgroundColor: cardDark,
+        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('User Activities & System Audit Hub', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 18)),
+            Text(
+              isDemo ? 'Audit Ledger · Live Stream & Major User Actions' : 'Live Platform Audit Stream · Zero Mock Data',
+              style: const TextStyle(fontSize: 11, color: textMuted),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(_isLiveStreaming ? Icons.pause_circle_outline : Icons.play_circle_outline, color: _isLiveStreaming ? green : textMuted),
+            tooltip: _isLiveStreaming ? 'Pause Stream' : 'Resume Live Stream',
+            onPressed: () => setState(() => _isLiveStreaming = !_isLiveStreaming),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Search & Filter Controls
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
+              child: Column(
                 children: [
-                  Text(
-                    'Audit Hub',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: (_isLiveStreaming ? green : orange).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: (_isLiveStreaming ? green : orange).withOpacity(0.4)),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search user activities by name, action, target resource or ID...',
+                      hintStyle: const TextStyle(fontSize: 12, color: textMuted),
+                      prefixIcon: const Icon(Icons.search, size: 18, color: textMuted),
+                      filled: true,
+                      fillColor: bgDark,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                     ),
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                  ),
+                  const SizedBox(height: 10),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        Container(width: 6, height: 6, decoration: BoxDecoration(color: _isLiveStreaming ? green : orange, shape: BoxShape.circle)),
-                        const SizedBox(width: 4),
-                        Text(_isLiveStreaming ? 'LIVE AUDIT' : 'STREAM PAUSED', style: TextStyle(color: _isLiveStreaming ? green : orange, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                        _dropdownFilter('Role', _selectedRoleFilter, ['All Roles', 'Farmer', 'Buyer', 'Transporter', 'Admin', 'ValueAdder', 'Government'], (v) => setState(() => _selectedRoleFilter = v)),
+                        const SizedBox(width: 8),
+                        _dropdownFilter('Module', _selectedModuleFilter, ['All Modules', 'Marketplace', 'Escrow', 'Logistics', 'Value Addition', 'Export'], (v) => setState(() => _selectedModuleFilter = v)),
+                        const SizedBox(width: 8),
+                        _dropdownFilter('Status', _selectedStatusFilter, ['All Status', 'Success', 'Warning', 'Security Alert'], (v) => setState(() => _selectedStatusFilter = v)),
                       ],
                     ),
                   ),
                 ],
               ),
-              actions: [
-                IconButton(
-                  icon: Icon(_isLiveStreaming ? Icons.pause_circle_outline : Icons.play_circle_outline, color: Colors.white70),
-                  tooltip: _isLiveStreaming ? 'Pause Live Stream' : 'Resume Live Stream',
-                  onPressed: () => setState(() => _isLiveStreaming = !_isLiveStreaming),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.download_rounded, color: Colors.white70),
-                  tooltip: 'Export Audit Log (CSV)',
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Exporting ${events.length} system audit records to CSV...'),
-                        backgroundColor: blue,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-              ],
-            )
-          : null,
-      body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(isDesktop ? 22 : 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Live Presence Radar ──
-                  _buildLiveUserPresenceSection(),
-                  const SizedBox(height: 18),
+            ),
+            const SizedBox(height: 16),
 
-                  // ── Top KPI Grid ──
-                  _buildKpiGrid(isDesktop, events),
-                  const SizedBox(height: 20),
-
-                  // ── Search & Multi-Filter Rail ──
-                  _buildFilterBar(),
-                  const SizedBox(height: 20),
-
-                  // ── Activities Count & Actions ──
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Logged Actions (${events.length} shown)',
-                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _searchQuery = '';
-                            _selectedRoleFilter = 'All Roles';
-                            _selectedModuleFilter = 'All Modules';
-                            _selectedStatusFilter = 'All Status';
-                          });
-                        },
-                        icon: const Icon(Icons.refresh, size: 14, color: blue),
-                        label: const Text('Reset Filters', style: TextStyle(color: blue, fontSize: 12)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── Activity Stream List ──
-                  if (events.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(40),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(18), border: Border.all(color: cardBorder)),
-                      child: Column(
-                        children: [
-                          Icon(ref.watch(isDemoModeProvider) ? Icons.search_off_rounded : Icons.radar_outlined, size: 48, color: ref.watch(isDemoModeProvider) ? textMuted : green),
-                          const SizedBox(height: 12),
-                          Text(
-                            ref.watch(isDemoModeProvider) ? 'No user activities match this filter criteria.' : 'Live Platform Audit Stream Active',
-                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            ref.watch(isDemoModeProvider)
-                                ? 'Try clearing your search query or role/module filters.'
-                                : 'Actions from farmers, transporters, buyers, and financiers will stream here automatically via WebSockets.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: textMuted, fontSize: 12.5),
-                          ),
-                          if (!ref.watch(isDemoModeProvider)) ...[
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                ref.read(platformActivityProvider.notifier).logActivity(
-                                      PlatformActivityEvent(
-                                        id: 'evt_${DateTime.now().millisecondsSinceEpoch}',
-                                        userName: 'Verdi Creator (Super Admin)',
-                                        userId: 'USR-ADM-001',
-                                        userRole: UserRole.admin,
-                                        userAvatar: 'VC',
-                                        actionTitle: '🛰️ Realtime Mesh Test Ping',
-                                        actionDescription: 'Diagnostic broadcast packet transmitted across the Supabase & Cloud WebSocket mesh.',
-                                        timestamp: 'Just now',
-                                        exactTime: DateTime.now().toIso8601String(),
-                                        module: 'System Diagnostics',
-                                        device: 'Sovereign Master Console',
-                                        status: 'Success',
-                                        targetResource: 'Global Platform',
-                                        ipAddress: 'Sovereign Node 01',
-                                        metadata: {'ping': 'SUCCESS', 'timestamp': DateTime.now().toIso8601String()},
-                                      ),
-                                    );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Test packet broadcasted live across all devices!'), backgroundColor: green),
-                                );
-                              },
-                              icon: const Icon(Icons.send_rounded, size: 16),
-                              label: const Text('Broadcast System Test Ping', style: TextStyle(fontWeight: FontWeight.bold)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: green,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    )
-                  else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: events.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, idx) {
-                        final e = events[idx];
-                        return _buildActivityCard(e);
-                      },
+            // Events Audit Table
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: events.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, idx) {
+                final e = events[idx];
+                return InkWell(
+                  onTap: () => _showUserProfileModal(e),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: cardDark,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: cardBorder),
                     ),
-
-                  const SizedBox(height: 80),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildKpiGrid(bool isDesktop, List<UserActivityEvent> events) {
-    final isDemo = ref.watch(isDemoModeProvider);
-    final orders = ref.watch(ordersListProvider);
-    final sessions = ref.watch(liveUserSessionsProvider);
-    final onlineCount = sessions.where((s) => s.isOnline).length;
-    final double liveGmv = orders.fold(0.0, (sum, o) {
-      final val = double.tryParse(o.total.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
-      return sum + val;
-    });
-
-    final kpis = isDemo
-        ? [
-            _KpiSummary('1,428', 'Total User Actions', '+84 this hour', Icons.analytics_outlined, green),
-            _KpiSummary('86', 'Active Sessions', 'Across 8 provinces', Icons.people_alt_outlined, blue),
-            _KpiSummary('US\$ 48.2k', 'Trade Volume Logged', '100% in escrow', Icons.account_balance_wallet_outlined, purple),
-            _KpiSummary('0', 'Critical Security Breaches', 'All nodes safe', Icons.shield_outlined, green),
-          ]
-        : [
-            _KpiSummary('${events.length}', 'Total User Actions', events.isEmpty ? 'Awaiting live traffic' : 'Live stream active', Icons.analytics_outlined, green),
-            _KpiSummary('$onlineCount', 'Active Sessions', 'Live platform users', Icons.people_alt_outlined, blue),
-            _KpiSummary('US\$ ${liveGmv.toStringAsFixed(0)}', 'Trade Volume Logged', 'Real escrow locks', Icons.account_balance_wallet_outlined, purple),
-            _KpiSummary('0', 'Critical Security Breaches', '5G Mesh secure', Icons.shield_outlined, green),
-          ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: kpis.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isDesktop ? 4 : 2,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: isDesktop ? 2.1 : 1.7,
-      ),
-      itemBuilder: (context, i) {
-        final k = kpis[i];
-        return Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: cardDark,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: cardBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: k.color.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
-                    child: Icon(k.icon, color: k.color, size: 16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: e.statusColor.withOpacity(0.18),
+                          radius: 20,
+                          child: Icon(e.icon, color: e.statusColor, size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(e.actionTitle, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white)),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(color: e.statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
+                                    child: Text(e.status, style: TextStyle(color: e.statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ),
+                                  const Spacer(),
+                                  Text(e.timestamp, style: const TextStyle(fontSize: 11, color: textMuted)),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(e.actionDescription, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.person_outline, size: 14, color: textMuted),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${e.userName} (${e.userId}) • ${e.userRole.label}',
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: green),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Icon(Icons.place_outlined, size: 14, color: textMuted),
+                                  const SizedBox(width: 4),
+                                  Text(e.ipAddress, style: const TextStyle(fontSize: 11, color: textMuted)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(k.label, style: const TextStyle(color: textMuted, fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(k.value, style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
-              const SizedBox(height: 2),
-              Text(k.sub, style: TextStyle(fontSize: 10.5, color: k.color, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFilterBar() {
-    final roles = ['All Roles', 'Farmer', 'Buyer', 'Transporter', 'ValueAdder', 'Government', 'Financier', 'Expert', 'Admin'];
-    final modules = ['All Modules', 'Marketplace', 'Logistics', 'Escrow', 'Export', 'AI', 'Security', 'Finance'];
-    final statuses = ['All Status', 'Success', 'Warning', 'Security Alert'];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardDark,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Search Input
-          TextField(
-            onChanged: (val) => setState(() => _searchQuery = val),
-            style: const TextStyle(color: Colors.white, fontSize: 13.5),
-            decoration: InputDecoration(
-              hintText: 'Search by user name, action, resource ID, or IP...',
-              hintStyle: const TextStyle(color: textMuted, fontSize: 13),
-              prefixIcon: const Icon(Icons.search_rounded, color: textMuted, size: 20),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, color: textMuted, size: 16),
-                      onPressed: () => setState(() => _searchQuery = ''),
-                    )
-                  : null,
-              filled: true,
-              fillColor: bgDark,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: cardBorder)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: cardBorder)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: blue)),
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 12),
-
-          // Filters Row
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildDropdownFilter('Role: $_selectedRoleFilter', roles, (val) => setState(() => _selectedRoleFilter = val)),
-                const SizedBox(width: 8),
-                _buildDropdownFilter('Module: $_selectedModuleFilter', modules, (val) => setState(() => _selectedModuleFilter = val)),
-                const SizedBox(width: 8),
-                _buildDropdownFilter('Status: $_selectedStatusFilter', statuses, (val) => setState(() => _selectedStatusFilter = val)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDropdownFilter(String label, List<String> items, ValueChanged<String> onSelected) {
-    return PopupMenuButton<String>(
-      onSelected: onSelected,
-      color: cardDark,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: cardBorder)),
-      itemBuilder: (context) => items.map((item) {
-        return PopupMenuItem(
-          value: item,
-          child: Text(item, style: const TextStyle(color: Colors.white, fontSize: 12.5)),
-        );
-      }).toList(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: bgDark,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: cardBorder),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600)),
-            const SizedBox(width: 4),
-            const Icon(Icons.arrow_drop_down_rounded, color: textMuted, size: 18),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActivityCard(UserActivityEvent e) {
-    return Container(
-      decoration: BoxDecoration(
-        color: cardDark,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cardBorder),
-      ),
-      child: InkWell(
-        onTap: () => _showEventDetailsModal(e),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Header: Avatar + User info + Status Badge
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: _roleColor(e.userRole).withOpacity(0.2),
-                    child: Text(
-                      e.userAvatar,
-                      style: TextStyle(color: _roleColor(e.userRole), fontWeight: FontWeight.bold, fontSize: 11),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          e.userName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
-                        ),
-                        const SizedBox(height: 3),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: _roleColor(e.userRole).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                e.userRole.name.toUpperCase(),
-                                style: TextStyle(color: _roleColor(e.userRole), fontSize: 9, fontWeight: FontWeight.w800),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Text('•', style: TextStyle(color: textMuted, fontSize: 10)),
-                            const SizedBox(width: 6),
-                            Text(e.timestamp, style: const TextStyle(color: textMuted, fontSize: 10.5)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: e.statusColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: e.statusColor.withOpacity(0.3)),
-                    ),
-                    child: Text(e.status, style: TextStyle(color: e.statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              // Action Title & Description
-              Text(e.actionTitle, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFE2E8F0))),
-              const SizedBox(height: 3),
-              Text(e.actionDescription, style: const TextStyle(color: textMuted, fontSize: 11.5), maxLines: 2, overflow: TextOverflow.ellipsis),
-              const SizedBox(height: 10),
-              // Tags Row & Chevron
-              Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        _tag(Icons.layers_outlined, e.module, blue),
-                        _tag(Icons.pin_outlined, e.targetResource, purple),
-                        _tag(Icons.location_on_outlined, e.ipAddress.split(' ').first, textMuted),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right_rounded, color: textMuted, size: 18),
-                ],
-              ),
-            ],
-          ),
+  Widget _dropdownFilter(String title, String value, List<String> options, ValueChanged<String> onChanged) {
+    return PopupMenuButton<String>(
+      onSelected: onChanged,
+      color: cardDark,
+      itemBuilder: (context) => options.map((opt) => PopupMenuItem(value: opt, child: Text(opt, style: const TextStyle(color: Colors.white, fontSize: 12)))).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(8), border: Border.all(color: cardBorder)),
+        child: Row(
+          children: [
+            Text('$title: ', style: const TextStyle(fontSize: 11, color: textMuted)),
+            Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(width: 4),
+            const Icon(Icons.arrow_drop_down, size: 16, color: textMuted),
+          ],
         ),
       ),
     );
   }
-
-  Widget _tag(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(6), border: Border.all(color: cardBorder)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 10, color: color),
-          const SizedBox(width: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  Color _roleColor(UserRole role) {
-    switch (role) {
-      case UserRole.farmer:
-        return green;
-      case UserRole.buyer:
-        return blue;
-      case UserRole.transporter:
-        return orange;
-      case UserRole.valueAdder:
-        return purple;
-      case UserRole.government:
-        return const Color(0xFF0F766E);
-      case UserRole.financier:
-        return const Color(0xFFD97706);
-      case UserRole.admin:
-        return red;
-      default:
-        return textMuted;
-    }
-  }
-}
-
-class _KpiSummary {
-  final String value, label, sub;
-  final IconData icon;
-  final Color color;
-  const _KpiSummary(this.value, this.label, this.sub, this.icon, this.color);
 }
