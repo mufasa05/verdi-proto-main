@@ -442,10 +442,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       final initials = user.fullName.trim().split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase();
       final idSuffix = user.id.length > 6 ? user.id.substring(user.id.length - 6) : user.id;
+      final now = DateTime.now();
+      final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')} CAT';
+      final dateStr = '${now.day} Aug ${now.year} $timeStr';
 
       SupabaseService.instance.broadcastActivityEvent(
         PlatformActivityEvent(
-          id: 'ACT_${DateTime.now().millisecondsSinceEpoch}',
+          id: 'ACT_${now.millisecondsSinceEpoch}',
           userName: user.fullName,
           userId: user.id,
           userRole: user.role,
@@ -456,15 +459,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
               : '${user.fullName} logged into node session via secure JWT.',
           module: 'Security & Auth',
           targetResource: 'Session #$idSuffix',
-          timestamp: 'Just now',
-          exactTime: '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+          timestamp: timeStr,
+          exactTime: dateStr,
           ipAddress: 'Sovereign Node (${user.role.name.toUpperCase()})',
           device: 'Verdi Mobile / Web Client',
           status: 'Success',
           metadata: {
             'email': user.email.isNotEmpty ? user.email : 'Not provided',
             'phone': user.phone.isNotEmpty ? user.phone : 'Not provided',
-            'joinedDate': 'Today',
+            'joinedDate': dateStr,
             'kycStatus': 'Tier 1 Standard Verified',
             'escrowBalance': 'US\$ 0.00',
           },

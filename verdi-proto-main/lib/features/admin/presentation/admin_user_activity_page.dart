@@ -6,7 +6,7 @@ import '../../../state/app_state.dart';
 import '../../../state/platform_data_state.dart';
 import '../../auth/state/auth_state.dart';
 
-/// Super Admin Audit Hub matching user interface screenshots 100%
+/// Super Admin Audit Hub with responsive non-elongated cards & real-time clock timestamps
 class AdminUserActivityPage extends ConsumerStatefulWidget {
   const AdminUserActivityPage({super.key});
 
@@ -61,6 +61,8 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
   static const green = Color(0xFF10B981);
   static const blue = Color(0xFF3B82F6);
   static const orange = Color(0xFFF59E0B);
+  static const purple = Color(0xFF8B5CF6);
+  static const red = Color(0xFFEF4444);
   static const textMuted = Color(0xFF94A3B8);
 
   String _searchQuery = '';
@@ -80,8 +82,8 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       actionDescription: 'Listed 2,500 kg Grade-A Sugar Beans at US\$ 1.20/kg on live marketplace.',
       module: 'Marketplace',
       targetResource: 'Batch #VER-TR-1001',
-      timestamp: '5m ago',
-      exactTime: '20 Aug 2026 07:37:12 CAT',
+      timestamp: '08:02:15 CAT',
+      exactTime: '20 Aug 2026 08:02:15 CAT',
       ipAddress: 'Mashonaland West (120 Ha)',
       device: 'Verdi Mobile Client',
       status: 'Success',
@@ -105,8 +107,8 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       actionDescription: 'Deposited US\$ 4,500.00 into smart contract escrow for Order #ORD-8821.',
       module: 'Escrow & Payments',
       targetResource: 'Order #ORD-8821',
-      timestamp: '12m ago',
-      exactTime: '20 Aug 2026 07:30 CAT',
+      timestamp: '07:54:30 CAT',
+      exactTime: '20 Aug 2026 07:54:30 CAT',
       ipAddress: 'Harare Mbare Musika',
       device: 'Web Client',
       status: 'Success',
@@ -125,7 +127,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
   @override
   void initState() {
     super.initState();
-    _liveTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+    _liveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (_isLiveStreaming && mounted) {
         setState(() {});
       }
@@ -205,7 +207,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
               const SizedBox(height: 16),
               Text('Recent Major Action Recorded:', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
               const SizedBox(height: 4),
-              Text('${event.actionTitle} (${event.timestamp})', style: const TextStyle(color: green, fontWeight: FontWeight.bold, fontSize: 12.5)),
+              Text('${event.actionTitle} (${_formatDisplayTime(event)})', style: const TextStyle(color: green, fontWeight: FontWeight.bold, fontSize: 12.5)),
               Text(event.actionDescription, style: const TextStyle(color: textMuted, fontSize: 11.5)),
             ],
           ),
@@ -251,6 +253,26 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
     );
   }
 
+  String _formatDisplayTime(UserActivityEvent e) {
+    if (e.exactTime.isNotEmpty && !e.exactTime.toLowerCase().contains('null')) {
+      return e.exactTime;
+    }
+    if (e.timestamp.isNotEmpty && e.timestamp != 'Just now') {
+      return e.timestamp;
+    }
+    final now = DateTime.now();
+    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')} CAT';
+  }
+
+  Color _getModuleColor(String module) {
+    final m = module.toLowerCase();
+    if (m.contains('security') || m.contains('auth')) return purple;
+    if (m.contains('market')) return green;
+    if (m.contains('escrow') || m.contains('payment')) return blue;
+    if (m.contains('logistics') || m.contains('freight')) return orange;
+    return green;
+  }
+
   @override
   Widget build(BuildContext context) {
     final livePlatformEvents = ref.watch(platformActivityProvider);
@@ -273,7 +295,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
         device: p.device,
         status: p.status,
         statusColor: green,
-        icon: Icons.shield_outlined,
+        icon: _getIconForModule(p.module, p.actionTitle),
         metadata: p.metadata,
       );
     }).toList();
@@ -344,7 +366,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
             // 1. Top Card: Live Multi-Role Stakeholder Presence Radar
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,7 +378,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                       Text('Live Multi-Role Stakeholder Presence Radar', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(color: const Color(0xFF070B12), borderRadius: BorderRadius.circular(12), border: Border.all(color: green.withOpacity(0.3))),
@@ -381,8 +403,15 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                               ),
                               const SizedBox(height: 2),
                               const Text('Active Surveillance & Platform Control', style: TextStyle(fontSize: 11, color: textMuted)),
-                              const Text('Sovereign Admin Console · Just now', style: TextStyle(fontSize: 10, color: textMuted)),
                             ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                          child: Text(
+                            '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')} CAT',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: green),
                           ),
                         ),
                       ],
@@ -405,7 +434,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                   children: [
-                    _buildTopMetricCard('${allEvents.length}', 'Total User Actions', 'Awaiting live traffic', Icons.bar_chart_outlined, green),
+                    _buildTopMetricCard('${allEvents.length}', 'Total User Actions', 'Live platform events', Icons.bar_chart_outlined, green),
                     _buildTopMetricCard(isDemo ? '5' : '1', 'Active Sessions', 'Live platform users', Icons.people_alt_outlined, blue),
                     _buildTopMetricCard('US\$ 17,800', 'Trade Volume Locked', 'Real escrow locks', Icons.account_balance_wallet_outlined, orange),
                     _buildTopMetricCard('0', 'Critical Security Alerts', '5G Mesh secure', Icons.shield_outlined, green),
@@ -438,7 +467,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                     children: [
                       Expanded(child: _dropdownFilter('Role', _selectedRoleFilter, ['All Roles', 'Farmer', 'Buyer', 'Transporter', 'Admin', 'Government'], (v) => setState(() => _selectedRoleFilter = v))),
                       const SizedBox(width: 8),
-                      Expanded(child: _dropdownFilter('Module', _selectedModuleFilter, ['All Modules', 'Marketplace', 'Escrow', 'Security & Auth'], (v) => setState(() => _selectedModuleFilter = v))),
+                      Expanded(child: _dropdownFilter('Module', _selectedModuleFilter, ['All Modules', 'Marketplace', 'Escrow', 'Security & Auth', 'Logistics'], (v) => setState(() => _selectedModuleFilter = v))),
                     ],
                   ),
                 ],
@@ -462,52 +491,33 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
-            // 5. Logged Actions List
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: allEvents.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, idx) {
-                final e = allEvents[idx];
-                return InkWell(
-                  onTap: () => _showUserStandingModal(e),
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: green.withOpacity(0.18),
-                          radius: 20,
-                          child: Icon(e.icon, color: green, size: 18),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(e.actionTitle, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white)),
-                              const SizedBox(height: 2),
-                              Text(e.actionDescription, style: const TextStyle(fontSize: 12, color: Colors.white70)),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Text('${e.userName} (${e.userId})', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: green)),
-                                  const Spacer(),
-                                  Text(e.timestamp, style: const TextStyle(fontSize: 11, color: textMuted)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+            // 5. Responsive Non-Elongated Card Grid Layout
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 720;
+                if (isWide) {
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      mainAxisExtent: 190,
                     ),
-                  ),
+                    itemCount: allEvents.length,
+                    itemBuilder: (context, idx) => _buildActivityCard(allEvents[idx]),
+                  );
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: allEvents.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, idx) => _buildActivityCard(allEvents[idx]),
                 );
               },
             ),
@@ -515,6 +525,129 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildActivityCard(UserActivityEvent e) {
+    final moduleColor = _getModuleColor(e.module);
+    final displayTime = _formatDisplayTime(e);
+
+    return InkWell(
+      onTap: () => _showUserStandingModal(e),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cardDark,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cardBorder),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 3)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Top Row: Module Badge + Role Pill
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: moduleColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: moduleColor.withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(e.icon, size: 12, color: moduleColor),
+                      const SizedBox(width: 4),
+                      Text(e.module, style: TextStyle(color: moduleColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: bgDark,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: cardBorder),
+                  ),
+                  child: Text(e.userRole.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: textMuted)),
+                ),
+              ],
+            ),
+
+            // Middle: Action Title & Description
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  e.actionTitle,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  e.actionDescription,
+                  style: const TextStyle(fontSize: 11.5, color: Colors.white70),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+
+            // Bottom Footer: User Info + Real Time Clock Badge
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: green.withOpacity(0.18),
+                  radius: 12,
+                  child: Text(e.userAvatar, style: const TextStyle(color: green, fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '${e.userName} (${e.userId})',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: green),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: bgDark,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.access_time_rounded, size: 11, color: textMuted),
+                      const SizedBox(width: 4),
+                      Text(displayTime, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getIconForModule(String module, String title) {
+    final m = module.toLowerCase();
+    final t = title.toLowerCase();
+    if (m.contains('security') || m.contains('auth') || t.contains('lockdown')) return Icons.shield_outlined;
+    if (m.contains('market') || t.contains('batch')) return Icons.storefront_outlined;
+    if (m.contains('escrow') || m.contains('payment')) return Icons.account_balance_wallet_outlined;
+    if (m.contains('logistics') || t.contains('gps')) return Icons.local_shipping_outlined;
+    return Icons.notifications_active_outlined;
   }
 
   Widget _buildTopMetricCard(String value, String label, String sub, IconData icon, Color color) {
