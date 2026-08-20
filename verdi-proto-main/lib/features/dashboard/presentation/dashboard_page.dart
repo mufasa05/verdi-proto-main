@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/services/rate_limiter_service.dart';
 import '../../../state/app_state.dart';
 import '../../../state/platform_data_state.dart';
 import '../../admin/presentation/admin_system_health_page.dart';
@@ -46,7 +47,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
@@ -154,6 +155,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
                   tabs: const [
                     Tab(text: 'All privileges'),
                     Tab(text: 'Critical controls'),
+                    Tab(text: 'Rates & Token Controls'),
                     Tab(text: 'Role comparison'),
                     Tab(text: 'Audit trail'),
                     Tab(text: 'Governance policy'),
@@ -213,9 +215,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
               switch (_tabController.index) {
                 0 => _buildAllPrivilegesTab(),
                 1 => _buildCriticalControlsTab(),
-                2 => _buildRoleComparisonTab(),
-                3 => _buildAuditTrailTab(activities, isDemo),
-                4 => _buildGovernancePolicyTab(isDemo),
+                2 => _buildRatesAndTokensTab(),
+                3 => _buildRoleComparisonTab(),
+                4 => _buildAuditTrailTab(activities, isDemo),
+                5 => _buildGovernancePolicyTab(isDemo),
                 _ => _buildAllPrivilegesTab(),
               },
             ],
@@ -838,6 +841,215 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB: RATES & TOKEN CONTROLS (SOVEREIGN COMMAND TOWER VIEW)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildRatesAndTokensTab() {
+    final limiter = RateLimiterService.instance;
+    final usedTokens = limiter.tokensUsedToday;
+    final totalCap = limiter.dailyTokenCap;
+    final tokenUsageRatio = (usedTokens / totalCap).clamp(0.0, 1.0);
+    final estimatedCost = (usedTokens / 1000.0) * 0.00015;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(Icons.token_outlined, 'AI Token Budget & Quota Controls'),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: cardDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: accentBlue.withOpacity(0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Daily Token Quota: ${(totalCap / 1000).toInt()}k Tokens', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text('${usedTokens.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} tokens consumed today (${(tokenUsageRatio * 100).toStringAsFixed(1)}%)', style: const TextStyle(color: textMuted, fontSize: 12)),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: accentGreen.withOpacity(0.12), borderRadius: BorderRadius.circular(8), border: Border.all(color: accentGreen.withOpacity(0.4))),
+                    child: Text('EST. COST: \$${estimatedCost.toStringAsFixed(4)} USD', style: const TextStyle(color: accentGreen, fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: tokenUsageRatio,
+                  backgroundColor: const Color(0xFF0F172A),
+                  valueColor: AlwaysStoppedAnimation<Color>(tokenUsageRatio > 0.8 ? accentDanger : accentBlue),
+                  minHeight: 8,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Adjust Daily Quota Cap: ${(totalCap / 1000).toInt()}k', style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                        Slider(
+                          value: totalCap.toDouble(),
+                          min: 100000,
+                          max: 5000000,
+                          divisions: 49,
+                          activeColor: accentBlue,
+                          inactiveColor: cardBorder,
+                          onChanged: (val) {
+                            setState(() => limiter.setDailyTokenCap(val.toInt()));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Max Tokens/Min: ${(limiter.tokensPerMinuteLimit / 1000).toInt()}k', style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                        Slider(
+                          value: limiter.tokensPerMinuteLimit.toDouble(),
+                          min: 5000,
+                          max: 100000,
+                          divisions: 19,
+                          activeColor: accentGold,
+                          inactiveColor: cardBorder,
+                          onChanged: (val) {
+                            setState(() => limiter.setTokensPerMinuteLimit(val.toInt()));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        _buildSectionHeader(Icons.speed_outlined, 'Platform Stack Rate Limiters & Controls'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                limiter.flushAllCooldowns();
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('All platform rate limits & cooldowns flushed successfully.'), backgroundColor: accentGreen),
+                );
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 14),
+              label: const Text('Flush All Active Rate Limits', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(backgroundColor: accentGreen, foregroundColor: Colors.white),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        _buildResponsiveGrid([
+          ...RateLimitCategory.values.map((cat) {
+            final limit = limiter.getCategoryLimit(cat);
+            final active = limiter.getActiveRequestCountInWindow(cat);
+            return _buildRateLimitControlCard(cat, limit, active, limiter);
+          }),
+        ]),
+
+        const SizedBox(height: 24),
+
+        _buildSectionHeader(Icons.warning_amber_rounded, 'Recent Throttling & Rate Limit Violations'),
+        Container(
+          decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: limiter.violations.length,
+            separatorBuilder: (_, __) => const Divider(color: cardBorder, height: 1),
+            itemBuilder: (context, idx) {
+              final v = limiter.violations[idx];
+              return ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: accentDanger.withOpacity(0.15), shape: BoxShape.circle),
+                  child: const Icon(Icons.speed, color: accentDanger, size: 16),
+                ),
+                title: Text(v.categoryName, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                subtitle: Text('${v.ipOrUser} • Blocked ${v.rejectedRequests} burst requests', style: const TextStyle(color: textMuted, fontSize: 11)),
+                trailing: Text('${DateTime.now().difference(v.timestamp).inMinutes}m ago', style: const TextStyle(color: accentGold, fontSize: 11, fontWeight: FontWeight.bold)),
+              );
+            },
+          ),
+        ),
+
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  Widget _buildRateLimitControlCard(RateLimitCategory cat, int limit, int active, RateLimiterService limiter) {
+    Color color = accentGreen;
+    if (cat == RateLimitCategory.auth) color = accentDanger;
+    if (cat == RateLimitCategory.aiAssistant) color = accentBlue;
+    if (cat == RateLimitCategory.marketplace) color = accentGold;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardDark,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(cat.name, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withOpacity(0.4))),
+                child: Text('$limit req/min', style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Active traffic: $active in window', style: const TextStyle(color: textMuted, fontSize: 11)),
+          Slider(
+            value: limit.toDouble(),
+            min: 1,
+            max: 120,
+            divisions: 119,
+            activeColor: color,
+            inactiveColor: cardBorder,
+            onChanged: (val) {
+              setState(() {
+                limiter.setCategoryLimit(cat, val.toInt());
+              });
+            },
+          ),
+        ],
       ),
     );
   }
