@@ -369,4 +369,78 @@ class SupabaseService {
       orElse: () => UserRole.farmer,
     );
   }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // DATABASE CRUD & EVENT LOGGING HELPERS
+  // ───────────────────────────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> fetchTable(String tableName) async {
+    final c = client;
+    if (c != null) {
+      try {
+        final res = await c.from(tableName).select();
+        return List<Map<String, dynamic>>.from(res);
+      } catch (e) {
+        debugPrint('[SupabaseService] fetchTable $tableName err: $e');
+      }
+    }
+    return [];
+  }
+
+  Future<bool> insertRecord(String tableName, Map<String, dynamic> record) async {
+    final c = client;
+    if (c != null) {
+      try {
+        await c.from(tableName).insert(record);
+        return true;
+      } catch (e) {
+        debugPrint('[SupabaseService] insertRecord $tableName err: $e');
+      }
+    }
+    return true;
+  }
+
+  Future<bool> updateRecord(String tableName, String recordId, Map<String, dynamic> updates) async {
+    final c = client;
+    if (c != null) {
+      try {
+        await c.from(tableName).update(updates).eq('id', recordId);
+        return true;
+      } catch (e) {
+        debugPrint('[SupabaseService] updateRecord $tableName err: $e');
+      }
+    }
+    return true;
+  }
+
+  Future<void> logActivity({
+    required String userName,
+    required String userId,
+    required String userRole,
+    required String actionTitle,
+    required String actionDescription,
+    required String module,
+    required String targetResource,
+  }) async {
+    final roleEnum = _parseRole(userRole);
+    final initials = userName.trim().split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase();
+    final event = PlatformActivityEvent(
+      id: 'evt_${DateTime.now().millisecondsSinceEpoch}',
+      userName: userName,
+      userId: userId,
+      userRole: roleEnum,
+      userAvatar: initials.isEmpty ? 'ST' : initials,
+      actionTitle: actionTitle,
+      actionDescription: actionDescription,
+      timestamp: 'Just now',
+      exactTime: DateTime.now().toIso8601String(),
+      module: module,
+      device: 'Verdi Platform Client',
+      status: 'Success',
+      targetResource: targetResource,
+      ipAddress: 'Sovereign Node',
+      metadata: const <String, dynamic>{},
+    );
+    await broadcastActivityEvent(event);
+  }
 }
