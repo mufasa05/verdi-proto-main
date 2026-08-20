@@ -62,7 +62,6 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
   static const blue = Color(0xFF3B82F6);
   static const orange = Color(0xFFF59E0B);
   static const purple = Color(0xFF8B5CF6);
-  static const red = Color(0xFFEF4444);
   static const textMuted = Color(0xFF94A3B8);
 
   String _searchQuery = '';

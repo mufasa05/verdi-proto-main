@@ -486,6 +486,24 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
               ),
               OutlinedButton.icon(
                 onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('🎖️ Verified Carrier Badge awarded to ${u.name}!'),
+                      backgroundColor: const Color(0xFFFF9F1C),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.military_tech_outlined, size: 13),
+                label: const Text('Award Badge', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFFF9F1C),
+                  side: const BorderSide(color: Color(0xFFFF9F1C)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
                   setState(() => u.status = isSuspended ? 'Active' : 'Suspended');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('${u.name} status updated to ${u.status}.'), backgroundColor: red),

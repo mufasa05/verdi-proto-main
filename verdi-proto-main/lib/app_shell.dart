@@ -20,7 +20,7 @@ import 'features/government/presentation/government_page.dart';
 import 'features/home/presentation/home_page.dart';
 import 'features/irrigation/presentation/farmer_irrigation_view.dart';
 import 'features/irrigation/presentation/government_irrigation_view.dart';
-import 'features/logistics/presentation/logistics_page.dart';
+import 'features/logistics/presentation/verdi_logistics_master_page.dart';
 import 'features/marketplace/presentation/marketplace_page.dart';
 import 'features/notifications/presentation/notification_center_page.dart';
 import 'features/orders/presentation/orders_page.dart';
@@ -56,7 +56,7 @@ class AppShell extends ConsumerWidget {
       const ChatsPage(), // index 2: My Chats (Direct Stakeholder Messaging)
       const AnalyticsPage(), // index 3: Analytics
       const OrdersPage(), // index 4: Orders
-      const LogisticsPage(), // index 5: Logistics
+      const VerdiLogisticsMasterPage(), // index 5: Verdi Logistics Carrier OS
       const PaymentsPage(), // index 6: Payments
       const NotificationCenterPage(), // index 7: Notifications
       const GovernmentIrrigationView(), // index 8: Irrigation
@@ -255,7 +255,7 @@ class Sidebar extends ConsumerWidget {
     ),
     _SidebarMenuItem(index: 3, label: 'Analytics', icon: LucideIcons.barChart3),
     _SidebarMenuItem(index: 4, label: 'Orders', icon: LucideIcons.shoppingCart),
-    _SidebarMenuItem(index: 5, label: 'Fleet & Transport Hub', icon: LucideIcons.truck),
+    _SidebarMenuItem(index: 5, label: 'Verdi Logistics OS', icon: LucideIcons.truck),
     _SidebarMenuItem(index: 6, label: 'Payments', icon: LucideIcons.creditCard),
     _SidebarMenuItem(index: 7, label: 'Notifications', icon: LucideIcons.bell),
     _SidebarMenuItem(

@@ -504,6 +504,28 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                           ),
                         ),
 
+                        // 2b. Direct Award Carrier Badge (Amber Outline)
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            final currentBadge = u['carrierBadge'] ?? true;
+                            setState(() => u['carrierBadge'] = !currentBadge);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(!currentBadge ? '🎖️ Sovereign Verified Carrier Badge awarded to ${u['name']}!' : 'Carrier badge revoked for ${u['name']}.'),
+                                backgroundColor: const Color(0xFFFF9F1C),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.military_tech_outlined, size: 14),
+                          label: Text(u['carrierBadge'] == false ? 'Award Carrier Badge' : '🎖️ Verified Carrier'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFFF9F1C),
+                            side: const BorderSide(color: Color(0xFFFF9F1C)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          ),
+                        ),
+
                         // 3. Suspend Account (Red Outline)
                         OutlinedButton.icon(
                           onPressed: () {
