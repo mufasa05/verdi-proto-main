@@ -37,7 +37,6 @@ import 'features/news/presentation/news_page.dart';
 import 'features/processing/presentation/value_adder_processing_page.dart';
 import 'features/assistant/presentation/widgets/global_voice_agent_overlay.dart';
 import 'features/buyer_consumer/presentation/end_user_consumer_home_page.dart';
-import 'features/buyer_commercial/presentation/b2b_buyer_dashboard_page.dart';
 import 'features/auth/presentation/widgets/buyer_sub_role_dialog.dart';
 import 'core/enums/verdi_screen.dart';
 import 'state/app_state.dart';
@@ -60,14 +59,12 @@ class AppShell extends ConsumerWidget {
       );
     }
 
-    final isCommercialB2bBuyer = state.role == UserRole.buyer && state.buyerSubRole == BuyerSubRole.retailerWholesaler;
-
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 900;
 
     final pages = [
-      isCommercialB2bBuyer ? const B2bBuyerDashboardPage() : const HomePage(), // index 0: Home
-      isCommercialB2bBuyer ? const B2bBuyerDashboardPage() : const MarketplacePage(), // index 1: Marketplace
+      const HomePage(), // index 0: Home
+      const MarketplacePage(), // index 1: Marketplace
       const ChatsPage(), // index 2: My Chats (Direct Stakeholder Messaging)
       const AnalyticsPage(), // index 3: Analytics
       const OrdersPage(), // index 4: Orders
@@ -85,7 +82,7 @@ class AppShell extends ConsumerWidget {
       const FinancePage(), // index 16: Finance
       const WeatherPage(), // index 17: Weather
       const GovernmentPage(), // index 18: Government
-      isCommercialB2bBuyer ? const B2bBuyerDashboardPage() : const TradePage(), // index 19: Trade
+      const TradePage(), // index 19: Trade
       const SatellitesPage(), // index 20: Satellite
       const SettingsPage(), // index 21: Settings
       const ExportPage(), // index 22: Export & Trade Layer
@@ -338,7 +335,7 @@ class Sidebar extends ConsumerWidget {
           return item.index == 4 || item.index == 5 || item.index == 15;
 
         case UserRole.buyer:
-          return item.index == 3 || item.index == 4 || item.index == 5 || item.index == 6 || item.index == 15 || item.index == 19;
+          return item.index == 4 || item.index == 15 || item.index == 19;
 
         case UserRole.financier:
           return item.index == 6 || item.index == 16;
