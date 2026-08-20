@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
 import '../../../state/platform_data_state.dart';
+import '../../auth/state/auth_state.dart';
 
 /// Super Admin Audit Hub matching user interface screenshots 100%
 class AdminUserActivityPage extends ConsumerStatefulWidget {
@@ -68,32 +69,7 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
   bool _isLiveStreaming = true;
   Timer? _liveTimer;
 
-  final List<UserActivityEvent> _allEvents = [
-    UserActivityEvent(
-      id: 'ACT-9021',
-      userName: 'Mufasa',
-      userId: 'usr_1787164310663',
-      userRole: UserRole.farmer,
-      userAvatar: 'M',
-      actionTitle: 'Stakeholder Authenticated to Sovereign Network',
-      actionDescription: 'Mufasa logged into node session via secure JWT.',
-      module: 'Security & Auth',
-      targetResource: 'Session #SESS-9021',
-      timestamp: 'Just now',
-      exactTime: '20 Aug 2026 07:42:15 CAT',
-      ipAddress: 'Sovereign Node (FARMER)',
-      device: 'Verdi Mobile / Web Client',
-      status: 'Success',
-      statusColor: green,
-      icon: Icons.shield_outlined,
-      metadata: {
-        'joinedDate': '15 August 2024 (2 years on Verdi)',
-        'kycStatus': 'Tier 3 Sovereign Verified',
-        'phone': '+263 77 123 4567',
-        'email': 'mufasa@verdi.ag',
-        'escrowBalance': 'US\$ 3,450.00',
-      },
-    ),
+  final List<UserActivityEvent> _demoEvents = [
     UserActivityEvent(
       id: 'ACT-9020',
       userName: 'Tendai Moyo',
@@ -164,11 +140,23 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
 
   void _showUserStandingModal(UserActivityEvent event) {
     final meta = event.metadata;
-    final joined = meta['joinedDate']?.toString() ?? '15 August 2024 (2 years on Verdi)';
-    final kyc = meta['kycStatus']?.toString() ?? 'Tier 3 Sovereign Verified';
-    final phone = meta['phone']?.toString() ?? '+263 77 123 4567';
-    final email = meta['email']?.toString() ?? '${event.userName.toLowerCase().replaceAll(' ', '')}@verdi.ag';
-    final escrow = meta['escrowBalance']?.toString() ?? 'US\$ 3,450.00';
+    final currentUser = ref.read(authStateProvider).user;
+    final isCurrentAuthUser = currentUser != null &&
+        (currentUser.id == event.userId || currentUser.fullName.toLowerCase().trim() == event.userName.toLowerCase().trim());
+
+    final email = isCurrentAuthUser && currentUser.email.isNotEmpty
+        ? currentUser.email
+        : (meta['email']?.toString().isNotEmpty == true && meta['email'] != 'null' ? meta['email'].toString() : 'Not provided');
+
+    final phone = isCurrentAuthUser && currentUser.phone.isNotEmpty
+        ? currentUser.phone
+        : (meta['phone']?.toString().isNotEmpty == true && meta['phone'] != 'null' ? meta['phone'].toString() : 'Not provided');
+
+    final joined = meta['joinedDate']?.toString() ?? (isCurrentAuthUser ? 'Active Session (Live Node)' : 'Active Account');
+    final kyc = meta['kycStatus']?.toString() ?? (isCurrentAuthUser ? 'Tier 1 Standard Verified' : 'Standard Standing');
+    final escrow = meta['escrowBalance']?.toString() ?? 'US\$ 0.00';
+    final location = event.ipAddress.isNotEmpty ? event.ipAddress : 'Sovereign Node (${event.userRole.name.toUpperCase()})';
+    final device = event.device.isNotEmpty ? event.device : 'Verdi Mobile / Web Client';
 
     showDialog(
       context: context,
@@ -209,8 +197,8 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
                     _modalRow('📞 Contact Phone', phone),
                     _modalRow('✉️ Email Address', email),
                     _modalRow('💳 Active Escrow Balance', escrow),
-                    _modalRow('🌐 IP & Location', event.ipAddress),
-                    _modalRow('📱 Client Device', event.device),
+                    _modalRow('🌐 IP & Location', location),
+                    _modalRow('📱 Client Device', device),
                   ],
                 ),
               ),
@@ -290,7 +278,9 @@ class _AdminUserActivityPageState extends ConsumerState<AdminUserActivityPage> {
       );
     }).toList();
 
-    final allEvents = [...mappedLive, ..._allEvents].where((e) {
+    final sourceEvents = isDemo ? [...mappedLive, ..._demoEvents] : mappedLive;
+
+    final allEvents = sourceEvents.where((e) {
       final matchesQuery = _searchQuery.isEmpty ||
           e.userName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           e.actionTitle.toLowerCase().contains(_searchQuery.toLowerCase()) ||

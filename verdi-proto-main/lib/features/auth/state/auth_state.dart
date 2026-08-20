@@ -461,7 +461,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           ipAddress: 'Sovereign Node (${user.role.name.toUpperCase()})',
           device: 'Verdi Mobile / Web Client',
           status: 'Success',
-          metadata: const <String, dynamic>{},
+          metadata: {
+            'email': user.email.isNotEmpty ? user.email : 'Not provided',
+            'phone': user.phone.isNotEmpty ? user.phone : 'Not provided',
+            'joinedDate': 'Today',
+            'kycStatus': 'Tier 1 Standard Verified',
+            'escrowBalance': 'US\$ 0.00',
+          },
         ),
       );
     } catch (_) {}

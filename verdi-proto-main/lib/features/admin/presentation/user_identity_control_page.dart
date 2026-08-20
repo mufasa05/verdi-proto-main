@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
+import '../../auth/state/auth_state.dart';
 
 /// User Identity & KYC Control Page matching user interface screenshots 3, 4, 5 100%
 class UserIdentityControlPage extends ConsumerStatefulWidget {
@@ -237,7 +238,34 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
 
   @override
   Widget build(BuildContext context) {
-    final filteredUsers = _userDatabase.where((u) {
+    final authUser = ref.watch(authStateProvider).user;
+    final List<Map<String, dynamic>> combinedUsers = [];
+
+    if (authUser != null) {
+      combinedUsers.add({
+        'id': authUser.id,
+        'name': authUser.fullName,
+        'email': authUser.email.isNotEmpty ? authUser.email : 'Not provided',
+        'role': authUser.role.label,
+        'kyc': 'VERIFIED',
+        'location': 'Primary Node (Live Session)',
+        'eudr': 'EUDR-LIVE-NODE',
+        'status': 'ACTIVE',
+        'sessions': 1,
+        'lastSeen': 'Just now',
+        'joiningDate': 'Active Account',
+        'phone': authUser.phone.isNotEmpty ? authUser.phone : 'Not provided',
+        'escrowBalance': 'US\$ 0.00',
+      });
+    }
+
+    for (final u in _userDatabase) {
+      if (!combinedUsers.any((x) => x['id'] == u['id'] || x['name'].toString().toLowerCase() == u['name'].toString().toLowerCase())) {
+        combinedUsers.add(u);
+      }
+    }
+
+    final filteredUsers = combinedUsers.where((u) {
       final matchesQuery = _searchQuery.isEmpty ||
           u['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           u['email'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
