@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/services/supabase_service.dart';
+import '../../../state/platform_data_state.dart';
 import '../data/agri_logistics_models.dart';
 import '../state/agri_logistics_state.dart';
 
@@ -79,6 +81,35 @@ class _TransporterOnboardingPageState extends ConsumerState<TransporterOnboardin
     // Save profile to state
     ref.read(agriLogisticsProvider.notifier).updateCarrierProfile(carrierProfile);
     ref.read(agriLogisticsProvider.notifier).awardVerifiedBadge(true);
+
+    // Sync newly registered vehicle across platform (NearbyTransportPanel, Marketplace, Farmers & Buyers)
+    final truckItem = TruckItem(
+      id: 'truck-${carrierProfile.vehicle.id}',
+      driver: carrierProfile.carrierName,
+      vehicle: '${carrierProfile.vehicle.type.label} (${(carrierProfile.vehicle.maxWeightCapacityKg / 1000).toStringAsFixed(1)}T)',
+      plateNumber: carrierProfile.vehicle.registrationNumber,
+      regNumber: carrierProfile.eudrPermitCode,
+      color: 'Fleet White',
+      model: carrierProfile.vehicle.model,
+      from: 'Live Dispatch Corridor',
+      eta: 'Available Now',
+      costPerKm: carrierProfile.operatingTier == LogisticsTier.shortTrip ? 0.12 : 0.35,
+      rating: 5.0,
+      status: 'Ready for dispatch',
+    );
+    ref.read(trucksListProvider.notifier).addTruck(truckItem);
+
+    // Broadcast to Supabase
+    SupabaseService.instance.insertRecord('verdi_vehicles', {
+      'id': carrierProfile.vehicle.id,
+      'driver_name': carrierProfile.carrierName,
+      'plate_number': carrierProfile.vehicle.registrationNumber,
+      'type': carrierProfile.vehicle.type.name,
+      'has_cold_chain': carrierProfile.vehicle.hasColdChain,
+      'capacity_kg': carrierProfile.vehicle.maxWeightCapacityKg,
+      'status': 'ACTIVE',
+    });
+
     widget.onCompleted();
   }
 

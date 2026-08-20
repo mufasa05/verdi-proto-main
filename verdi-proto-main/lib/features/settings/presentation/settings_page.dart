@@ -38,13 +38,51 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
   Widget build(BuildContext context) {
     final role = ref.watch(appStateProvider).role;
     final isAdmin = role == UserRole.admin;
+    final isTransporter = role == UserRole.transporter;
+
+    if (isTransporter) {
+      return Scaffold(
+        backgroundColor: SettingsPage.background,
+        appBar: AppBar(
+          title: Text(
+            'Carrier Telematics & Platform Settings',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                labelColor: const Color(0xFFFF9F1C),
+                unselectedLabelColor: SettingsPage.muted,
+                indicatorColor: const Color(0xFFFF9F1C),
+                tabs: const [
+                  Tab(text: 'Fleet Telematics & Hardware'),
+                  Tab(text: 'General Preferences'),
+                ],
+              ),
+            ),
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            const _CarrierSettingsTab(),
+            _GeneralSettingsTab(),
+          ],
+        ),
+      );
+    }
 
     if (!isAdmin) {
       return Scaffold(
         backgroundColor: SettingsPage.background,
         appBar: AppBar(
           title: Text(
-            'Administration Console',
+            'Account & Platform Settings',
             style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
           ),
           backgroundColor: Colors.white,
@@ -856,4 +894,133 @@ class _UserScope {
     required this.permission,
     required this.activeGrants,
   });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRANSPORTER CARRIER SETTINGS TAB
+// ─────────────────────────────────────────────────────────────────────────────
+class _CarrierSettingsTab extends ConsumerWidget {
+  const _CarrierSettingsTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    const amber = Color(0xFFFF9F1C);
+    const green = Color(0xFF16A34A);
+    const dark = Color(0xFF0F172A);
+    const muted = Color(0xFF64748B);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: amber.withOpacity(0.12), shape: BoxShape.circle),
+                      child: const Icon(Icons.sensors, color: amber, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('In-Cab Telematics Hardware & Sensor Pairing', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: dark)),
+                          const Text('Configure hardware gateways connected to your vehicle assets.', style: TextStyle(color: muted, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _settingItem('OBD-II CAN-Bus Telematics Gateway', 'AEB-2910 • 4G LTE Live GPS Stream', 'PAIRED', green),
+                const Divider(height: 20),
+                _settingItem('Reefer Temperature Probe #1 (Chamber)', 'Target: +2°C to +6°C • Current: +3.4°C', 'CALIBRATED', const Color(0xFF00B4D8)),
+                const Divider(height: 20),
+                _settingItem('SADC Corridor Transit Permit', 'EUDR-LOG-ZIM-2026-88 • Beira & Chirundu Corridors', 'ACTIVE', amber),
+                const Divider(height: 20),
+                _settingItem('Freight Escrow Payout Wallet', 'EcoCash USD Gateway (Direct Settlement)', 'CONNECTED', green),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Sovereign Verified Carrier Status', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: dark)),
+                const SizedBox(height: 6),
+                const Text('Your account is eligible for automatic smart contract escrow release upon e-POD signoff.', style: TextStyle(color: muted, fontSize: 12)),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: amber.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: amber.withOpacity(0.4)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.military_tech_outlined, color: amber, size: 22),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '🎖️ Gold Sovereign Carrier Ribbon Active (28 Completed Trips)',
+                          style: TextStyle(color: amber, fontWeight: FontWeight.bold, fontSize: 12.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _settingItem(String title, String subtitle, String badge, Color badgeColor) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+              const SizedBox(height: 2),
+              Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: badgeColor.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: badgeColor.withOpacity(0.4)),
+          ),
+          child: Text(badge, style: TextStyle(color: badgeColor, fontSize: 10.5, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
 }

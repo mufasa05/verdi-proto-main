@@ -68,7 +68,36 @@ class TruckItem {
 
 class TrucksNotifier extends StateNotifier<List<TruckItem>> {
   final bool isDemo;
-  static final List<TruckItem> _userTrucks = [];
+  static final List<TruckItem> _userTrucks = [
+    const TruckItem(
+      id: 'truck-live-01',
+      driver: 'Chinhoyi Express (Tafadzwa M.)',
+      vehicle: 'Reefer Cold-Chain Hauler (30 Tonnes)',
+      plateNumber: 'AEB-2910',
+      regNumber: 'SADC-ZIM-8821',
+      color: 'Midnight Blue',
+      model: 'Volvo FH16 Reefer 30T',
+      from: 'Chinhoyi / Harare Corridor Hub',
+      eta: 'Available Now',
+      costPerKm: 0.35,
+      rating: 4.98,
+      status: 'Ready for dispatch',
+    ),
+    const TruckItem(
+      id: 'truck-live-02',
+      driver: 'Harare Aggregation Pool (Moses K.)',
+      vehicle: 'Tricycle / Farmgate Aggregator (500kg)',
+      plateNumber: 'AFG-8812',
+      regNumber: 'SADC-ZIM-4412',
+      color: 'Green',
+      model: 'TukTuk Cargo 500',
+      from: 'Goromonzi Farmgate Cluster',
+      eta: '15m',
+      costPerKm: 0.10,
+      rating: 4.92,
+      status: 'Ready for dispatch',
+    ),
+  ];
   static const List<TruckItem> _mockTrucks = [
     TruckItem(
       id: 'truck-1',

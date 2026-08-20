@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../state/app_state.dart';
 import '../data/agri_logistics_models.dart';
 import '../state/agri_logistics_state.dart';
 import 'transporter_onboarding_page.dart';
@@ -33,7 +34,7 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 8, vsync: this);
   }
 
   @override
@@ -68,7 +69,7 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
             // Top Carrier OS Command Header
             _buildCarrierHeader(profile, isVerified, logisticsState),
 
-            // 6 Dedicated Module Tabs
+            // 8 Dedicated Module Tabs
             Container(
               decoration: const BoxDecoration(
                 color: cardDark,
@@ -89,6 +90,8 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
                   Tab(icon: Icon(Icons.qr_code_scanner_rounded, size: 16), text: 'QR Manifest Builder'),
                   Tab(icon: Icon(Icons.satellite_alt_outlined, size: 16), text: 'In-Cab Telemetry'),
                   Tab(icon: Icon(Icons.fact_check_outlined, size: 16), text: 'e-POD & Escrow Desk'),
+                  Tab(icon: Icon(Icons.link_rounded, size: 16), text: 'Traceability & BoL'),
+                  Tab(icon: Icon(Icons.settings_outlined, size: 16), text: 'Telematics & Settings'),
                 ],
               ),
             ),
@@ -104,6 +107,8 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
                   _buildManifestBuilderTab(logisticsState),
                   _buildInCabTelemetryTab(logisticsState),
                   _buildEpodEscrowDeskTab(logisticsState),
+                  _buildTraceabilityTab(logisticsState),
+                  _buildSettingsTab(logisticsState),
                 ],
               ),
             ),
@@ -933,6 +938,177 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
           Text(title, style: const TextStyle(fontSize: 10, color: textMuted)),
         ],
       ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB 7: TRACEABILITY & BILL OF LADING MANIFESTS
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildTraceabilityTab(AgriLogisticsState state) {
+    final activeWaybill = state.activeWaybills.isNotEmpty ? state.activeWaybills.first : null;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: cyan.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cyan.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.link_rounded, color: cyan, size: 28),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Agricultural Freight Traceability & Documents', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                      Text('End-to-end QR provenance, digital Bills of Lading (BoL), phytosanitary certificates, and corridor weighbridge logs.', style: TextStyle(fontSize: 11.5, color: textMuted)),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => ref.read(appStateProvider.notifier).setNavIndex(15),
+                  icon: const Icon(Icons.open_in_new, size: 13),
+                  label: const Text('Open Full Traceability Hub', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: cyan, foregroundColor: bgDark),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text('Active Freight Documents & Compliance Vault', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 10),
+
+          _buildDocCard('Digital Bill of Lading (Master BoL)', '${activeWaybill?.waybillNumber ?? 'WB-AG-2026-9081'}-BoL-manifest.pdf', Icons.description_outlined, green),
+          const SizedBox(height: 10),
+          _buildDocCard('Phytosanitary & EUDR Transit Clearance', 'PHYTO-ZIM-2026-EUDR-889.pdf', Icons.verified_user_outlined, amber),
+          const SizedBox(height: 10),
+          _buildDocCard('In-Transit Cold-Chain Reefer IoT Telemetry Slip', 'REEFER-TEL-AEB2910-LOG.pdf', Icons.ac_unit_outlined, cyan),
+          const SizedBox(height: 10),
+          _buildDocCard('SADC Axle Weighbridge Scale Slip (Gross 11.8T)', 'WEIGHBRIDGE-HARARE-GWERU.pdf', Icons.scale_outlined, purple),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocCard(String title, String filename, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
+      child: Row(
+        children: [
+          CircleAvatar(backgroundColor: color.withOpacity(0.15), radius: 18, child: Icon(icon, color: color, size: 18)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                Text(filename, style: const TextStyle(fontSize: 11, color: textMuted)),
+              ],
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Downloading verified document: $filename'), backgroundColor: color),
+              );
+            },
+            icon: const Icon(Icons.download_rounded, size: 14),
+            label: const Text('Download PDF', style: TextStyle(fontSize: 11)),
+            style: OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB 8: TELEMATICS & CARRIER HARDWARE SETTINGS
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildSettingsTab(AgriLogisticsState state) {
+    final profile = state.carrierProfile;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: amber.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: amber.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.settings_outlined, color: amber, size: 28),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Carrier Telematics Hardware & Platform Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                      Text('Configure in-cab IoT sensors, calibrate cold-chain thresholds, managing operating corridors and escrow payout bank accounts.', style: TextStyle(fontSize: 11.5, color: textMuted)),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => ref.read(appStateProvider.notifier).setNavIndex(21),
+                  icon: const Icon(Icons.open_in_new, size: 13),
+                  label: const Text('Open System Settings', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: amber, foregroundColor: bgDark),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Text('In-Cab Hardware & Sensor Pairing', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 10),
+
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
+            child: Column(
+              children: [
+                _buildSettingRow('OBD-II Telematics Gateway (AEB-2910)', 'PAIRED & ONLINE (4G LTE)', green, Icons.sensors),
+                const Divider(color: cardBorder, height: 24),
+                _buildSettingRow('Reefer Temperature Probe #1', 'CALIBRATED (+3.4°C)', cyan, Icons.thermostat),
+                const Divider(color: cardBorder, height: 24),
+                _buildSettingRow('SADC Corridor Transit Permit', profile.eudrPermitCode, amber, Icons.verified),
+                const Divider(color: cardBorder, height: 24),
+                _buildSettingRow('Carrier Escrow Payout Wallet', 'EcoCash USD • +263 77 902 1140', green, Icons.account_balance_wallet_outlined),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingRow(String title, String value, Color color, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withOpacity(0.4))),
+          child: Text(value, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+        ),
+      ],
     );
   }
 }

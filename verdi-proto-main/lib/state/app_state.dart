@@ -229,7 +229,11 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   void setRole(UserRole role) {
-    state = state.copyWith(role: role, navIndex: 0);
+    int initialNav = 0;
+    if (role == UserRole.transporter) {
+      initialNav = 5; // Launch directly into Verdi Logistics OS
+    }
+    state = state.copyWith(role: role, navIndex: initialNav);
   }
 
   void setNavIndex(int index) {
