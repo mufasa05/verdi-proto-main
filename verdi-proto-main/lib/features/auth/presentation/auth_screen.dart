@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../state/app_state.dart';
 import '../state/auth_state.dart';
 import '../../../widgets/verdi_logo.dart';
+import 'widgets/buyer_sub_role_dialog.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -908,10 +909,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: InkWell(
-                      onTap: () {
+                      onTap: () async {
                         setState(() {
                           _selectedRole = role;
                         });
+                        if (role == UserRole.buyer) {
+                          final currentSub = ref.read(appStateProvider).buyerSubRole;
+                          final chosen = await BuyerSubRoleDialog.show(context, current: currentSub);
+                          if (chosen != null) {
+                            ref.read(appStateProvider.notifier).setBuyerSubRole(chosen);
+                          }
+                        }
                       },
                       borderRadius: BorderRadius.circular(14),
                       child: Container(

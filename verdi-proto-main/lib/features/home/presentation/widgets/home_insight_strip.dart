@@ -21,6 +21,7 @@ class HomeInsightStrip extends ConsumerWidget {
 
     final items = DynamicIntelligenceSynthesizer.synthesizeInsights(
       role: role,
+      buyerSubRole: ref.watch(appStateProvider).buyerSubRole,
       isDemo: isDemo,
       orders: orders,
       trucks: trucks,

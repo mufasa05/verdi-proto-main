@@ -163,14 +163,38 @@ enum AppCurrency {
   }
 }
 
+/// Specific Buyer Category in the VERDI Marketplace Ecosystem.
+enum BuyerSubRole {
+  retailerWholesaler, // ① Retailer / Wholesaler (Commercial B2B Buyer)
+  endUserCustomer,    // ② Customer / End User (Direct B2C Consumer)
+  ;
+
+  String get label => switch (this) {
+    BuyerSubRole.retailerWholesaler => 'Retailer / Wholesaler (B2B Commercial)',
+    BuyerSubRole.endUserCustomer => 'Customer / End-User (Direct Consumer)',
+  };
+
+  String get shortTitle => switch (this) {
+    BuyerSubRole.retailerWholesaler => 'Retailer / Wholesaler',
+    BuyerSubRole.endUserCustomer => 'Customer / End-User',
+  };
+
+  String get description => switch (this) {
+    BuyerSubRole.retailerWholesaler => 'Bulk lot procurement, outgrower contracts, wholesale trade desk, and commercial escrow.',
+    BuyerSubRole.endUserCustomer => 'Farm-to-table fresh produce, consumer grocery basket, InDrive-style delivery tracking & direct messenger.',
+  };
+}
+
 class AppState {
   final UserRole role;
+  final BuyerSubRole buyerSubRole;
   final int navIndex;
   final AppCurrency currency;
   final bool isDemoMode;
 
   const AppState({
     required this.role,
+    this.buyerSubRole = BuyerSubRole.retailerWholesaler,
     required this.navIndex,
     this.currency = AppCurrency.zig,
     this.isDemoMode = false,
@@ -178,12 +202,14 @@ class AppState {
 
   AppState copyWith({
     UserRole? role,
+    BuyerSubRole? buyerSubRole,
     int? navIndex,
     AppCurrency? currency,
     bool? isDemoMode,
   }) {
     return AppState(
       role: role ?? this.role,
+      buyerSubRole: buyerSubRole ?? this.buyerSubRole,
       navIndex: navIndex ?? this.navIndex,
       currency: currency ?? this.currency,
       isDemoMode: isDemoMode ?? this.isDemoMode,
@@ -192,6 +218,7 @@ class AppState {
 
   static const initial = AppState(
     role: UserRole.farmer,
+    buyerSubRole: BuyerSubRole.retailerWholesaler,
     navIndex: 0,
     currency: AppCurrency.zig,
     isDemoMode: false,
@@ -201,6 +228,7 @@ class AppState {
 class AppStateNotifier extends StateNotifier<AppState> {
   static const _prefDemoModeKey = 'verdi.app.is_demo_mode';
   static const _prefCurrencyKey = 'verdi.app.selected_currency';
+  static const _prefBuyerSubRoleKey = 'verdi.app.buyer_sub_role';
 
   AppStateNotifier() : super(AppState.initial) {
     _loadPersistedPreferences();
@@ -212,6 +240,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       final hasDemoPref = prefs.containsKey(_prefDemoModeKey);
       final isDemo = hasDemoPref ? (prefs.getBool(_prefDemoModeKey) ?? false) : false;
       final currencyCode = prefs.getString(_prefCurrencyKey);
+      final buyerSubRoleName = prefs.getString(_prefBuyerSubRoleKey);
 
       AppCurrency selectedCurrency = AppCurrency.zig;
       if (currencyCode != null) {
@@ -221,9 +250,18 @@ class AppStateNotifier extends StateNotifier<AppState> {
         );
       }
 
+      BuyerSubRole selectedBuyerSubRole = BuyerSubRole.retailerWholesaler;
+      if (buyerSubRoleName != null) {
+        selectedBuyerSubRole = BuyerSubRole.values.firstWhere(
+          (s) => s.name == buyerSubRoleName,
+          orElse: () => BuyerSubRole.retailerWholesaler,
+        );
+      }
+
       state = state.copyWith(
         isDemoMode: isDemo,
         currency: selectedCurrency,
+        buyerSubRole: selectedBuyerSubRole,
       );
     } catch (_) {}
   }
@@ -234,6 +272,11 @@ class AppStateNotifier extends StateNotifier<AppState> {
       initialNav = 5; // Launch directly into Verdi Logistics OS
     }
     state = state.copyWith(role: role, navIndex: initialNav);
+  }
+
+  void setBuyerSubRole(BuyerSubRole subRole) {
+    state = state.copyWith(buyerSubRole: subRole);
+    SharedPreferences.getInstance().then((p) => p.setString(_prefBuyerSubRoleKey, subRole.name)).catchError((_) => false);
   }
 
   void setNavIndex(int index) {

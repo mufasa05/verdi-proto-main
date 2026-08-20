@@ -950,10 +950,10 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
 
     if (role == UserRole.buyer) {
       return const [
-        _QuickActionConfig('Browse Marketplace', 'Source raw produce', Icons.storefront_outlined, Color(0xFF16A34A), 1),
-        _QuickActionConfig('Track Active Orders', 'Shipment status', Icons.local_shipping_outlined, Color(0xFF2563EB), 4),
-        _QuickActionConfig('Escrow Payments', 'Secured transactions', Icons.shield_outlined, Color(0xFF7C3AED), 6),
-        _QuickActionConfig('Verified Suppliers', 'Directory & ratings', Icons.people_outline, Color(0xFFF97316), 1),
+        _QuickActionConfig('Wholesale Marketplace', 'Bulk produce sourcing', Icons.storefront_outlined, Color(0xFF16A34A), 1),
+        _QuickActionConfig('Forward Contracts', 'Outgrower commitments', Icons.handshake_outlined, Color(0xFF2563EB), 19),
+        _QuickActionConfig('Commercial Escrow', 'Secured bank settlements', Icons.shield_outlined, Color(0xFF7C3AED), 6),
+        _QuickActionConfig('Haulage & Freight', 'Fleet transport dispatch', Icons.local_shipping_outlined, Color(0xFFF97316), 5),
       ];
     }
 

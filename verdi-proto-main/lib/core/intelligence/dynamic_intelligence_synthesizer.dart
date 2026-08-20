@@ -40,6 +40,7 @@ class DynamicIntelligenceSynthesizer {
   /// Synthesizes role-tailored intelligence derived from active platform state.
   static List<AiInsightItem> synthesizeInsights({
     required UserRole role,
+    BuyerSubRole buyerSubRole = BuyerSubRole.retailerWholesaler,
     required bool isDemo,
     required List<OrderItem> orders,
     required List<TruckItem> trucks,
@@ -55,7 +56,9 @@ class DynamicIntelligenceSynthesizer {
       case UserRole.transporter:
         return _synthesizeTransporterInsights(trucks, orders, isDemo);
       case UserRole.buyer:
-        return _synthesizeBuyerInsights(orders, isDemo);
+        return buyerSubRole == BuyerSubRole.endUserCustomer
+            ? _synthesizeConsumerInsights(orders, isDemo)
+            : _synthesizeBuyerInsights(orders, isDemo);
       case UserRole.financier:
         return _synthesizeFinancierInsights(payments, isDemo);
       case UserRole.government:
@@ -408,22 +411,6 @@ class DynamicIntelligenceSynthesizer {
     ];
   }
 
-  static List<AiInsightItem> _synthesizeConsumerInsights(List<OrderItem> orders, bool isDemo) {
-    return [
-      const AiInsightItem(
-        title: 'Scan QR to View Produce Farm Origin',
-        subtitle: 'Instant farm-to-table verification of pesticide safety, harvest date, and farmer identity.',
-        action: 'Scan Batch',
-        imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
-        color: green,
-        confidence: 0.99,
-        targetScreen: VerdiScreen.traceability,
-        category: 'Market',
-        severity: 'Moderate',
-      ),
-    ];
-  }
-
   // ───────────────────────────────────────────────────────────────────────────
   // FINANCIER & INSTITUTIONAL TREASURY INSIGHTS
   // ───────────────────────────────────────────────────────────────────────────
@@ -489,6 +476,44 @@ class DynamicIntelligenceSynthesizer {
         confidence: 0.94,
         targetScreen: VerdiScreen.processing,
         category: 'Agronomic',
+        severity: 'Moderate',
+      ),
+    ];
+  }
+
+  static List<AiInsightItem> _synthesizeConsumerInsights(List<OrderItem> orders, bool isDemo) {
+    return [
+      const AiInsightItem(
+        title: 'Fresh Produce Price Drop: -18% on Fresh Tomatoes',
+        subtitle: 'Peak harvest volume from Mashonaland West outgrowers is creating prime buying opportunities today.',
+        action: 'Shop Produce',
+        imageUrl: 'https://images.unsplash.com/photo-1546470427-227c2e6b1b4c?auto=format&fit=crop&w=1200&q=80',
+        color: green,
+        confidence: 0.97,
+        targetScreen: VerdiScreen.marketplace,
+        category: 'Market',
+        severity: 'Moderate',
+      ),
+      const AiInsightItem(
+        title: 'Avocado Freshness & Ripeness Optimal Window',
+        subtitle: 'Chipinge Hass avocados currently in store are tree-ripened with 6-8 days optimum kitchen shelf-life.',
+        action: 'View Produce',
+        imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
+        color: teal,
+        confidence: 0.94,
+        targetScreen: VerdiScreen.marketplace,
+        category: 'Market',
+        severity: 'Moderate',
+      ),
+      const AiInsightItem(
+        title: 'InDrive Farmgate Shared Route Delivery Active',
+        subtitle: 'Combine your delivery with nearby orders in your suburb to unlock discounted zero-middleman transit.',
+        action: 'Track InDrive',
+        imageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1200&q=80',
+        color: blue,
+        confidence: 0.96,
+        targetScreen: VerdiScreen.marketplace,
+        category: 'Logistics',
         severity: 'Moderate',
       ),
     ];

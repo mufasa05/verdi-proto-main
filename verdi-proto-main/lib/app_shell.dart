@@ -36,6 +36,8 @@ import 'features/weather/presentation/weather_provider.dart';
 import 'features/news/presentation/news_page.dart';
 import 'features/processing/presentation/value_adder_processing_page.dart';
 import 'features/assistant/presentation/widgets/global_voice_agent_overlay.dart';
+import 'features/buyer_consumer/presentation/end_user_consumer_home_page.dart';
+import 'features/auth/presentation/widgets/buyer_sub_role_dialog.dart';
 import 'core/enums/verdi_screen.dart';
 import 'state/app_state.dart';
 import 'features/auth/state/auth_state.dart';
@@ -47,6 +49,16 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DEDICATED CONSUMER / END-USER WEB STORE EXPERIENCE (NO SIDEBAR!)
+    // ─────────────────────────────────────────────────────────────────────────
+    if ((state.role == UserRole.buyer && state.buyerSubRole == BuyerSubRole.endUserCustomer) || state.role == UserRole.consumer) {
+      return const GlobalVoiceAgentOverlay(
+        child: EndUserConsumerHomePage(),
+      );
+    }
+
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 900;
 
@@ -434,6 +446,41 @@ class Sidebar extends ConsumerWidget {
                     ],
                   ),
                 ),
+                if (role == UserRole.buyer) ...[
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () async {
+                      final currentSub = ref.read(appStateProvider).buyerSubRole;
+                      final chosen = await BuyerSubRoleDialog.show(context, current: currentSub);
+                      if (chosen != null) {
+                        ref.read(appStateProvider.notifier).setBuyerSubRole(chosen);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.storefront_outlined, size: 15, color: Color(0xFF3B82F6)),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Profile: B2B Wholesaler (Switch)',
+                              style: TextStyle(color: Color(0xFF2563EB), fontSize: 11, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(Icons.arrow_drop_down, size: 16, color: Color(0xFF3B82F6)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
