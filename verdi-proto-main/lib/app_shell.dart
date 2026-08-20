@@ -335,7 +335,7 @@ class Sidebar extends ConsumerWidget {
           return item.index == 4 || item.index == 5 || item.index == 15;
 
         case UserRole.buyer:
-          return item.index == 4 || item.index == 15 || item.index == 19;
+          return item.index == 3 || item.index == 4 || item.index == 5 || item.index == 6 || item.index == 15 || item.index == 19;
 
         case UserRole.financier:
           return item.index == 6 || item.index == 16;

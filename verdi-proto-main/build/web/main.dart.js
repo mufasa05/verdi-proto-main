@@ -155220,7 +155220,7 @@ s=a.a
 if(s===0||s===1||s===2||s===7||s===21||s===24)return!0
 switch(r.a){case 0:case 5:return s===11||s===13||s===14||s===17||s===20
 case 2:return s===4||s===5||s===15
-case 1:return s===4||s===15||s===19
+case 1:return s===3||s===4||s===5||s===6||s===15||s===19
 case 6:return s===6||s===16
 case 7:return s===3||s===17||s===18||s===20
 case 4:return s===4||s===6||s===16||s===25
