@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/services/rate_limiter_service.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../state/app_state.dart';
 import '../../../state/platform_data_state.dart';
 
@@ -32,12 +34,14 @@ class UserItem {
 }
 
 class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPage> {
-  static const dark = Color(0xFF0F172A);
-  static const green = Color(0xFF16A34A);
-  static const blue = Color(0xFF2563EB);
-  static const orange = Color(0xFFF97316);
-  static const red = Color(0xFFDC2626);
-  static const cream = Color(0xFFF8FAFC);
+  static const bgDark = Color(0xFF070B12);
+  static const cardDark = Color(0xFF0F172A);
+  static const cardBorder = Color(0xFF1E293B);
+  static const green = Color(0xFF10B981);
+  static const blue = Color(0xFF3B82F6);
+  static const orange = Color(0xFFF59E0B);
+  static const red = Color(0xFFEF4444);
+  static const textMuted = Color(0xFF94A3B8);
 
   String _searchQuery = '';
   UserRole? _selectedRoleFilter;
@@ -112,6 +116,71 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
       final matchesStatus = _selectedStatusFilter == 'All' || user.status == _selectedStatusFilter;
       return matchesQuery && matchesRole && matchesStatus;
     }).toList();
+  }
+
+  void _showActionConfirmationDialog({
+    required String title,
+    required String message,
+    required String confirmLabel,
+    required Color confirmColor,
+    required IconData icon,
+    required VoidCallback onConfirmed,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: cardDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: cardBorder),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: confirmColor.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: confirmColor, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(color: textMuted, fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onConfirmed();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: confirmColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(confirmLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAddUserModal() {
@@ -208,7 +277,7 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
     final suspendedCount = allUsers.where((u) => u.status == 'Suspended').length;
 
     return Scaffold(
-      backgroundColor: cream,
+      backgroundColor: bgDark,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -224,14 +293,14 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                     children: [
                       Text(
                         'User Management Center',
-                        style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: dark),
+                        style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         isDemo
                             ? 'Demo Sandbox Directory · 9 scenario profiles'
                             : 'Live Production Directory · $totalCount registered stakeholder nodes',
-                        style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+                        style: GoogleFonts.inter(fontSize: 12, color: textMuted),
                       ),
                     ],
                   ),
@@ -270,18 +339,20 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardDark,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                  border: Border.all(color: cardBorder),
                 ),
                 child: Column(
                   children: [
                     TextField(
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Search by name, email, or user ID...',
-                        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                        hintStyle: const TextStyle(color: textMuted, fontSize: 13),
+                        prefixIcon: const Icon(Icons.search, color: textMuted),
                         filled: true,
-                        fillColor: cream,
+                        fillColor: bgDark,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       ),
@@ -293,26 +364,42 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                         Expanded(
                           child: DropdownButtonFormField<UserRole?>(
                             value: _selectedRoleFilter,
-                            decoration: const InputDecoration(labelText: 'Filter Role', border: OutlineInputBorder()),
+                            dropdownColor: cardDark,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            decoration: InputDecoration(
+                              labelText: 'Filter Role',
+                              labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+                              filled: true,
+                              fillColor: bgDark,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            ),
                             items: [
                               const DropdownMenuItem(value: null, child: Text('All Roles')),
                               ...UserRole.values.map((r) => DropdownMenuItem(value: r, child: Text(r.label))),
                             ],
-                            onChanged: (val) => setState(() => _selectedRoleFilter = val),
+                            onChanged: (v) => setState(() => _selectedRoleFilter = v),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: _selectedStatusFilter,
-                            decoration: const InputDecoration(labelText: 'Filter Status', border: OutlineInputBorder()),
+                            dropdownColor: cardDark,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            decoration: InputDecoration(
+                              labelText: 'Filter Status',
+                              labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+                              filled: true,
+                              fillColor: bgDark,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            ),
                             items: const [
                               DropdownMenuItem(value: 'All', child: Text('All Statuses')),
-                              DropdownMenuItem(value: 'Active', child: Text('Active')),
-                              DropdownMenuItem(value: 'Pending', child: Text('Pending')),
-                              DropdownMenuItem(value: 'Suspended', child: Text('Suspended')),
+                              DropdownMenuItem(value: 'Active', child: Text('Active Only')),
+                              DropdownMenuItem(value: 'Pending', child: Text('Pending Only')),
+                              DropdownMenuItem(value: 'Suspended', child: Text('Suspended Only')),
                             ],
-                            onChanged: (val) => setState(() => _selectedStatusFilter = val ?? 'All'),
+                            onChanged: (v) => setState(() => _selectedStatusFilter = v ?? 'All'),
                           ),
                         ),
                       ],
@@ -323,25 +410,36 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
 
               const SizedBox(height: 20),
 
-              Text(
-                'Registered Accounts (${filtered.length})',
-                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: dark),
+              // User Directory List Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Stakeholder Directory (${filtered.length})', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  if (_searchQuery.isNotEmpty || _selectedRoleFilter != null || _selectedStatusFilter != 'All')
+                    TextButton(
+                      onPressed: () => setState(() {
+                        _searchQuery = '';
+                        _selectedRoleFilter = null;
+                        _selectedStatusFilter = 'All';
+                      }),
+                      child: const Text('Reset Filters', style: TextStyle(color: orange, fontSize: 12)),
+                    ),
+                ],
               ),
-
               const SizedBox(height: 12),
 
               if (filtered.isEmpty)
                 Container(
                   padding: const EdgeInsets.all(32),
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
                   child: Column(
                     children: [
-                      const Icon(Icons.person_off_outlined, size: 48, color: Colors.grey),
+                      const Icon(Icons.person_search_outlined, size: 48, color: textMuted),
                       const SizedBox(height: 12),
-                      Text('No Users Found', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: dark)),
+                      const Text('No stakeholders match your filter.', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                       const SizedBox(height: 4),
-                      const Text('Try adjusting your search filters or add a new user.', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                      const Text('Try adjusting search query or role filter.', style: TextStyle(color: textMuted, fontSize: 12)),
                     ],
                   ),
                 )
@@ -369,9 +467,9 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardDark,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 3))],
+        border: Border.all(color: cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,24 +480,24 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
             child: Icon(icon, color: color, size: 16),
           ),
           const SizedBox(height: 8),
-          Text(value, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.black54)),
+          Text(value, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+          Text(label, style: const TextStyle(fontSize: 10, color: textMuted)),
         ],
       ),
     );
   }
 
   Widget _buildUserCard(UserItem u) {
-    final statusBg = u.status == 'Active' ? green.withOpacity(0.1) : (u.status == 'Pending' ? orange.withOpacity(0.1) : red.withOpacity(0.1));
+    final statusBg = u.status == 'Active' ? green.withOpacity(0.12) : (u.status == 'Pending' ? orange.withOpacity(0.12) : red.withOpacity(0.12));
     final statusColor = u.status == 'Active' ? green : (u.status == 'Pending' ? orange : red);
     final isSuspended = u.status == 'Suspended';
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardDark,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
+        border: Border.all(color: cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,7 +505,7 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: blue.withOpacity(0.12),
+                backgroundColor: blue.withOpacity(0.18),
                 foregroundColor: blue,
                 child: Text(
                   u.name.split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join(),
@@ -419,19 +517,19 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(u.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: dark)),
+                    Text(u.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                     const SizedBox(height: 2),
-                    Text('${u.email} • ${u.id}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                    Text('${u.email} • ${u.id}', style: const TextStyle(fontSize: 11, color: textMuted)),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: cream, borderRadius: BorderRadius.circular(4)),
-                          child: Text(u.role.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: dark)),
+                          decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(4)),
+                          child: Text(u.role.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                         const SizedBox(width: 6),
-                        Text(u.location, style: const TextStyle(fontSize: 10, color: Colors.black54)),
+                        Text(u.location, style: const TextStyle(fontSize: 10, color: textMuted)),
                       ],
                     ),
                   ],
@@ -439,22 +537,38 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8), border: Border.all(color: statusColor.withOpacity(0.4))),
                 child: Text(u.status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1),
+          const Divider(height: 1, color: cardBorder),
           const SizedBox(height: 10),
 
-          // 4 Action Buttons
+          // 6 Direct Action Buttons with Real Logic & Safety Confirmation Modals
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
+              // 1. Verify KYC
               OutlinedButton.icon(
                 onPressed: () {
+                  final allowed = RateLimiterService.instance.checkAndRecord(
+                    RateLimitCategory.adminActions,
+                    onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                  );
+                  if (!allowed) return;
+
+                  SupabaseService.instance.logActivity(
+                    userName: u.name,
+                    userId: u.id,
+                    userRole: u.role.label,
+                    actionTitle: '🛡️ KYC Verified by Super Admin',
+                    actionDescription: 'Verified compliance & credentials for ${u.name}.',
+                    module: 'User Management',
+                    targetResource: u.id,
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('KYC verification confirmed for ${u.name}.'), backgroundColor: green),
                   );
@@ -468,11 +582,37 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 ),
               ),
+
+              // 2. Elevate Role
               OutlinedButton.icon(
                 onPressed: () {
-                  setState(() => u.role = UserRole.admin);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Elevated ${u.name} role to Administrator.'), backgroundColor: blue),
+                  final allowed = RateLimiterService.instance.checkAndRecord(
+                    RateLimitCategory.adminActions,
+                    onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                  );
+                  if (!allowed) return;
+
+                  _showActionConfirmationDialog(
+                    title: 'Elevate Role Privilege',
+                    message: 'Elevate ${u.name} (${u.role.label}) to Super Administrator status? This grants full command center access.',
+                    confirmLabel: 'Confirm Elevation',
+                    confirmColor: blue,
+                    icon: Icons.vpn_key_outlined,
+                    onConfirmed: () {
+                      setState(() => u.role = UserRole.admin);
+                      SupabaseService.instance.logActivity(
+                        userName: u.name,
+                        userId: u.id,
+                        userRole: 'Administrator',
+                        actionTitle: '🔑 Role Elevated to Administrator',
+                        actionDescription: 'Admin elevated role for ${u.name}.',
+                        module: 'Access Control',
+                        targetResource: u.id,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Elevated ${u.name} role to Administrator.'), backgroundColor: blue),
+                      );
+                    },
                   );
                 },
                 icon: const Icon(Icons.vpn_key_outlined, size: 13),
@@ -484,8 +624,25 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 ),
               ),
+
+              // 3. Award Badge
               OutlinedButton.icon(
                 onPressed: () {
+                  final allowed = RateLimiterService.instance.checkAndRecord(
+                    RateLimitCategory.adminActions,
+                    onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                  );
+                  if (!allowed) return;
+
+                  SupabaseService.instance.logActivity(
+                    userName: u.name,
+                    userId: u.id,
+                    userRole: u.role.label,
+                    actionTitle: '🎖️ Sovereign Verified Badge Awarded',
+                    actionDescription: 'Awarded carrier badge to ${u.name}.',
+                    module: 'User Management',
+                    targetResource: u.id,
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('🎖️ Verified Carrier Badge awarded to ${u.name}!'),
@@ -502,11 +659,39 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 ),
               ),
+
+              // 4. Suspend Account
               OutlinedButton.icon(
                 onPressed: () {
-                  setState(() => u.status = isSuspended ? 'Active' : 'Suspended');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${u.name} status updated to ${u.status}.'), backgroundColor: red),
+                  final allowed = RateLimiterService.instance.checkAndRecord(
+                    RateLimitCategory.adminActions,
+                    onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                  );
+                  if (!allowed) return;
+
+                  _showActionConfirmationDialog(
+                    title: isSuspended ? 'Reactivate User Account' : 'Suspend User Account',
+                    message: isSuspended
+                        ? 'Reactivate account access for ${u.name}? They will be permitted to log in.'
+                        : 'Suspend account access for ${u.name}? Active sessions will be terminated.',
+                    confirmLabel: isSuspended ? 'Reactivate' : 'Suspend Account',
+                    confirmColor: isSuspended ? green : red,
+                    icon: Icons.person_remove_outlined,
+                    onConfirmed: () {
+                      setState(() => u.status = isSuspended ? 'Active' : 'Suspended');
+                      SupabaseService.instance.logActivity(
+                        userName: u.name,
+                        userId: u.id,
+                        userRole: u.role.label,
+                        actionTitle: isSuspended ? '👤 User Reactivated' : '🚫 User Suspended',
+                        actionDescription: 'Admin updated standing to ${u.status} for ${u.name}.',
+                        module: 'User Access',
+                        targetResource: u.id,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${u.name} status updated to ${u.status}.'), backgroundColor: isSuspended ? green : red),
+                      );
+                    },
                   );
                 },
                 icon: const Icon(Icons.person_remove_outlined, size: 13),
@@ -518,10 +703,83 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 ),
               ),
+
+              // 5. Delete Account (Red Solid Outline)
               OutlinedButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Session reset for ${u.name}.'), backgroundColor: orange),
+                  final allowed = RateLimiterService.instance.checkAndRecord(
+                    RateLimitCategory.adminActions,
+                    onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                  );
+                  if (!allowed) return;
+
+                  _showActionConfirmationDialog(
+                    title: '⚠️ Permanently Delete Account',
+                    message: 'CRITICAL: Permanently purge ${u.name} (${u.email})? This action CANNOT be undone.',
+                    confirmLabel: 'Permanently Delete',
+                    confirmColor: red,
+                    icon: Icons.delete_forever_rounded,
+                    onConfirmed: () {
+                      final deletedName = u.name;
+                      final deletedId = u.id;
+                      setState(() {
+                        _demoUsers.removeWhere((item) => item.id == deletedId);
+                        _createdLiveUsers.removeWhere((item) => item.id == deletedId);
+                      });
+                      SupabaseService.instance.logActivity(
+                        userName: deletedName,
+                        userId: deletedId,
+                        userRole: u.role.label,
+                        actionTitle: '🗑️ User Account Permanently Deleted',
+                        actionDescription: 'Super Admin executed permanent account purge for $deletedName ($deletedId).',
+                        module: 'User Management',
+                        targetResource: deletedId,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Account for $deletedName has been permanently deleted.'), backgroundColor: red),
+                      );
+                    },
+                  );
+                },
+                icon: const Icon(Icons.delete_outline, size: 13),
+                label: const Text('Delete Account', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: red,
+                  side: const BorderSide(color: red),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                ),
+              ),
+
+              // 6. Reset Session
+              OutlinedButton.icon(
+                onPressed: () {
+                  final allowed = RateLimiterService.instance.checkAndRecord(
+                    RateLimitCategory.adminActions,
+                    onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                  );
+                  if (!allowed) return;
+
+                  _showActionConfirmationDialog(
+                    title: 'Invalidate Active Sessions',
+                    message: 'Invalidate all active session tokens and force immediate logout for ${u.name}?',
+                    confirmLabel: 'Reset Session',
+                    confirmColor: orange,
+                    icon: Icons.key_outlined,
+                    onConfirmed: () {
+                      SupabaseService.instance.logActivity(
+                        userName: u.name,
+                        userId: u.id,
+                        userRole: u.role.label,
+                        actionTitle: '🗝️ User Session Invalidated',
+                        actionDescription: 'Session reset executed for ${u.name}.',
+                        module: 'Session Security',
+                        targetResource: u.id,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Session reset for ${u.name}. Forced logout initiated.'), backgroundColor: orange),
+                      );
+                    },
                   );
                 },
                 icon: const Icon(Icons.key_outlined, size: 13),

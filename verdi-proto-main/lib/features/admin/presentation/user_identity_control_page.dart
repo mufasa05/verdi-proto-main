@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/services/rate_limiter_service.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../state/app_state.dart';
 import '../../auth/state/auth_state.dart';
 
@@ -184,6 +186,71 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _showActionConfirmationDialog({
+    required String title,
+    required String message,
+    required String confirmLabel,
+    required Color confirmColor,
+    required IconData icon,
+    required VoidCallback onConfirmed,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: cardDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: cardBorder),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: confirmColor.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: confirmColor, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(color: textMuted, fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onConfirmed();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: confirmColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(confirmLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showElevateRoleModal(Map<String, dynamic> user) {
@@ -468,7 +535,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                     ),
                     const SizedBox(height: 14),
 
-                    // 4 Direct Action Buttons matching Picture 5 100%
+                    // 6 Direct Action Buttons with Real Logic & Safety Confirmation Modals
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -476,10 +543,50 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                         // 1. Verify KYC (Green Outline)
                         OutlinedButton.icon(
                           onPressed: () {
-                            setState(() => u['kyc'] = isVerified ? 'PENDING' : 'VERIFIED');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('KYC status updated to ${u['kyc']} for ${u['name']}.'), backgroundColor: accentGreen),
+                            final allowed = RateLimiterService.instance.checkAndRecord(
+                              RateLimitCategory.adminActions,
+                              onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
                             );
+                            if (!allowed) return;
+
+                            if (isVerified) {
+                              _showActionConfirmationDialog(
+                                title: 'Revoke KYC Verification',
+                                message: 'Are you sure you want to revoke verified compliance status for ${u['name']}? They will be downgraded to PENDING verification.',
+                                confirmLabel: 'Revoke KYC',
+                                confirmColor: accentGold,
+                                icon: Icons.warning_amber_rounded,
+                                onConfirmed: () {
+                                  setState(() => u['kyc'] = 'PENDING');
+                                  SupabaseService.instance.logActivity(
+                                    userName: u['name'],
+                                    userId: u['id'],
+                                    userRole: u['role'],
+                                    actionTitle: '⚠️ KYC Verification Revoked',
+                                    actionDescription: 'Admin downgraded compliance verification to PENDING for ${u['name']}.',
+                                    module: 'Security & KYC',
+                                    targetResource: u['id'],
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('KYC status set to PENDING for ${u['name']}.'), backgroundColor: accentGold),
+                                  );
+                                },
+                              );
+                            } else {
+                              setState(() => u['kyc'] = 'VERIFIED');
+                              SupabaseService.instance.logActivity(
+                                userName: u['name'],
+                                userId: u['id'],
+                                userRole: u['role'],
+                                actionTitle: '🛡️ KYC Verified by Super Admin',
+                                actionDescription: 'Identity documents & EUDR provenance verified for ${u['name']}.',
+                                module: 'Security & KYC',
+                                targetResource: u['id'],
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('KYC verified for ${u['name']}.'), backgroundColor: accentGreen),
+                              );
+                            }
                           },
                           icon: const Icon(Icons.verified_user_outlined, size: 14),
                           label: Text(isVerified ? 'KYC Verified' : 'Verify KYC'),
@@ -493,7 +600,14 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
 
                         // 2. Elevate Role (Blue Outline)
                         OutlinedButton.icon(
-                          onPressed: () => _showElevateRoleModal(u),
+                          onPressed: () {
+                            final allowed = RateLimiterService.instance.checkAndRecord(
+                              RateLimitCategory.adminActions,
+                              onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                            );
+                            if (!allowed) return;
+                            _showElevateRoleModal(u);
+                          },
                           icon: const Icon(Icons.vpn_key_outlined, size: 14),
                           label: const Text('Elevate Role'),
                           style: OutlinedButton.styleFrom(
@@ -504,20 +618,57 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                           ),
                         ),
 
-                        // 2b. Direct Award Carrier Badge (Amber Outline)
+                        // 3. Award / Revoke Badge (Amber Outline)
                         OutlinedButton.icon(
                           onPressed: () {
-                            final currentBadge = u['carrierBadge'] ?? true;
-                            setState(() => u['carrierBadge'] = !currentBadge);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(!currentBadge ? '🎖️ Sovereign Verified Carrier Badge awarded to ${u['name']}!' : 'Carrier badge revoked for ${u['name']}.'),
-                                backgroundColor: const Color(0xFFFF9F1C),
-                              ),
+                            final allowed = RateLimiterService.instance.checkAndRecord(
+                              RateLimitCategory.adminActions,
+                              onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
                             );
+                            if (!allowed) return;
+
+                            final currentBadge = u['carrierBadge'] ?? true;
+                            if (currentBadge) {
+                              _showActionConfirmationDialog(
+                                title: 'Revoke Sovereign Badge',
+                                message: 'Revoke Sovereign Verified status for ${u['name']}? They will no longer qualify for automated smart escrow payouts.',
+                                confirmLabel: 'Revoke Badge',
+                                confirmColor: accentGold,
+                                icon: Icons.military_tech_outlined,
+                                onConfirmed: () {
+                                  setState(() => u['carrierBadge'] = false);
+                                  SupabaseService.instance.logActivity(
+                                    userName: u['name'],
+                                    userId: u['id'],
+                                    userRole: u['role'],
+                                    actionTitle: '🎖️ Sovereign Carrier Badge Revoked',
+                                    actionDescription: 'Badge revoked by Admin for ${u['name']}.',
+                                    module: 'Admin Control',
+                                    targetResource: u['id'],
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Sovereign badge revoked for ${u['name']}.'), backgroundColor: accentGold),
+                                  );
+                                },
+                              );
+                            } else {
+                              setState(() => u['carrierBadge'] = true);
+                              SupabaseService.instance.logActivity(
+                                userName: u['name'],
+                                userId: u['id'],
+                                userRole: u['role'],
+                                actionTitle: '🎖️ Sovereign Verified Badge Awarded',
+                                actionDescription: 'Awarded sovereign carrier/trader badge to ${u['name']}.',
+                                module: 'Admin Control',
+                                targetResource: u['id'],
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('🎖️ Sovereign Verified Badge awarded to ${u['name']}!'), backgroundColor: const Color(0xFFFF9F1C)),
+                              );
+                            }
                           },
                           icon: const Icon(Icons.military_tech_outlined, size: 14),
-                          label: Text(u['carrierBadge'] == false ? 'Award Carrier Badge' : '🎖️ Verified Carrier'),
+                          label: Text(u['carrierBadge'] == false ? 'Award Badge' : '🎖️ Verified Badge'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFFFF9F1C),
                             side: const BorderSide(color: Color(0xFFFF9F1C)),
@@ -526,16 +677,45 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                           ),
                         ),
 
-                        // 3. Suspend Account (Red Outline)
+                        // 4. Suspend / Reactivate Account (Red Outline)
                         OutlinedButton.icon(
                           onPressed: () {
-                            setState(() => u['status'] = isSuspended ? 'ACTIVE' : 'SUSPENDED');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${u['name']} account status set to ${u['status']}.'), backgroundColor: accentDanger),
+                            final allowed = RateLimiterService.instance.checkAndRecord(
+                              RateLimitCategory.adminActions,
+                              onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                            );
+                            if (!allowed) return;
+
+                            _showActionConfirmationDialog(
+                              title: isSuspended ? 'Reactivate User Account' : 'Suspend User Account',
+                              message: isSuspended
+                                  ? 'Reactivate account for ${u['name']}? They will be granted permission to log in and conduct platform operations.'
+                                  : 'Are you sure you want to suspend account access for ${u['name']}? All active sessions will be terminated and login access will be blocked.',
+                              confirmLabel: isSuspended ? 'Reactivate' : 'Suspend Account',
+                              confirmColor: isSuspended ? accentGreen : accentDanger,
+                              icon: Icons.person_remove_outlined,
+                              onConfirmed: () {
+                                setState(() => u['status'] = isSuspended ? 'ACTIVE' : 'SUSPENDED');
+                                SupabaseService.instance.logActivity(
+                                  userName: u['name'],
+                                  userId: u['id'],
+                                  userRole: u['role'],
+                                  actionTitle: isSuspended ? '👤 User Account Reactivated' : '🚫 User Account Suspended',
+                                  actionDescription: 'Admin changed account standing to ${u['status']} for ${u['name']}.',
+                                  module: 'Security & Access',
+                                  targetResource: u['id'],
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${u['name']} account status set to ${u['status']}.'),
+                                    backgroundColor: isSuspended ? accentGreen : accentDanger,
+                                  ),
+                                );
+                              },
                             );
                           },
                           icon: const Icon(Icons.person_remove_outlined, size: 14),
-                          label: Text(isSuspended ? 'Reactivate User' : 'Suspend Account'),
+                          label: Text(isSuspended ? 'Reactivate' : 'Suspend Account'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: accentDanger,
                             side: const BorderSide(color: accentDanger),
@@ -544,11 +724,84 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                           ),
                         ),
 
-                        // 4. Reset Session (Gold Outline)
+                        // 5. Delete Account (Red Solid Outline)
                         OutlinedButton.icon(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Session tokens invalidated for ${u['name']}.'), backgroundColor: accentGold),
+                            final allowed = RateLimiterService.instance.checkAndRecord(
+                              RateLimitCategory.adminActions,
+                              onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                            );
+                            if (!allowed) return;
+
+                            _showActionConfirmationDialog(
+                              title: '⚠️ Permanently Delete User Account',
+                              message: 'CRITICAL ACTION: Are you sure you want to permanently delete ${u['name']} (${u['email']})? All KYC documents, trade history, active orders, and authentication credentials will be purged. This action CANNOT be undone.',
+                              confirmLabel: 'Permanently Delete',
+                              confirmColor: accentDanger,
+                              icon: Icons.delete_forever_rounded,
+                              onConfirmed: () {
+                                final deletedUserName = u['name'];
+                                final deletedUserId = u['id'];
+                                setState(() {
+                                  _userDatabase.removeWhere((item) => item['id'] == deletedUserId);
+                                });
+                                SupabaseService.instance.logActivity(
+                                  userName: deletedUserName,
+                                  userId: deletedUserId,
+                                  userRole: u['role'] ?? 'User',
+                                  actionTitle: '🗑️ User Account Permanently Deleted',
+                                  actionDescription: 'Super Admin executed permanent account purge for $deletedUserName ($deletedUserId).',
+                                  module: 'Security & Access',
+                                  targetResource: deletedUserId,
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Account for $deletedUserName has been permanently deleted.'),
+                                    backgroundColor: accentDanger,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          icon: const Icon(Icons.delete_outline, size: 14),
+                          label: const Text('Delete Account'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: accentDanger,
+                            side: const BorderSide(color: accentDanger),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          ),
+                        ),
+
+                        // 6. Reset Session (Gold Outline)
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            final allowed = RateLimiterService.instance.checkAndRecord(
+                              RateLimitCategory.adminActions,
+                              onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.adminActions, s),
+                            );
+                            if (!allowed) return;
+
+                            _showActionConfirmationDialog(
+                              title: 'Invalidate Active Sessions',
+                              message: 'Force device logout and invalidate all active JWT bearer tokens for ${u['name']}? They will be required to re-authenticate with their credentials.',
+                              confirmLabel: 'Reset Session',
+                              confirmColor: accentGold,
+                              icon: Icons.key_outlined,
+                              onConfirmed: () {
+                                SupabaseService.instance.logActivity(
+                                  userName: u['name'],
+                                  userId: u['id'],
+                                  userRole: u['role'],
+                                  actionTitle: '🗝️ User Session Tokens Invalidated',
+                                  actionDescription: 'Admin invalidated active auth sessions for ${u['name']}.',
+                                  module: 'Security & Sessions',
+                                  targetResource: u['id'],
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Session tokens invalidated for ${u['name']}. Forced logout initiated.'), backgroundColor: accentGold),
+                                );
+                              },
                             );
                           },
                           icon: const Icon(Icons.key_outlined, size: 14),

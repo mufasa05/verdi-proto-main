@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/services/rate_limiter_service.dart';
 import 'models/assistant_models.dart';
 import 'providers/assistant_provider.dart';
 import 'widgets/assistant_source_panel.dart';
@@ -35,6 +36,13 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
   void _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+
+    final allowed = RateLimiterService.instance.checkAndRecord(
+      RateLimitCategory.aiAssistant,
+      onRateLimited: (s) => RateLimiterService.instance.showRateLimitToast(context, RateLimitCategory.aiAssistant, s),
+    );
+    if (!allowed) return;
+
     _controller.clear();
     await context.read<AssistantProvider>().sendMessage(text);
     _scrollToBottom();
