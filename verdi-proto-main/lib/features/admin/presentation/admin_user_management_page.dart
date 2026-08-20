@@ -392,6 +392,7 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
   Widget _buildUserCard(UserItem u) {
     final statusBg = u.status == 'Active' ? green.withOpacity(0.1) : (u.status == 'Pending' ? orange.withOpacity(0.1) : red.withOpacity(0.1));
     final statusColor = u.status == 'Active' ? green : (u.status == 'Pending' ? orange : red);
+    final isSuspended = u.status == 'Suspended';
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -400,43 +401,121 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
         borderRadius: BorderRadius.circular(14),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            backgroundColor: blue.withOpacity(0.12),
-            foregroundColor: blue,
-            child: Text(
-              u.name.split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join(),
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(u.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: dark)),
-                const SizedBox(height: 2),
-                Text('${u.email} • ${u.id}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
-                const SizedBox(height: 4),
-                Row(
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: blue.withOpacity(0.12),
+                foregroundColor: blue,
+                child: Text(
+                  u.name.split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: cream, borderRadius: BorderRadius.circular(4)),
-                      child: Text(u.role.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: dark)),
+                    Text(u.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: dark)),
+                    const SizedBox(height: 2),
+                    Text('${u.email} • ${u.id}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: cream, borderRadius: BorderRadius.circular(4)),
+                          child: Text(u.role.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: dark)),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(u.location, style: const TextStyle(fontSize: 10, color: Colors.black54)),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    Text(u.location, style: const TextStyle(fontSize: 10, color: Colors.black54)),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8)),
+                child: Text(u.status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8)),
-            child: Text(u.status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+
+          // 4 Action Buttons
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('KYC verification confirmed for ${u.name}.'), backgroundColor: green),
+                  );
+                },
+                icon: const Icon(Icons.verified_user_outlined, size: 13),
+                label: const Text('Verify KYC', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: green,
+                  side: const BorderSide(color: green),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() => u.role = UserRole.admin);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Elevated ${u.name} role to Administrator.'), backgroundColor: blue),
+                  );
+                },
+                icon: const Icon(Icons.vpn_key_outlined, size: 13),
+                label: const Text('Elevate Role', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: blue,
+                  side: const BorderSide(color: blue),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() => u.status = isSuspended ? 'Active' : 'Suspended');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${u.name} status updated to ${u.status}.'), backgroundColor: red),
+                  );
+                },
+                icon: const Icon(Icons.person_remove_outlined, size: 13),
+                label: Text(isSuspended ? 'Reactivate' : 'Suspend Account', style: const TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: red,
+                  side: const BorderSide(color: red),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Session reset for ${u.name}.'), backgroundColor: orange),
+                  );
+                },
+                icon: const Icon(Icons.key_outlined, size: 13),
+                label: const Text('Reset Session', style: TextStyle(fontSize: 11)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: orange,
+                  side: const BorderSide(color: orange),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                ),
+              ),
+            ],
           ),
         ],
       ),
