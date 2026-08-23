@@ -156,8 +156,9 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     final allOrdersRaw = ref.watch(ordersListProvider);
     final activeFilters = isTransporter ? _transporterFilters : _filters;
 
+    final isDemo = ref.watch(isDemoModeProvider);
     final List<OrderItem> allOrders;
-    if (currentRole == UserRole.admin || isTransporter) {
+    if (currentRole == UserRole.admin || isTransporter || isDemo) {
       allOrders = allOrdersRaw;
     } else {
       allOrders = allOrdersRaw.where((order) {
