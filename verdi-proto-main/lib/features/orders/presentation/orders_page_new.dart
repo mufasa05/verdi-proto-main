@@ -196,6 +196,8 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 1100;
 
+    final isEndUserCustomer = (currentRole == UserRole.buyer && ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer) || currentRole == UserRole.consumer;
+
     final stats = isTransporter
         ? [
             _StatData('Active Freight Hauls', orders.length.toString(), Icons.local_shipping_outlined, '4 live routes', const Color(0xFF2563EB)),
@@ -207,16 +209,27 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
             _StatData('Escrow Payout Due', 'US\$ ${_unpaidValue(orders)}', Icons.account_balance_wallet_outlined, 'Guaranteed escrow', Colors.deepOrange),
             _StatData('Dispatch SLA Score', '${_slaScore(orders)}%', Icons.speed_outlined, 'Top carrier tier', Colors.green),
           ]
-        : [
-            _StatData('Total orders', orders.length.toString(), Icons.receipt_long_outlined, '+12% this week', const Color(0xFF10B981)),
-            _StatData('Pending approval', orders.where((order) => order.status == 'Pending').length.toString(), Icons.pending_actions_outlined, 'Action required', Colors.amber),
-            _StatData('In transit', orders.where((order) => order.status == 'In Transit').length.toString(), Icons.delivery_dining_outlined, 'Active corridors', Colors.blue),
-            _StatData('Delivered today', orders.where((order) => order.status == 'Delivered').length.toString(), Icons.check_circle_outline, '100% on time', Colors.teal),
-            _StatData('Revenue', 'US\$ ${_revenueValue(orders)}', Icons.payments_outlined, 'Gross volume', Colors.indigo),
-            _StatData('At-risk orders', orders.where((order) => _riskLevel(order) == 'High').length.toString(), Icons.warning_amber_rounded, 'Requires review', Colors.red),
-            _StatData('Unpaid value', 'US\$ ${_unpaidValue(orders)}', Icons.account_balance_wallet_outlined, 'Pending escrow', Colors.deepOrange),
-            _StatData('Fulfillment SLA', '${_slaScore(orders)}%', Icons.speed_outlined, 'High SLA score', Colors.green),
-          ];
+        : (isEndUserCustomer
+            ? [
+                _StatData('My Grocery Orders', orders.length.toString(), Icons.shopping_basket_outlined, 'All household orders', const Color(0xFF10B981)),
+                _StatData('Harvest Packing', orders.where((order) => order.status == 'Pending' || order.status == 'Confirmed').length.toString(), Icons.hourglass_top_outlined, 'Preparing fresh harvest', Colors.amber),
+                _StatData('Out for Delivery', orders.where((order) => order.status == 'In Transit').length.toString(), Icons.delivery_dining_outlined, 'InDrive Courier en route', Colors.blue),
+                _StatData('Delivered to Door', orders.where((order) => order.status == 'Delivered').length.toString(), Icons.check_circle_outline, '100% fulfilled', Colors.teal),
+                _StatData('Total Spend', 'US\$ ${_revenueValue(orders)}', Icons.payments_outlined, 'Household grocery spend', Colors.indigo),
+                _StatData('Direct Savings', 'US\$ ${(double.tryParse(_revenueValue(orders).replaceAll(',', '')) ?? 0.0 * 0.25).toStringAsFixed(2)}', Icons.savings_outlined, 'Saved vs supermarket', Colors.green),
+                _StatData('Protected in Escrow', 'US\$ ${_unpaidValue(orders)}', Icons.lock_clock_outlined, 'Auto-refund protection', Colors.deepOrange),
+                _StatData('Freshness Rating', '5.0 ★', Icons.eco_outlined, 'Harvested <24h ago', Colors.green),
+              ]
+            : [
+                _StatData('Total orders', orders.length.toString(), Icons.receipt_long_outlined, '+12% this week', const Color(0xFF10B981)),
+                _StatData('Pending approval', orders.where((order) => order.status == 'Pending').length.toString(), Icons.pending_actions_outlined, 'Action required', Colors.amber),
+                _StatData('In transit', orders.where((order) => order.status == 'In Transit').length.toString(), Icons.delivery_dining_outlined, 'Active corridors', Colors.blue),
+                _StatData('Delivered today', orders.where((order) => order.status == 'Delivered').length.toString(), Icons.check_circle_outline, '100% on time', Colors.teal),
+                _StatData('Revenue', 'US\$ ${_revenueValue(orders)}', Icons.payments_outlined, 'Gross volume', Colors.indigo),
+                _StatData('At-risk orders', orders.where((order) => _riskLevel(order) == 'High').length.toString(), Icons.warning_amber_rounded, 'Requires review', Colors.red),
+                _StatData('Unpaid value', 'US\$ ${_unpaidValue(orders)}', Icons.account_balance_wallet_outlined, 'Pending escrow', Colors.deepOrange),
+                _StatData('Fulfillment SLA', '${_slaScore(orders)}%', Icons.speed_outlined, 'High SLA score', Colors.green),
+              ]);
 
     return Scaffold(
       backgroundColor: bgLight,

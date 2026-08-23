@@ -5,6 +5,75 @@ import '../../../state/platform_data_state.dart';
 import '../../../state/app_state.dart';
 import '../../analytics/data/analytics_export_service.dart';
 
+class _PaymentRoleTab {
+  final int id;
+  final String label;
+  final IconData icon;
+  const _PaymentRoleTab(this.id, this.label, this.icon);
+}
+
+List<_PaymentRoleTab> _getTabsForRole(UserRole role, BuyerSubRole buyerSubRole) {
+  final isEndUser = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
+  final isB2BWholesaler = role == UserRole.buyer && !isEndUser;
+
+  if (isEndUser) {
+    return const [
+      _PaymentRoleTab(0, '🛒 Grocery Orders & Receipts', Icons.receipt_long_outlined),
+      _PaymentRoleTab(1, '📱 Mobile Wallets & Cards', Icons.phone_android_outlined),
+      _PaymentRoleTab(2, '🛵 InDrive Delivery Pooling & Tips', Icons.local_shipping_outlined),
+    ];
+  }
+
+  if (isB2BWholesaler) {
+    return const [
+      _PaymentRoleTab(0, '🏢 Multi-Stage Escrow Vault', Icons.account_balance_wallet_outlined),
+      _PaymentRoleTab(1, '🏦 SADC RTGS & Bank Wire Gateway', Icons.account_balance_outlined),
+      _PaymentRoleTab(2, '📑 Working Capital & Trade Credit', Icons.security_outlined),
+      _PaymentRoleTab(3, '⚡ Volume Discount & Fee Engine', Icons.calculate_outlined),
+    ];
+  }
+
+  switch (role) {
+    case UserRole.farmer:
+      return const [
+        _PaymentRoleTab(0, '🌾 Harvest Payouts & Escrow', Icons.agriculture_outlined),
+        _PaymentRoleTab(1, '📱 Instant Mobile Cashout', Icons.phone_android_outlined),
+        _PaymentRoleTab(2, '🌱 Input Loan Repayments', Icons.spa_outlined),
+      ];
+
+    case UserRole.transporter:
+      return const [
+        _PaymentRoleTab(0, '🚛 Freight Waybill Settlements', Icons.local_shipping_outlined),
+        _PaymentRoleTab(1, '⛽ Fuel & Tollgate Fleet Card', Icons.local_gas_station_outlined),
+        _PaymentRoleTab(2, '⚡ Tariff & Demurrage Calculator', Icons.calculate_outlined),
+      ];
+
+    case UserRole.financier:
+      return const [
+        _PaymentRoleTab(0, '📊 Loan Tranche Disbursements', Icons.account_balance_wallet_outlined),
+        _PaymentRoleTab(1, '🛡️ Portfolio Credit Risk Radar', Icons.security_outlined),
+        _PaymentRoleTab(2, '⚡ Structured Loan Yield Engine', Icons.calculate_outlined),
+      ];
+
+    case UserRole.valueAdder:
+      return const [
+        _PaymentRoleTab(0, '🏭 Raw Intake Settlements', Icons.factory_outlined),
+        _PaymentRoleTab(1, '🏦 Working Capital Credit Line', Icons.account_balance_outlined),
+        _PaymentRoleTab(2, '🧾 Wholesale Sales Invoices', Icons.receipt_long_outlined),
+      ];
+
+    case UserRole.admin:
+    case UserRole.government:
+    default:
+      return const [
+        _PaymentRoleTab(0, '🌐 Sovereign Escrow & Settlements', Icons.account_balance_wallet_outlined),
+        _PaymentRoleTab(1, '📱 Gateway Telemetry & Health', Icons.phone_android_outlined),
+        _PaymentRoleTab(2, '🛡️ AML & Credit Risk Radar', Icons.security_outlined),
+        _PaymentRoleTab(3, '⚡ Platform Fee & Treasury Vault', Icons.calculate_outlined),
+      ];
+  }
+}
+
 class PaymentsPage extends ConsumerStatefulWidget {
   const PaymentsPage({super.key});
 
@@ -159,6 +228,16 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             ),
     );
 
+    final currentRole = ref.watch(appStateProvider).role;
+    final buyerSubRole = ref.watch(appStateProvider).buyerSubRole;
+    final isEndUser = (currentRole == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || currentRole == UserRole.consumer;
+    final isB2BWholesaler = currentRole == UserRole.buyer && !isEndUser;
+
+    final roleTabs = _getTabsForRole(currentRole, buyerSubRole);
+    if (_activeTab >= roleTabs.length) {
+      _activeTab = 0;
+    }
+
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 1100;
 
@@ -168,7 +247,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
         child: Column(
           children: [
             // ─────────────────────────────────────────────────────────────────
-            // Live Settlement Ticker Pulse Bar
+            // Live Settlement Ticker Pulse Bar (Tailored Per Role)
             // ─────────────────────────────────────────────────────────────────
             Container(
               width: double.infinity,
@@ -181,13 +260,11 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                     Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF22C55E))),
                     const SizedBox(width: 8),
                     Text(
-                      'FINANCIAL ESCROW PULSE: ',
+                      isEndUser ? 'GROCERY PAYMENT PULSE: ' : (isB2BWholesaler ? 'COMMERCIAL ESCROW PULSE: ' : 'FINANCIAL ESCROW PULSE: '),
                       style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E), letterSpacing: 1.0),
                     ),
                     Text(
-                      ref.watch(isDemoModeProvider)
-                          ? 'Total Vault Escrow Lock: \$1,428,500.00 • EcoCash / OneMoney Gateway: 99.98% Success • SADC RTGS Settlement: Active • ZiG/USD Rate: 13.85 • Compliance Violations: 0'
-                          : 'Total Vault Escrow Lock: \$0.00 • EcoCash / OneMoney Gateway: Operational • SADC RTGS Settlement: Active • ZiG/USD Rate: 13.85 • Compliance Violations: 0',
+                      _getTickerText(currentRole, isEndUser, isB2BWholesaler, ref.watch(isDemoModeProvider)),
                       style: GoogleFonts.inter(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -196,7 +273,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             ),
 
             // ─────────────────────────────────────────────────────────────────
-            // Financial Tab Navigation
+            // Role-Tailored Financial Tab Navigation
             // ─────────────────────────────────────────────────────────────────
             Container(
               color: Colors.white,
@@ -205,13 +282,10 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildTabChip(0, '💳 Escrow & Trade Settlements', Icons.account_balance_wallet_outlined),
-                    const SizedBox(width: 8),
-                    _buildTabChip(1, '📱 Mobile Wallet & Gateways', Icons.phone_android_outlined),
-                    const SizedBox(width: 8),
-                    _buildTabChip(2, '🛡️ Credit Risk & Financing Radar', Icons.security_outlined),
-                    const SizedBox(width: 8),
-                    _buildTabChip(3, '⚡ Escrow Yield & Fee Calculator', Icons.calculate_outlined),
+                    for (int i = 0; i < roleTabs.length; i++) ...[
+                      _buildTabChip(i, roleTabs[i].label, roleTabs[i].icon),
+                      if (i != roleTabs.length - 1) const SizedBox(width: 8),
+                    ],
                   ],
                 ),
               ),
@@ -219,7 +293,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             const Divider(height: 1),
 
             // ─────────────────────────────────────────────────────────────────
-            // Tab Content
+            // Tab Content (Dynamic based on selected role tab)
             // ─────────────────────────────────────────────────────────────────
             Expanded(
               child: Align(
@@ -231,10 +305,16 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_activeTab == 0) _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments),
-                        if (_activeTab == 1) _buildMobileGatewayTab(),
-                        if (_activeTab == 2) _buildCreditRadarTab(),
-                        if (_activeTab == 3) _buildYieldCalculatorTab(),
+                        _buildDynamicTabContent(
+                          tabIndex: _activeTab,
+                          role: currentRole,
+                          isEndUser: isEndUser,
+                          isB2BWholesaler: isB2BWholesaler,
+                          payments: payments,
+                          selectedPayment: selectedPayment,
+                          isDesktop: isDesktop,
+                          allPayments: allPayments,
+                        ),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -246,6 +326,81 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
         ),
       ),
     );
+  }
+
+  String _getTickerText(UserRole role, bool isEndUser, bool isB2BWholesaler, bool isDemo) {
+    if (isEndUser) {
+      return 'EcoCash / OneMoney / InnBucks: Operational • Average Delivery Tip: \$1.50 • Local SADC Currency Rate: 13.85 • 100% Secure Checkout';
+    }
+    if (isB2BWholesaler) {
+      return isDemo
+          ? '3-Stage Commercial Escrow Vault: Active • SADC RTGS Bank Wire: Online • Inspection Clearance: 99.4% • Currency Index: 13.85'
+          : '3-Stage Commercial Escrow Vault: Active • SADC RTGS Bank Wire: Online • Inspection Clearance: 100% • Currency Index: 13.85';
+    }
+    return isDemo
+        ? 'Total Vault Escrow Lock: \$1,428,500.00 • Gateway Success: 99.98% • SADC RTGS: Active • ZiG/USD Rate: 13.85'
+        : 'Total Vault Escrow Lock: \$0.00 • EcoCash / OneMoney: Operational • SADC RTGS: Active • ZiG/USD Rate: 13.85';
+  }
+
+  Widget _buildDynamicTabContent({
+    required int tabIndex,
+    required UserRole role,
+    required bool isEndUser,
+    required bool isB2BWholesaler,
+    required List<PaymentItem> payments,
+    required PaymentItem selectedPayment,
+    required bool isDesktop,
+    required List<PaymentItem> allPayments,
+  }) {
+    if (isEndUser) {
+      if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+      if (tabIndex == 1) return _buildMobileGatewayTab();
+      if (tabIndex == 2) return _buildInDriveDeliveryTipsTab();
+      return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+    }
+
+    if (isB2BWholesaler) {
+      if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+      if (tabIndex == 1) return _buildBankWireGatewayTab();
+      if (tabIndex == 2) return _buildCreditRadarTab();
+      if (tabIndex == 3) return _buildYieldCalculatorTab();
+      return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+    }
+
+    switch (role) {
+      case UserRole.farmer:
+        if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+        if (tabIndex == 1) return _buildMobileGatewayTab();
+        if (tabIndex == 2) return _buildInputLoanTab();
+        return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+
+      case UserRole.transporter:
+        if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+        if (tabIndex == 1) return _buildFuelCardTab();
+        if (tabIndex == 2) return _buildYieldCalculatorTab();
+        return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+
+      case UserRole.financier:
+        if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+        if (tabIndex == 1) return _buildCreditRadarTab();
+        if (tabIndex == 2) return _buildYieldCalculatorTab();
+        return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+
+      case UserRole.valueAdder:
+        if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+        if (tabIndex == 1) return _buildCreditRadarTab();
+        if (tabIndex == 2) return _buildBankWireGatewayTab();
+        return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+
+      case UserRole.admin:
+      case UserRole.government:
+      default:
+        if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+        if (tabIndex == 1) return _buildMobileGatewayTab();
+        if (tabIndex == 2) return _buildCreditRadarTab();
+        if (tabIndex == 3) return _buildYieldCalculatorTab();
+        return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+    }
   }
 
   Widget _buildTabChip(int index, String label, IconData icon) {
@@ -679,9 +834,272 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
       ],
     );
   }
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB: INDRIVE SHARED LOGISTICS & DRIVER TIPS (END-USER CONSUMER)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildInDriveDeliveryTipsTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('InDrive Shared Delivery & Driver Tips', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+        Text('Track your delivery cost savings from neighborhood vehicle pooling and manage driver tips.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
+        const SizedBox(height: 16),
+
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF065F46), Color(0xFF047857)]),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('NEIGHBORHOOD POOLING SAVINGS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white70, letterSpacing: 1.0)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('ZONE SAVINGS ACTIVE', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Text('\$18.50 Saved', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text('You shared InDrive delivery routes on 4 orders this month, cutting direct courier fees from \$6.00 to \$2.00 per drop.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('RECENT DELIVERY COURIER TIPS & RECEIPTS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
+              const SizedBox(height: 14),
+              _deliveryTipRow('Order #ORD-7741 (Fresh Vegetables)', 'Driver: Tinashe M. (InDrive)', '\$2.00 Tip Paid', 'Delivered • 2h ago'),
+              const Divider(),
+              _deliveryTipRow('Order #ORD-6629 (Dairy & Free-Range Eggs)', 'Driver: Kelvin D. (InDrive)', '\$1.50 Tip Paid', 'Delivered • Yesterday'),
+              const Divider(),
+              _deliveryTipRow('Order #ORD-5502 (Staple Meal)', 'Driver: Farai K. (InDrive)', '\$2.50 Tip Paid', 'Delivered • 3 days ago'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _deliveryTipRow(String title, String driver, String tip, String time) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: green.withOpacity(0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.two_wheeler_outlined, color: green, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: dark)),
+                Text('$driver • $time', style: const TextStyle(fontSize: 11, color: muted)),
+              ],
+            ),
+          ),
+          Text(tip, style: const TextStyle(fontWeight: FontWeight.w800, color: green, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB: SADC RTGS & BANK WIRE GATEWAY (B2B WHOLESALER)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildBankWireGatewayTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('SADC RTGS & Commercial Bank Wire Clearing', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+        Text('High-value commercial wire settlements, Letters of Credit (LC), and central bank clearing accounts.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
+        const SizedBox(height: 16),
+
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF1E293B)]),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('COMMERCIAL RTGS VAULT BALANCE', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white70, letterSpacing: 1.0)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('SADC RTGS LIVE', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Text('\$145,000.00 USD', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text('Linked to Stanbic Zimbabwe & First National Bank SADC Gateway for bulk grain contract settlement.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('INITIATE HIGH-VALUE COMMERCIAL WIRE / LETTER OF CREDIT', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
+              const SizedBox(height: 14),
+              ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('RTGS Commercial Settlement Batch initiated with SADC Clearing House.'), backgroundColor: green),
+                  );
+                },
+                icon: const Icon(Icons.account_balance, size: 18),
+                label: const Text('Initiate Commercial RTGS Batch (\$50k+)', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E3A8A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB: INPUT LOAN REPAYMENTS (FARMER)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildInputLoanTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Seasonal Input Financing & Loan Offsets', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+        Text('Review automatic loan deductions for certified seed, fertilizer, and agronomy services.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
+        const SizedBox(height: 16),
+
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF047857), Color(0xFF0F172A)]),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('ACTIVE INPUT CREDIT FACILITY', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white70, letterSpacing: 1.0)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: const Color(0xFF22C55E).withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('85% REPAID', style: TextStyle(color: Color(0xFF22C55E), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Text('\$420.00 Remaining', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text('Initial \$2,800.00 seed & fertilizer loan automatically deducted from delivered maize contracts.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB: FUEL & TOLLGATE FLEET CARD (TRANSPORTER)
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildFuelCardTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Fleet Diesel & Zinara Tollgate Cards', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+        Text('Manage driver fuel allowances, digital toll passes, and breakdown emergency funds.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
+        const SizedBox(height: 16),
+
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFFC2410C), Color(0xFF7C2D12)]),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('FLEET DIESEL SMART CARD POOL', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white70, letterSpacing: 1.0)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('AUTO-REPLENISH ON', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Text('\$1,850.00 Available', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text('Linked to TotalEnergies & Puma Energy filling stations along the Harare-Beira and Harare-Bulawayo corridors.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   final bool isCompact;
   final String selectedFilter;
   final List<String> filters;
@@ -697,7 +1115,38 @@ class _Header extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(appStateProvider).role;
+    final buyerSubRole = ref.watch(appStateProvider).buyerSubRole;
+    final isEndUser = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
+    final isB2BWholesaler = role == UserRole.buyer && !isEndUser;
+
+    final title = isEndUser
+        ? 'Grocery Payments & Receipts'
+        : (isB2BWholesaler
+            ? 'Commercial Sourcing & Escrow Vault'
+            : switch (role) {
+                UserRole.farmer => 'Harvest Payouts & Farmgate Cashout',
+                UserRole.transporter => 'Freight Settlements & Fleet Fuel',
+                UserRole.financier => 'Agri-Credit Portfolio & Escrow Custody',
+                UserRole.valueAdder => 'Factory Raw Intake Settlements',
+                UserRole.admin || UserRole.government => 'National Escrow & Payment Gateway Hub',
+                _ => 'Payments Command Center',
+              });
+
+    final subtitle = isEndUser
+        ? 'Track your household grocery orders, mobile money receipts, and delivery savings.'
+        : (isB2BWholesaler
+            ? 'Manage multi-stage contract escrow, outgrower disbursements, and SADC RTGS settlements.'
+            : switch (role) {
+                UserRole.farmer => 'Track direct crop payments, escrow disbursements, and mobile money cashouts.',
+                UserRole.transporter => 'Manage cargo waybill payouts, tollgate fuel cards, and driver travel disbursements.',
+                UserRole.financier => 'Monitor loan tranches, collateral liens, and credit risk repayment radar.',
+                UserRole.valueAdder => 'Manage outgrower raw commodity intake, quality grade adjustments, and wholesale billing.',
+                UserRole.admin || UserRole.government => 'Central bank RTGS settlements, processor uptime, AML risk flags, and platform treasury.',
+                _ => 'Review settlements, processor health, wallet movements, and exceptions from one workspace.',
+              });
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -718,17 +1167,17 @@ class _Header extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Payments command center',
+                      title,
                       style: GoogleFonts.inter(
-                        fontSize: isCompact ? 24 : 28,
+                        fontSize: isCompact ? 22 : 26,
                         fontWeight: FontWeight.w800,
                         color: _PaymentsPageState.dark,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Review settlements, processor health, wallet movements, and exceptions from one premium workspace.',
-                      style: GoogleFonts.inter(color: _PaymentsPageState.muted, height: 1.4),
+                      subtitle,
+                      style: GoogleFonts.inter(color: _PaymentsPageState.muted, height: 1.4, fontSize: 13),
                     ),
                   ],
                 ),
@@ -843,13 +1292,73 @@ class _StatsGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDemo = ref.watch(isDemoModeProvider);
+    final role = ref.watch(appStateProvider).role;
+    final buyerSubRole = ref.watch(appStateProvider).buyerSubRole;
+    final isEndUser = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
+    final isB2BWholesaler = role == UserRole.buyer && !isEndUser;
 
-    final cards = [
-      _StatData('Received', isDemo ? 'US\$ 674' : 'US\$ 0', Icons.payments_outlined),
-      _StatData('Pending', isDemo ? 'US\$ 258' : 'US\$ 0', Icons.hourglass_top_outlined),
-      _StatData('Payouts', isDemo ? 'US\$ 176' : 'US\$ 0', Icons.send_outlined),
-      _StatData('Escrow Lock', isDemo ? 'US\$ 4,436' : 'US\$ 0', Icons.lock_clock_outlined),
-    ];
+    final List<_StatData> cards;
+
+    if (isEndUser) {
+      cards = [
+        _StatData('Total Spent', isDemo ? 'US\$ 142.50' : 'US\$ 0.00', Icons.shopping_bag_outlined),
+        _StatData('Farm Savings', isDemo ? 'US\$ 46.80' : 'US\$ 0.00', Icons.savings_outlined),
+        _StatData('Orders', isDemo ? '3 Active' : '0 Active', Icons.receipt_long_outlined),
+        _StatData('EcoCash Wallet', isDemo ? 'US\$ 25.00' : 'US\$ 0.00', Icons.phone_android_outlined),
+      ];
+    } else if (isB2BWholesaler) {
+      cards = [
+        _StatData('Escrow Locked', isDemo ? 'US\$ 48,250' : 'US\$ 0', Icons.lock_clock_outlined),
+        _StatData('Pending Inspect', isDemo ? 'US\$ 14,000' : 'US\$ 0', Icons.hourglass_top_outlined),
+        _StatData('Cleared Payouts', isDemo ? 'US\$ 182,000' : 'US\$ 0', Icons.payments_outlined),
+        _StatData('Trade Credit Line', isDemo ? 'US\$ 100,000' : 'US\$ 0', Icons.security_outlined),
+      ];
+    } else {
+      switch (role) {
+        case UserRole.farmer:
+          cards = [
+            _StatData('Harvest Proceeds', isDemo ? 'US\$ 4,250' : 'US\$ 0', Icons.payments_outlined),
+            _StatData('In Escrow Vault', isDemo ? 'US\$ 1,800' : 'US\$ 0', Icons.lock_clock_outlined),
+            _StatData('Input Loans Deducted', isDemo ? 'US\$ 420' : 'US\$ 0', Icons.spa_outlined),
+            _StatData('Instant Cashout', isDemo ? 'US\$ 2,030' : 'US\$ 0', Icons.send_outlined),
+          ];
+          break;
+        case UserRole.transporter:
+          cards = [
+            _StatData('Freight Billed', isDemo ? 'US\$ 3,150' : 'US\$ 0', Icons.local_shipping_outlined),
+            _StatData('Pending POD Signoff', isDemo ? 'US\$ 650' : 'US\$ 0', Icons.hourglass_top_outlined),
+            _StatData('Diesel Fuel Wallet', isDemo ? 'US\$ 480' : 'US\$ 0', Icons.local_gas_station_outlined),
+            _StatData('Net Cleared', isDemo ? 'US\$ 2,020' : 'US\$ 0', Icons.payments_outlined),
+          ];
+          break;
+        case UserRole.financier:
+          cards = [
+            _StatData('Portfolio Active', isDemo ? 'US\$ 450,000' : 'US\$ 0', Icons.account_balance_outlined),
+            _StatData('Tranches Disbursed', isDemo ? 'US\$ 320,000' : 'US\$ 0', Icons.send_outlined),
+            _StatData('Collateral Locked', isDemo ? 'US\$ 130,000' : 'US\$ 0', Icons.lock_clock_outlined),
+            _StatData('Repayment Rate', isDemo ? '99.2%' : '100%', Icons.check_circle_outlined),
+          ];
+          break;
+        case UserRole.valueAdder:
+          cards = [
+            _StatData('Raw Intake Settled', isDemo ? 'US\$ 64,500' : 'US\$ 0', Icons.factory_outlined),
+            _StatData('Pending QA Cleared', isDemo ? 'US\$ 12,200' : 'US\$ 0', Icons.hourglass_top_outlined),
+            _StatData('Factory Credit Line', isDemo ? 'US\$ 85,000' : 'US\$ 0', Icons.account_balance_outlined),
+            _StatData('Wholesale Invoices', isDemo ? 'US\$ 41,000' : 'US\$ 0', Icons.receipt_long_outlined),
+          ];
+          break;
+        case UserRole.admin:
+        case UserRole.government:
+        default:
+          cards = [
+            _StatData('Total Escrow Vault', isDemo ? 'US\$ 1,428,500' : 'US\$ 0', Icons.lock_clock_outlined),
+            _StatData('Gateway Success', isDemo ? '99.98%' : '100%', Icons.phone_android_outlined),
+            _StatData('SADC RTGS Settled', isDemo ? 'US\$ 640,000' : 'US\$ 0', Icons.account_balance_outlined),
+            _StatData('Treasury Reserve', isDemo ? 'US\$ 124,000' : 'US\$ 0', Icons.payments_outlined),
+          ];
+          break;
+      }
+    }
 
     Widget buildCard(_StatData stat, {bool compact = false}) {
       final iconSize = compact ? 32.0 : 42.0;
