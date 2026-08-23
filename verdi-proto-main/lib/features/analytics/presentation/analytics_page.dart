@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:latlong2/latlong.dart' hide Path;
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../data/analytics_export_service.dart';
 import '../../../state/app_state.dart';
@@ -390,9 +392,28 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final dataset = _getDataset();
-    final realRole = ref.watch(appStateProvider).role;
+    final appState = ref.watch(appStateProvider);
+    final realRole = appState.role;
+    final buyerSubRole = appState.buyerSubRole;
     final isSuperAdmin = realRole == UserRole.admin;
     final effectiveRole = isSuperAdmin ? (_perspectiveOverride ?? UserRole.admin) : realRole;
+
+    final isB2BBuyer = effectiveRole == UserRole.buyer && buyerSubRole == BuyerSubRole.retailerWholesaler;
+    final isEndUser = (effectiveRole == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || effectiveRole == UserRole.consumer;
+
+    if (isB2BBuyer) {
+      return _B2BBuyerAnalyticsView(
+        isSuperAdmin: isSuperAdmin,
+        onPerspectiveSelected: (r) => setState(() => _perspectiveOverride = r),
+      );
+    }
+
+    if (isEndUser) {
+      return _ConsumerAnalyticsView(
+        isSuperAdmin: isSuperAdmin,
+        onPerspectiveSelected: (r) => setState(() => _perspectiveOverride = r),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AnalyticsPage.background,
@@ -1241,3 +1262,618 @@ class ProductLeaderboardItem {
   final double trend;
   ProductLeaderboardItem(this.name, this.category, this.emoji, this.sales, this.ordersCount, this.completion, this.trend);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// B2B COMMERCIAL BUYER SPATIAL ANALYTICS VIEW
+// ─────────────────────────────────────────────────────────────────────────────
+class _B2BBuyerAnalyticsView extends ConsumerStatefulWidget {
+  final bool isSuperAdmin;
+  final ValueChanged<UserRole>? onPerspectiveSelected;
+
+  const _B2BBuyerAnalyticsView({
+    required this.isSuperAdmin,
+    this.onPerspectiveSelected,
+  });
+
+  @override
+  ConsumerState<_B2BBuyerAnalyticsView> createState() => _B2BBuyerAnalyticsViewState();
+}
+
+class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> {
+  int _timeframeIdx = 0; // 0: 7D, 1: 30D, 2: 12M
+  String _selectedCorridor = 'All SADC Corridors';
+  Map<String, dynamic>? _selectedHub;
+
+  final List<Map<String, dynamic>> _supplyHubs = [
+    {
+      'id': 'HUB-MASVINGO',
+      'name': 'GMB Masvingo Grain Silos',
+      'commodity': 'White Maize (Grade A)',
+      'available': '3,200 MT Available',
+      'price': '\$290 / MT',
+      'moisture': '11.8% (Export Safe)',
+      'eudr': 'EUDR-ZIM-102 (100% Polygon Cleared)',
+      'latLng': LatLng(-20.0634, 30.8277),
+      'color': Color(0xFF16A34A),
+    },
+    {
+      'id': 'HUB-MAZOWE',
+      'name': 'Mazowe Citrus & Tomato Outgrowers',
+      'commodity': 'Salad Tomatoes & Oranges',
+      'available': '42 MT Ready for Dispatch',
+      'price': '\$1.10 / kg',
+      'moisture': 'Cold-Chain 4.2°C Ready',
+      'eudr': 'EUDR-ZIM-088 (Certified Farmgate)',
+      'latLng': LatLng(-17.5211, 30.9719),
+      'color': Color(0xFFEF4444),
+    },
+    {
+      'id': 'HUB-CHINHOYI',
+      'name': 'Chinhoyi Grain & Oilseed Syndicate',
+      'commodity': 'Soybeans & Groundnuts',
+      'available': '1,450 MT Contracted',
+      'price': '\$420 / MT',
+      'moisture': '10.5% (High Protein)',
+      'eudr': 'EUDR-ZIM-412 (Certified)',
+      'latLng': LatLng(-17.3667, 30.2000),
+      'color': Color(0xFFF59E0B),
+    },
+    {
+      'id': 'HUB-CHIPINGE',
+      'name': 'Chipinge Highland Macadamia & Avocado',
+      'commodity': 'Hass Avocados (Export Grade)',
+      'available': '85 MT Harvest Ready',
+      'price': '\$2.40 / kg',
+      'moisture': 'GlobalG.A.P. Certified',
+      'eudr': 'EUDR-EXP-992 (EU Compliant)',
+      'latLng': LatLng(-20.1931, 32.6242),
+      'color': Color(0xFF10B981),
+    },
+    {
+      'id': 'HUB-BEIRA',
+      'name': 'Beira Corridor Export Terminal',
+      'commodity': 'Port Logistics Forwarding Desk',
+      'available': 'Cross-Border Custom Clearance',
+      'price': 'Corridor Tariff: \$45 / Ton',
+      'moisture': 'Reefer Container Hold Ready',
+      'eudr': 'SADC Trade Pass Valid',
+      'latLng': LatLng(-19.8436, 34.8389),
+      'color': Color(0xFF2563EB),
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF070B12),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0F172A),
+        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('B2B Commercial Sourcing & Spatial Intelligence', style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
+            const Text('Real-Time Supply Corridors, Farmgate Arbitrage & Outgrower Intake', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+          ],
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: const Color(0xFF2563EB).withOpacity(0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF2563EB))),
+            child: const Text('B2B WHOLESALER DESK', style: TextStyle(color: Color(0xFF60A5FA), fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Timeframe & Filter Bar
+            Row(
+              children: [
+                ...['7 Days', '30 Days', '12 Months'].asMap().entries.map((e) {
+                  final isSel = _timeframeIdx == e.key;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(e.value),
+                      selected: isSel,
+                      selectedColor: const Color(0xFF2563EB),
+                      backgroundColor: const Color(0xFF0F172A),
+                      labelStyle: TextStyle(color: isSel ? Colors.white : const Color(0xFF94A3B8), fontWeight: FontWeight.bold, fontSize: 12),
+                      onSelected: (_) => setState(() => _timeframeIdx = e.key),
+                    ),
+                  );
+                }),
+                const Spacer(),
+                DropdownButton<String>(
+                  value: _selectedCorridor,
+                  dropdownColor: const Color(0xFF0F172A),
+                  style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                  items: ['All SADC Corridors', 'Harare - Beira Corridor', 'Northern Grain Belt', 'Eastern Highlands Export'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (v) {
+                    if (v != null) setState(() => _selectedCorridor = v);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // 2. B2B Commercial KPI Grid
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cols = constraints.maxWidth > 900 ? 4 : (constraints.maxWidth > 500 ? 2 : 1);
+                final width = (constraints.maxWidth - (12.0 * (cols - 1))) / cols;
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _b2bKpiCard('Sourcing Volume', '142.5 MT', '+16.5% WoW', Icons.inventory_2_outlined, const Color(0xFF10B981), width),
+                    _b2bKpiCard('Commercial Spend', 'US\$ 48,250', '-3.2% vs Spot', Icons.account_balance_wallet_outlined, const Color(0xFF3B82F6), width),
+                    _b2bKpiCard('Contract Fulfillment', '97.4%', '+1.8% Target', Icons.task_alt, const Color(0xFFF59E0B), width),
+                    _b2bKpiCard('EUDR Deforestation Score', '99.2%', 'Verified Safe', Icons.verified_outlined, const Color(0xFF8B5CF6), width),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // 3. Interactive Spatial Supply Corridor Map (FlutterMap)
+            Text('Spatial Sourcing & Outgrower Hub Telemetry', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text('Click any outgrower node or grain silo to inspect lot inventory, moisture telemetry, and contract pricing.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+            const SizedBox(height: 12),
+            Container(
+              height: 380,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                children: [
+                  FlutterMap(
+                    options: MapOptions(
+                      initialCenter: const LatLng(-18.5, 31.5),
+                      initialZoom: 6.5,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.verdi.agro',
+                      ),
+                      MarkerLayer(
+                        markers: _supplyHubs.map((hub) {
+                          final isSelected = _selectedHub?['id'] == hub['id'];
+                          return Marker(
+                            point: hub['latLng'] as LatLng,
+                            width: isSelected ? 48 : 36,
+                            height: isSelected ? 48 : 36,
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedHub = hub),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: hub['color'] as Color,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (hub['color'] as Color).withOpacity(0.6),
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(Icons.warehouse, color: Colors.white, size: 18),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+
+                  // Hub Popup Card on Map
+                  if (_selectedHub != null)
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      right: 16,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A).withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFF3B82F6)),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 12)],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(color: (_selectedHub!['color'] as Color).withOpacity(0.2), shape: BoxShape.circle),
+                              child: Icon(Icons.inventory_2, color: _selectedHub!['color'] as Color, size: 22),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(_selectedHub!['name'], style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  const SizedBox(height: 2),
+                                  Text('${_selectedHub!['commodity']} • ${_selectedHub!['available']} • Rate: ${_selectedHub!['price']}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8))),
+                                  Text('Quality: ${_selectedHub!['moisture']} • ${_selectedHub!['eudr']}', style: const TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Forward contract desk opened for ${_selectedHub!['name']}.'), backgroundColor: const Color(0xFF2563EB)),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), foregroundColor: Colors.white),
+                              child: const Text('Issue PO', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // 4. Commodity Price Arbitrage & Contract Futures
+            Text('30-Day Forward Sourcing Rate Index', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF1E293B))),
+              child: Column(
+                children: [
+                  _b2bPriceRow('🌽 White Maize (Grade A)', '\$290 / MT', 'Farmgate: \$275 / Spot Supermarket: \$325', '+3.5%'),
+                  const Divider(color: Color(0xFF1E293B)),
+                  _b2bPriceRow('🌱 Soybeans (Protein 38%)', '\$420 / MT', 'Farmgate: \$410 / Spot Supermarket: \$460', '-1.2%'),
+                  const Divider(color: Color(0xFF1E293B)),
+                  _b2bPriceRow('🍅 Grade A Salad Tomatoes', '\$1.10 / kg', 'Farmgate: \$0.95 / Spot Supermarket: \$1.60', '+8.2%'),
+                  const Divider(color: Color(0xFF1E293B)),
+                  _b2bPriceRow('🥑 Export Hass Avocados', '\$2.40 / kg', 'Farmgate: \$2.20 / Spot Export: \$3.10', '+5.0%'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _b2bKpiCard(String title, String value, String change, IconData icon, Color color, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF1E293B))),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                const SizedBox(height: 2),
+                Text(value, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(change, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _b2bPriceRow(String commodity, String price, String detail, String change) {
+    final isUp = change.startsWith('+');
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(commodity, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(detail, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(price, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(change, style: TextStyle(color: isUp ? const Color(0xFF10B981) : const Color(0xFFEF4444), fontSize: 10.5, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// END-USER / CONSUMER SPATIAL GROCERY & SAVINGS ANALYTICS VIEW
+// ─────────────────────────────────────────────────────────────────────────────
+class _ConsumerAnalyticsView extends ConsumerStatefulWidget {
+  final bool isSuperAdmin;
+  final ValueChanged<UserRole>? onPerspectiveSelected;
+
+  const _ConsumerAnalyticsView({
+    required this.isSuperAdmin,
+    this.onPerspectiveSelected,
+  });
+
+  @override
+  ConsumerState<_ConsumerAnalyticsView> createState() => _ConsumerAnalyticsViewState();
+}
+
+class _ConsumerAnalyticsViewState extends ConsumerState<_ConsumerAnalyticsView> {
+  int _selectedFilter = 0; // 0: This Month, 1: Past 3 Months
+
+  final List<Map<String, dynamic>> _nearbyFarms = [
+    {
+      'name': 'Mazowe Valley Farmgate Hub',
+      'distance': '18 km away',
+      'freshness': 'Tomatoes harvested 3h ago',
+      'savings': 'Saved \$2.80 / box vs Supermarket',
+      'latLng': LatLng(-17.5211, 30.9719),
+      'icon': Icons.eco,
+      'color': Color(0xFFEF4444),
+    },
+    {
+      'name': 'Goromonzi Hydroponics',
+      'distance': '14 km away',
+      'freshness': 'Fresh English Spinach & Herbs',
+      'savings': 'Saved \$1.40 / bunch',
+      'latLng': LatLng(-17.8200, 31.3300),
+      'icon': Icons.spa,
+      'color': Color(0xFF10B981),
+    },
+    {
+      'name': 'Marondera Sweetcorn Plots',
+      'distance': '28 km away',
+      'freshness': 'Sweet Corn harvested this morning',
+      'savings': 'Saved \$1.80 per pack',
+      'latLng': LatLng(-18.1856, 31.5519),
+      'icon': Icons.grass,
+      'color': Color(0xFFF59E0B),
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Household Grocery & Savings Analytics', style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 16, color: const Color(0xFF0F172A))),
+            const Text('Zero-Middleman Price Savings & Local Farm Proximity', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+          ],
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF10B981))),
+            child: const Text('DIRECT CONSUMER', style: TextStyle(color: Color(0xFF10B981), fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 0. Timeframe Selector
+            Row(
+              children: [
+                ...['This Month', 'Past 3 Months', 'Past 12 Months'].asMap().entries.map((e) {
+                  final isSel = _selectedFilter == e.key;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(e.value),
+                      selected: isSel,
+                      selectedColor: const Color(0xFF10B981),
+                      backgroundColor: Colors.white,
+                      labelStyle: TextStyle(color: isSel ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 12),
+                      onSelected: (_) => setState(() => _selectedFilter = e.key),
+                    ),
+                  );
+                }),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // 1. Simple, Delightful Consumer KPI Cards
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cols = constraints.maxWidth > 900 ? 4 : (constraints.maxWidth > 500 ? 2 : 1);
+                final width = (constraints.maxWidth - (12.0 * (cols - 1))) / cols;
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _consumerKpiCard('Monthly Grocery Spend', '\$142.50', '-14% vs Supermarket', Icons.shopping_basket_outlined, const Color(0xFF10B981), width),
+                    _consumerKpiCard('Direct Farmgate Savings', '\$38.20', 'Money saved in pocket', Icons.savings_outlined, const Color(0xFF3B82F6), width),
+                    _consumerKpiCard('Fresh Farm Deliveries', '8 Orders', 'Direct from growers', Icons.local_shipping_outlined, const Color(0xFFF59E0B), width),
+                    _consumerKpiCard('Avg Food Distance', '14.2 km', 'Ultra-fresh & low emissions', Icons.eco_outlined, const Color(0xFF8B5CF6), width),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // 2. Interactive Local Farm Proximity Radar Map
+            Text('Local Farm Proximity Radar', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
+            const Text('Map shows verified outgrowers within 30km supplying your kitchen direct without grocery retail markups.', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+            const SizedBox(height: 12),
+            Container(
+              height: 320,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: FlutterMap(
+                options: const MapOptions(
+                  initialCenter: LatLng(-17.8252, 31.0335), // Harare Central Home Base
+                  initialZoom: 9.5,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.verdi.agro',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      // Consumer Home Base Pin
+                      Marker(
+                        point: const LatLng(-17.8252, 31.0335),
+                        width: 44,
+                        height: 44,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8)],
+                          ),
+                          child: const Icon(Icons.home, color: Colors.white, size: 22),
+                        ),
+                      ),
+                      // Nearby Farm Markers
+                      ..._nearbyFarms.map((farm) => Marker(
+                        point: farm['latLng'] as LatLng,
+                        width: 38,
+                        height: 38,
+                        child: GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('${farm['name']} (${farm['distance']}) • ${farm['freshness']}'), backgroundColor: farm['color'] as Color),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: farm['color'] as Color,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: Icon(farm['icon'] as IconData, color: Colors.white, size: 18),
+                          ),
+                        ),
+                      )),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // 3. Grocery Category Spend & Direct Savings Breakdown
+            Text('Where Your Grocery Dollars Go & What You Save', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
+              child: Column(
+                children: [
+                  _consumerSpendRow('🍅 Fresh Tomatoes & Vegetables', '\$52.00 spend', 'Supermarket Price: \$66.00', 'Saved \$14.00 (21%)', const Color(0xFF10B981)),
+                  const Divider(color: Color(0xFFF1F5F9)),
+                  _consumerSpendRow('🥑 Avocados & Tree Fruits', '\$38.50 spend', 'Supermarket Price: \$49.70', 'Saved \$11.20 (22%)', const Color(0xFF10B981)),
+                  const Divider(color: Color(0xFFF1F5F9)),
+                  _consumerSpendRow('🥚 Farm Fresh Free-Range Eggs', '\$28.00 spend', 'Supermarket Price: \$34.50', 'Saved \$6.50 (18%)', const Color(0xFF10B981)),
+                  const Divider(color: Color(0xFFF1F5F9)),
+                  _consumerSpendRow('🍯 Pure Honey & Whole Grains', '\$24.00 spend', 'Supermarket Price: \$30.50', 'Saved \$6.50 (21%)', const Color(0xFF10B981)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _consumerKpiCard(String title, String value, String subtitle, IconData icon, Color color, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8)],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                const SizedBox(height: 2),
+                Text(value, style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
+                Text(subtitle, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _consumerSpendRow(String category, String spend, String retailComparison, String savings, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(category, style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(retailComparison, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(spend, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
+              Text(savings, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
