@@ -407,9 +407,50 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
     }
 
     if (isEndUser) {
-      return _ConsumerAnalyticsView(
-        isSuperAdmin: isSuperAdmin,
-        onPerspectiveSelected: (r) => setState(() => _perspectiveOverride = r),
+      return Scaffold(
+        backgroundColor: AnalyticsPage.background,
+        appBar: AppBar(
+          title: Text('Analytics', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AnalyticsPage.dark)),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AnalyticsPage.green.withOpacity(0.1), shape: BoxShape.circle),
+                  child: const Icon(Icons.analytics_outlined, size: 48, color: AnalyticsPage.green),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Commercial Analytics Portal',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 18, color: AnalyticsPage.dark),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Analytics tools are reserved exclusively for B2B Commercial Buyers, Producers, and Wholesalers.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 13, color: AnalyticsPage.muted),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () => ref.read(appStateProvider.notifier).setNavIndex(0),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AnalyticsPage.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Return to Store & Home', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -423,21 +464,19 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
               switch (effectiveRole) {
                 UserRole.farmer => 'Field & Yield Analytics',
                 UserRole.transporter => 'Freight & Logistics Analytics',
-                UserRole.buyer => ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer ? 'Household Grocery & Savings Analytics' : 'Supply Chain Sourcing Analytics',
+                UserRole.buyer => 'Supply Chain Sourcing Analytics',
                 UserRole.expert => 'Agronomy Diagnostic Analytics',
                 UserRole.financier => 'Agri-Credit Portfolio Analytics',
                 UserRole.valueAdder => 'Agri-Processing Analytics',
                 UserRole.government => 'Grain Security & Trade Analytics',
-                UserRole.consumer => 'Household Grocery & Savings Analytics',
+                UserRole.consumer => 'Commercial Value Chain Analytics',
                 UserRole.admin => 'Executive Value Chain Analytics',
               },
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: AnalyticsPage.dark),
             ),
             Text(
-              (effectiveRole == UserRole.consumer || (effectiveRole == UserRole.buyer && ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer))
-                  ? 'Farmgate Price Savings & Nutrition Insights'
-                  : 'Spatial Telemetry & Predictive AI',
+              'Spatial Telemetry & Predictive AI',
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(fontSize: 11, color: AnalyticsPage.muted, fontWeight: FontWeight.w500),
             ),
@@ -1916,512 +1955,6 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
             children: [
               Text(amount, style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white)),
               Text(stage, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// END-USER / CONSUMER DELIGHTFUL GROCERY & HOUSEHOLD SAVINGS DASHBOARD
-// ─────────────────────────────────────────────────────────────────────────────
-class _ConsumerAnalyticsView extends ConsumerStatefulWidget {
-  final bool isSuperAdmin;
-  final ValueChanged<UserRole>? onPerspectiveSelected;
-
-  const _ConsumerAnalyticsView({
-    required this.isSuperAdmin,
-    this.onPerspectiveSelected,
-  });
-
-  @override
-  ConsumerState<_ConsumerAnalyticsView> createState() => _ConsumerAnalyticsViewState();
-}
-
-class _ConsumerAnalyticsViewState extends ConsumerState<_ConsumerAnalyticsView> with SingleTickerProviderStateMixin {
-  late TabController _consumerTabCtrl;
-
-  final List<Map<String, dynamic>> _basketComparison = [
-    {
-      'item': '10kg Roller Mealie Meal',
-      'category': 'Staple Grains',
-      'verdiPrice': '\$5.20',
-      'supermarketPrice': '\$7.40',
-      'savings': 'Saved \$2.20 (29.7%)',
-      'source': 'Masvingo Farmers Coop',
-      'emoji': '🌽',
-    },
-    {
-      'item': '2L Pure Sunflower Cooking Oil',
-      'category': 'Pantry Essentials',
-      'verdiPrice': '\$3.10',
-      'supermarketPrice': '\$4.25',
-      'savings': 'Saved \$1.15 (27.0%)',
-      'source': 'Chinhoyi Oilseed Hub',
-      'emoji': '🌻',
-    },
-    {
-      'item': '5kg Crate Fresh Salad Tomatoes',
-      'category': 'Fresh Veggies',
-      'verdiPrice': '\$4.25',
-      'supermarketPrice': '\$7.50',
-      'savings': 'Saved \$3.25 (43.3%)',
-      'source': 'Mazowe Valley Outgrowers',
-      'emoji': '🍅',
-    },
-    {
-      'item': '30-Pack Farmgate Fresh Eggs',
-      'category': 'Poultry & Dairy',
-      'verdiPrice': '\$3.80',
-      'supermarketPrice': '\$5.50',
-      'savings': 'Saved \$1.70 (30.9%)',
-      'source': 'Goromonzi Free-Range',
-      'emoji': '🥚',
-    },
-    {
-      'item': '10kg Red Creole White Potatoes',
-      'category': 'Roots & Tubers',
-      'verdiPrice': '\$6.50',
-      'supermarketPrice': '\$9.80',
-      'savings': 'Saved \$3.30 (33.7%)',
-      'source': 'Nyanga Highland Farms',
-      'emoji': '🥔',
-    },
-    {
-      'item': '1kg Raw Pure Wild Honey',
-      'category': 'Organic Sweetener',
-      'verdiPrice': '\$4.50',
-      'supermarketPrice': '\$7.20',
-      'savings': 'Saved \$2.70 (37.5%)',
-      'source': 'Honde Valley Apiaries',
-      'emoji': '🍯',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _pantryVelocity = [
-    {
-      'item': 'Farmgate Fresh Eggs (30-Pack)',
-      'status': 'Low (3 days remaining)',
-      'percent': 0.25,
-      'color': Color(0xFFEF4444),
-      'action': 'Restock Now (\$3.80)',
-    },
-    {
-      'item': 'Mazowe Salad Tomatoes (5kg)',
-      'status': 'Medium (5 days remaining)',
-      'percent': 0.45,
-      'color': Color(0xFFF59E0B),
-      'action': 'Restock Now (\$4.25)',
-    },
-    {
-      'item': 'Roller Mealie Meal (10kg)',
-      'status': 'Good (16 days remaining)',
-      'percent': 0.80,
-      'color': Color(0xFF10B981),
-      'action': 'Auto-Reminder Set',
-    },
-    {
-      'item': 'Sunflower Cooking Oil (2L)',
-      'status': 'Good (12 days remaining)',
-      'percent': 0.70,
-      'color': Color(0xFF10B981),
-      'action': 'Auto-Reminder Set',
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _consumerTabCtrl = TabController(length: 4, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _consumerTabCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.shopping_basket, color: Color(0xFF10B981), size: 20),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Household Grocery & Savings Analytics', style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 16, color: const Color(0xFF0F172A))),
-                const Text('Real Farmgate Savings, Weekly Basket Tracker & Smart Restock', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 14),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF10B981))),
-            child: const Text('HOUSEHOLD CONSUMER', style: TextStyle(color: Color(0xFF10B981), fontSize: 10, fontWeight: FontWeight.bold)),
-          ),
-        ],
-        bottom: TabBar(
-          controller: _consumerTabCtrl,
-          isScrollable: true,
-          indicatorColor: const Color(0xFF10B981),
-          indicatorWeight: 3,
-          labelColor: const Color(0xFF0F172A),
-          unselectedLabelColor: const Color(0xFF64748B),
-          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 12.5),
-          tabs: const [
-            Tab(icon: Icon(Icons.savings_outlined, size: 16), text: 'Monthly Savings & Budget'),
-            Tab(icon: Icon(Icons.shopping_cart_outlined, size: 16), text: 'Weekly Food Basket'),
-            Tab(icon: Icon(Icons.kitchen_outlined, size: 16), text: 'Pantry Velocity & Restock'),
-            Tab(icon: Icon(Icons.eco_outlined, size: 16), text: 'Harvest Deals & Nutrition'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _consumerTabCtrl,
-        children: [
-          _buildConsumerBudgetTab(),
-          _buildConsumerBasketTab(),
-          _buildConsumerPantryTab(),
-          _buildConsumerHarvestDealsTab(),
-        ],
-      ),
-    );
-  }
-
-  // TAB 1: Monthly Savings & Budget
-  Widget _buildConsumerBudgetTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 4 Big Consumer Metric Cards
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final cols = constraints.maxWidth > 900 ? 4 : (constraints.maxWidth > 500 ? 2 : 1);
-              final width = (constraints.maxWidth - (12.0 * (cols - 1))) / cols;
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _consumerKpiCard('August Grocery Spend', '\$142.50', '-24.7% vs Supermarkets', Icons.shopping_bag_outlined, const Color(0xFF10B981), width),
-                  _consumerKpiCard('Direct Pocket Savings', '\$46.80 Saved', 'Money kept in your wallet', Icons.savings_outlined, const Color(0xFF3B82F6), width),
-                  _consumerKpiCard('Projected Annual Savings', '\$561.60 / year', 'Based on direct farm purchases', Icons.trending_up, const Color(0xFFF59E0B), width),
-                  _consumerKpiCard('Local Food Miles Saved', '184 km', 'Picked <25km from Harare', Icons.eco_outlined, const Color(0xFF8B5CF6), width),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-
-          // Visual Category Spend Breakdown
-          Text('Where Your Household Dollars Went This Month', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
-          const Text('Detailed breakdown of spending and exact middleman markups bypassed.', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
-            child: Column(
-              children: [
-                _consumerCategoryRow('🍅 Fresh Farmgate Vegetables', '\$52.00', 'Supermarket: \$72.50', 'Saved \$20.50 (28.3%)', const Color(0xFF10B981)),
-                const Divider(color: Color(0xFFF1F5F9)),
-                _consumerCategoryRow('🥑 Fruits, Citrus & Avocados', '\$38.50', 'Supermarket: \$51.20', 'Saved \$12.70 (24.8%)', const Color(0xFF10B981)),
-                const Divider(color: Color(0xFFF1F5F9)),
-                _consumerCategoryRow('🥚 Free-Range Eggs & Dairy', '\$28.00', 'Supermarket: \$36.50', 'Saved \$8.50 (23.3%)', const Color(0xFF10B981)),
-                const Divider(color: Color(0xFFF1F5F9)),
-                _consumerCategoryRow('🍯 Whole Grains & Pure Honey', '\$24.00', 'Supermarket: \$29.10', 'Saved \$5.10 (17.5%)', const Color(0xFF10B981)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // InDrive Delivery Pooling Savings
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [const Color(0xFF10B981).withOpacity(0.1), const Color(0xFF3B82F6).withOpacity(0.1)]),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                Container(padding: const EdgeInsets.all(10), decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle), child: const Icon(Icons.local_shipping, color: Colors.white, size: 20)),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Shared InDrive Delivery Savings: \$18.00 Saved', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
-                      Text('You bundled 4 grocery deliveries with neighbors in your neighborhood zone this month, cutting individual delivery fees by 60%.', style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-
-  // TAB 2: Weekly Food Basket Tracker
-  Widget _buildConsumerBasketTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Weekly Household Grocery Price Benchmark', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
-                  const Text('Live price comparison: Verdi Farmgate Direct vs Major Supermarkets (OK Zimbabwe, TM Pick n Pay, Spar)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All basket items added to quick checkout cart!'), backgroundColor: Color(0xFF10B981)));
-                },
-                icon: const Icon(Icons.add_shopping_cart, size: 14),
-                label: const Text('Order Entire Basket', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ..._basketComparison.map((item) => Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE2E8F0))),
-            child: Row(
-              children: [
-                Text(item['emoji'], style: const TextStyle(fontSize: 26)),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item['item'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: const Color(0xFF0F172A))),
-                      Text('${item['category']} • Grown by: ${item['source']}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      children: [
-                        Text(item['verdiPrice'], style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: const Color(0xFF10B981))),
-                        const SizedBox(width: 8),
-                        Text(item['supermarketPrice'], style: const TextStyle(color: Color(0xFF94A3B8), decoration: TextDecoration.lineThrough, fontSize: 12)),
-                      ],
-                    ),
-                    Text(item['savings'], style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 11)),
-                  ],
-                ),
-              ],
-            ),
-          )),
-        ],
-      ),
-    );
-  }
-
-  // TAB 3: Pantry Velocity & Restock
-  Widget _buildConsumerPantryTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Smart Pantry Velocity & Restock Forecast', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
-          const Text('Verdi AI predicts when your household will run low on staples based on average consumption rates.', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-          const SizedBox(height: 16),
-          ..._pantryVelocity.map((p) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(p['item'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: const Color(0xFF0F172A))),
-                    Text(p['status'], style: TextStyle(color: p['color'] as Color, fontWeight: FontWeight.bold, fontSize: 12)),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: p['percent'] as double,
-                    minHeight: 8,
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    valueColor: AlwaysStoppedAnimation(p['color'] as Color),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Added ${p['item']} to your quick dispatch cart!'), backgroundColor: const Color(0xFF10B981)),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: (p['color'] as Color).withOpacity(0.12),
-                      foregroundColor: p['color'] as Color,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Text(p['action'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
-                  ),
-                ),
-              ],
-            ),
-          )),
-        ],
-      ),
-    );
-  }
-
-  // TAB 4: Harvest Deals & Nutrition
-  Widget _buildConsumerHarvestDealsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Direct Farmgate Harvest Deals & Nutrition Insights', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
-          const Text('Seasonal morning harvests ready for doorstep delivery with highest vitamin density and peak freshness.', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-          const SizedBox(height: 16),
-          _harvestDealCard('🍅 Mazowe Valley Salad Tomatoes', '18% Harvest Flash Discount', 'Harvested this morning at 6:00 AM. 5kg crates at \$4.25 (Regular supermarket price: \$7.50).', '\$4.25 / crate', const Color(0xFFEF4444)),
-          const SizedBox(height: 12),
-          _harvestDealCard('🥑 Chipinge Export Grade Hass Avocados', 'Fresh Tree-Ripened Drop', 'High healthy fats & potassium. Harvested 4h ago in Manicaland outgrower orchards.', '\$1.90 / kg', const Color(0xFF10B981)),
-          const SizedBox(height: 12),
-          _harvestDealCard('🌽 Marondera Sweet Sugar Corn', 'Peak Seasonal Sweetness', 'Picked at dawn. High dietary fiber and zero synthetic pesticides.', '\$0.40 / cob', const Color(0xFFF59E0B)),
-        ],
-      ),
-    );
-  }
-
-  Widget _consumerKpiCard(String title, String value, String subtitle, IconData icon, Color color, double width) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8)],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
-                const SizedBox(height: 2),
-                Text(value, style: GoogleFonts.inter(fontSize: 16.5, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A))),
-                Text(subtitle, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _consumerCategoryRow(String category, String spend, String retailComparison, String savings, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(category, style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13)),
-                Text(retailComparison, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(spend, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A))),
-              Text(savings, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _harvestDealCard(String title, String tag, String desc, String price, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: const Color(0xFF0F172A))),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
-                      child: Text(tag, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(desc, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
-          Column(
-            children: [
-              Text(price, style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: const Color(0xFF10B981))),
-              const SizedBox(height: 6),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
-                child: const Text('Buy Fresh', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-              ),
             ],
           ),
         ],

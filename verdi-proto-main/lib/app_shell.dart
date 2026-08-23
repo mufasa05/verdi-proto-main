@@ -330,9 +330,9 @@ class Sidebar extends ConsumerWidget {
         case UserRole.buyer:
           if (isEndUserCustomer) {
             // End-user / direct consumer:
-            // Remove: Trade (19), Traceability (15), News (24), Verdi Logistics OS (5), Notifications (7)
-            // Keep: Analytics (3), Orders (4), Payments (6)
-            return item.index == 3 || item.index == 4 || item.index == 6;
+            // Remove: Analytics (3), Trade (19), Traceability (15), News (24), Verdi Logistics OS (5), Notifications (7)
+            // Keep: Orders (4), Payments (6)
+            return item.index == 4 || item.index == 6;
           } else {
             // Buyer B2B (Retailer / Wholesaler):
             // Remove: Verdi Logistics OS (5), Notifications (7), News (24)
@@ -350,8 +350,8 @@ class Sidebar extends ConsumerWidget {
           return item.index == 3 || item.index == 4 || item.index == 6 || item.index == 16 || item.index == 25;
 
         case UserRole.consumer:
-          // Consumer: Analytics (3), Orders (4), Payments (6)
-          return item.index == 3 || item.index == 4 || item.index == 6;
+          // Consumer: Orders (4), Payments (6) [Analytics (3) removed]
+          return item.index == 4 || item.index == 6;
 
         default:
           return false;
