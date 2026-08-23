@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/rate_limiter_service.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../state/app_state.dart';
@@ -181,6 +182,18 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTabIndex);
+    _loadPersistedDeletedUsers();
+  }
+
+  Future<void> _loadPersistedDeletedUsers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList('verdi.admin.deleted_user_ids') ?? [];
+    if (list.isNotEmpty && mounted) {
+      setState(() {
+        _deletedUserIds.addAll(list);
+        _userDatabase.removeWhere((u) => _deletedUserIds.contains(u['id']) || _deletedUserIds.contains(u['email'].toString().toLowerCase().replaceAll(' ', '')));
+      });
+    }
   }
 
   @override
@@ -1024,10 +1037,21 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                               onConfirmed: () {
                                 final deletedUserName = u['name'];
                                 final deletedUserId = u['id'];
+                                final deletedUserEmail = (u['email'] ?? '').toString();
+                                final cleanEmail = deletedUserEmail.toLowerCase().replaceAll(' ', '');
+
                                 setState(() {
                                   _deletedUserIds.add(deletedUserId);
-                                  _userDatabase.removeWhere((item) => item['id'] == deletedUserId);
+                                  if (cleanEmail.isNotEmpty) _deletedUserIds.add(cleanEmail);
+                                  _userDatabase.removeWhere((item) => item['id'] == deletedUserId || item['email'].toString().toLowerCase().replaceAll(' ', '') == cleanEmail);
                                 });
+
+                                // Persist deletion & purge auth session immediately
+                                ref.read(authStateProvider.notifier).deleteUserAccount(
+                                  userId: deletedUserId,
+                                  emailOrPhone: deletedUserEmail,
+                                );
+
                                 SupabaseService.instance.logActivity(
                                   userName: deletedUserName,
                                   userId: deletedUserId,

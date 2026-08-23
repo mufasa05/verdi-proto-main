@@ -122,6 +122,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       final user = AppUser.fromJson(jsonDecode(rawSession));
+      final deletedList = prefs.getStringList('verdi.admin.deleted_user_ids') ?? [];
+      final cleanEmail = user.email.toLowerCase().replaceAll(' ', '');
+      if (deletedList.contains(user.id) || (cleanEmail.isNotEmpty && deletedList.contains(cleanEmail))) {
+        await prefs.remove(_sessionKey);
+        await prefs.remove('verdi.auth.token');
+        await prefs.remove('verdi.auth.last_email');
+        _setRole(UserRole.farmer);
+        state = AuthState.initial;
+        return;
+      }
+
       _setRole(user.role);
       final isDemoSaved = prefs.getBool('verdi.app.is_demo_mode') ?? false;
       if (_ref != null) {
@@ -233,6 +244,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     final cleanId = emailOrPhone.trim().toLowerCase().replaceAll(' ', '');
     final cleanPass = password;
+
+    final prefs = await SharedPreferences.getInstance();
+    final deletedList = prefs.getStringList('verdi.admin.deleted_user_ids') ?? [];
+    if (deletedList.contains(cleanId)) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'This account was deleted by administration and is no longer accessible.',
+      );
+      return false;
+    }
 
     try {
       final response = await http.post(
@@ -506,6 +527,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       _setRole(role);
       state = state.copyWith(user: updatedUser);
+    }
+  }
+
+  Future<void> deleteUserAccount({required String userId, required String emailOrPhone}) async {
+    final cleanId = emailOrPhone.trim().toLowerCase().replaceAll(' ', '');
+    final prefs = await SharedPreferences.getInstance();
+    
+    // 1. Remove from registered users store
+    final users = await _getRegisteredUsers();
+    users.removeWhere((u) =>
+      u['id']?.toString() == userId ||
+      u['identifier']?.toString().toLowerCase().replaceAll(' ', '') == cleanId
+    );
+    await prefs.setString(_registeredUsersKey, jsonEncode(users));
+
+    // 2. Persist in deleted blacklist registry
+    final deletedList = prefs.getStringList('verdi.admin.deleted_user_ids') ?? [];
+    if (!deletedList.contains(userId)) {
+      deletedList.add(userId);
+    }
+    if (cleanId.isNotEmpty && !deletedList.contains(cleanId)) {
+      deletedList.add(cleanId);
+    }
+    await prefs.setStringList('verdi.admin.deleted_user_ids', deletedList);
+
+    // 3. If currently logged-in account matches, purge session & sign out immediately
+    if (state.user?.id == userId || (cleanId.isNotEmpty && state.user?.email.toLowerCase() == cleanId)) {
+      await prefs.remove(_sessionKey);
+      await prefs.remove('verdi.auth.token');
+      await prefs.remove('verdi.auth.last_email');
+      _setRole(UserRole.farmer);
+      state = AuthState.initial;
     }
   }
 
