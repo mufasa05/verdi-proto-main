@@ -838,6 +838,8 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   // TAB: INDRIVE SHARED LOGISTICS & DRIVER TIPS (END-USER CONSUMER)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildInDriveDeliveryTipsTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -861,17 +863,22 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                    child: const Text('ZONE SAVINGS ACTIVE', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    child: Text(isDemo ? 'ZONE SAVINGS ACTIVE' : 'NO POOLING ACTIVE', style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Text('\$18.50 Saved', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text(isDemo ? '\$18.50 Saved' : '\$0.00 Saved', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
                   const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text('You shared InDrive delivery routes on 4 orders this month, cutting direct courier fees from \$6.00 to \$2.00 per drop.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  Expanded(
+                    child: Text(
+                      isDemo
+                          ? 'You shared InDrive delivery routes on 4 orders this month, cutting direct courier fees from \$6.00 to \$2.00 per drop.'
+                          : 'No live shared delivery routes active yet. Delivery route pooling savings will calculate when you place multi-stop orders.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                    ),
                   ),
                 ],
               ),
@@ -888,11 +895,19 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             children: [
               Text('RECENT DELIVERY COURIER TIPS & RECEIPTS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
               const SizedBox(height: 14),
-              _deliveryTipRow('Order #ORD-7741 (Fresh Vegetables)', 'Driver: Tinashe M. (InDrive)', '\$2.00 Tip Paid', 'Delivered • 2h ago'),
-              const Divider(),
-              _deliveryTipRow('Order #ORD-6629 (Dairy & Free-Range Eggs)', 'Driver: Kelvin D. (InDrive)', '\$1.50 Tip Paid', 'Delivered • Yesterday'),
-              const Divider(),
-              _deliveryTipRow('Order #ORD-5502 (Staple Meal)', 'Driver: Farai K. (InDrive)', '\$2.50 Tip Paid', 'Delivered • 3 days ago'),
+              if (isDemo) ...[
+                _deliveryTipRow('Order #ORD-7741 (Fresh Vegetables)', 'Driver: Tinashe M. (InDrive)', '\$2.00 Tip Paid', 'Delivered • 2h ago'),
+                const Divider(),
+                _deliveryTipRow('Order #ORD-6629 (Dairy & Free-Range Eggs)', 'Driver: Kelvin D. (InDrive)', '\$1.50 Tip Paid', 'Delivered • Yesterday'),
+                const Divider(),
+                _deliveryTipRow('Order #ORD-5502 (Staple Meal)', 'Driver: Farai K. (InDrive)', '\$2.50 Tip Paid', 'Delivered • 3 days ago'),
+              ] else
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: Text('No live delivery tips or courier receipts recorded yet.', style: TextStyle(color: muted, fontSize: 12, fontStyle: FontStyle.italic)),
+                  ),
+                ),
             ],
           ),
         ),
@@ -930,6 +945,8 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   // TAB: SADC RTGS & BANK WIRE GATEWAY (B2B WHOLESALER)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildBankWireGatewayTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -953,17 +970,22 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                    child: const Text('SADC RTGS LIVE', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    child: Text(isDemo ? 'SADC RTGS LIVE' : 'AWAITING DEPOSIT', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 10.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Text('\$145,000.00 USD', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text(isDemo ? '\$145,000.00 USD' : '\$0.00 USD', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
                   const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text('Linked to Stanbic Zimbabwe & First National Bank SADC Gateway for bulk grain contract settlement.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  Expanded(
+                    child: Text(
+                      isDemo
+                          ? 'Linked to Stanbic Zimbabwe & First National Bank SADC Gateway for bulk grain contract settlement.'
+                          : 'No commercial RTGS vault funds deposited yet. Link your corporate bank account or initiate incoming wire transfer to fund live contract settlements.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                    ),
                   ),
                 ],
               ),
@@ -1006,6 +1028,8 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   // TAB: INPUT LOAN REPAYMENTS (FARMER)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildInputLoanTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1029,17 +1053,22 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(color: const Color(0xFF22C55E).withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                    child: const Text('85% REPAID', style: TextStyle(color: Color(0xFF22C55E), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    child: Text(isDemo ? '85% REPAID' : 'CLEARED', style: const TextStyle(color: Color(0xFF22C55E), fontSize: 10.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Text('\$420.00 Remaining', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text(isDemo ? '\$420.00 Remaining' : '\$0.00 Remaining', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
                   const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text('Initial \$2,800.00 seed & fertilizer loan automatically deducted from delivered maize contracts.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  Expanded(
+                    child: Text(
+                      isDemo
+                          ? 'Initial \$2,800.00 seed & fertilizer loan automatically deducted from delivered maize contracts.'
+                          : 'No active seasonal input loans on live account.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                    ),
                   ),
                 ],
               ),
@@ -1054,6 +1083,8 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   // TAB: FUEL & TOLLGATE FLEET CARD (TRANSPORTER)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildFuelCardTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1077,17 +1108,22 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                    child: const Text('AUTO-REPLENISH ON', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    child: Text(isDemo ? 'AUTO-REPLENISH ON' : 'INACTIVE', style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Text('\$1,850.00 Available', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text(isDemo ? '\$1,850.00 Available' : '\$0.00 Available', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
                   const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text('Linked to TotalEnergies & Puma Energy filling stations along the Harare-Beira and Harare-Bulawayo corridors.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  Expanded(
+                    child: Text(
+                      isDemo
+                          ? 'Linked to TotalEnergies & Puma Energy filling stations along the Harare-Beira and Harare-Bulawayo corridors.'
+                          : 'No live fleet fuel card pool activated yet.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                    ),
                   ),
                 ],
               ),

@@ -1523,6 +1523,15 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
 
   // TAB 1: Procurement & Arbitrage
   Widget _buildProcurementArbitrageTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final volume = isDemo ? '184.2 MT' : '0.0 MT';
+    final volumeSub = isDemo ? '+22.4% vs last month' : 'No live purchases yet';
+    final spend = isDemo ? (_currency == 'USD' ? 'US\$ 64,890' : 'ZWG 1,752,030') : (_currency == 'USD' ? 'US\$ 0.00' : 'ZWG 0.00');
+    final spendSub = isDemo ? 'Saved \$5,420 vs Spot' : 'No live spend';
+    final otif = isDemo ? '98.1%' : '100.0%';
+    final otifSub = isDemo ? '98 / 100 Lots on-time' : '0 / 0 Lots';
+    final defect = isDemo ? '0.42%' : '0.00%';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1576,10 +1585,10 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  _b2bKpiCard('Total Procurement Volume', '184.2 MT', '+22.4% vs last month', Icons.inventory_2_outlined, const Color(0xFF10B981), width),
-                  _b2bKpiCard('Commercial Spend', _currency == 'USD' ? 'US\$ 64,890' : 'ZWG 1,752,030', 'Saved \$5,420 vs Spot', Icons.account_balance_wallet_outlined, const Color(0xFF3B82F6), width),
-                  _b2bKpiCard('Supplier OTIF Performance', '98.1%', '98 / 100 Lots on-time', Icons.verified_outlined, const Color(0xFFF59E0B), width),
-                  _b2bKpiCard('Moisture & Defect Rejection', '0.42%', 'Threshold < 2.0% Safe', Icons.fact_check_outlined, const Color(0xFF8B5CF6), width),
+                  _b2bKpiCard('Total Procurement Volume', volume, volumeSub, Icons.inventory_2_outlined, const Color(0xFF10B981), width),
+                  _b2bKpiCard('Commercial Spend', spend, spendSub, Icons.account_balance_wallet_outlined, const Color(0xFF3B82F6), width),
+                  _b2bKpiCard('Supplier OTIF Performance', otif, otifSub, Icons.verified_outlined, const Color(0xFFF59E0B), width),
+                  _b2bKpiCard('Moisture & Defect Rejection', defect, 'Threshold < 2.0% Safe', Icons.fact_check_outlined, const Color(0xFF8B5CF6), width),
                 ],
               );
             },
@@ -1687,16 +1696,16 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text('Allocated Working Capital: US\$ 75,000.00', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5)),
-                    Text('Utilized: US\$ 64,890.00 (86.5%)', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 13)),
+                  children: [
+                    Text(isDemo ? 'Allocated Working Capital: US\$ 75,000.00' : 'Allocated Working Capital: US\$ 0.00', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5)),
+                    Text(isDemo ? 'Utilized: US\$ 64,890.00 (86.5%)' : 'Utilized: US\$ 0.00 (0.0%)', style: TextStyle(color: isDemo ? const Color(0xFF10B981) : const Color(0xFF94A3B8), fontWeight: FontWeight.bold, fontSize: 13)),
                   ],
                 ),
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: LinearProgressIndicator(
-                    value: 0.865,
+                    value: isDemo ? 0.865 : 0.0,
                     minHeight: 10,
                     backgroundColor: const Color(0xFF1E293B),
                     valueColor: const AlwaysStoppedAnimation(Color(0xFF3B82F6)),
@@ -1706,9 +1715,9 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _budgetMiniStat('Grains & Cereals', 'US\$ 38,400', '92% of budget', const Color(0xFF10B981)),
-                    _budgetMiniStat('Oilseeds & Pulses', 'US\$ 16,200', '81% of budget', const Color(0xFF3B82F6)),
-                    _budgetMiniStat('Horticulture & Fruits', 'US\$ 10,290', '78% of budget', const Color(0xFFF59E0B)),
+                    _budgetMiniStat('Grains & Cereals', isDemo ? 'US\$ 38,400' : 'US\$ 0.00', isDemo ? '92% of budget' : '0%', const Color(0xFF10B981)),
+                    _budgetMiniStat('Oilseeds & Pulses', isDemo ? 'US\$ 16,200' : 'US\$ 0.00', isDemo ? '81% of budget' : '0%', const Color(0xFF3B82F6)),
+                    _budgetMiniStat('Horticulture & Fruits', isDemo ? 'US\$ 10,290' : 'US\$ 0.00', isDemo ? '78% of budget' : '0%', const Color(0xFFF59E0B)),
                   ],
                 ),
               ],
@@ -1722,6 +1731,8 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
 
   // TAB 2: Outgrower Cooperatives & QA
   Widget _buildOutgrowerQualityTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1730,45 +1741,61 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
           Text('Outgrower Cooperatives & Intake Quality Performance', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
           const Text('Real-time reliability scoring, field hectarage, moisture verification, and lot intake defect rates.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
           const SizedBox(height: 16),
-          ..._outgrowerCoops.map((coop) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF1E293B))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(coop['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14.5, color: Colors.white)),
-                        Text('${coop['region']} • Lead: ${coop['lead']}', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF10B981))),
-                      child: Text(coop['status'], style: const TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                const Divider(color: Color(0xFF1E293B), height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _coopStat('Network Size', '${coop['farmers']} Farmers (${coop['hectares']} Ha)'),
-                    _coopStat('Intake Volume', coop['deliveredMT']),
-                    _coopStat('Grade A %', coop['gradeA']),
-                    _coopStat('Defect Rate', coop['defectRate']),
-                    _coopStat('OTIF Score', coop['otifScore']),
-                    _coopStat('Escrow Settled', coop['escrowSettled']),
-                  ],
-                ),
-              ],
-            ),
-          )),
+          if (!isDemo)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF1E293B))),
+              child: Column(
+                children: [
+                  const Icon(Icons.groups_outlined, size: 44, color: Color(0xFF64748B)),
+                  const SizedBox(height: 12),
+                  Text('No Live Outgrower Cooperative Contracts Active', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                  const SizedBox(height: 6),
+                  const Text('When you issue forward contracts or contract outgrower syndicates in live mode, their intake volume, hectarage, and QA defect scores will stream here in real time.', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                ],
+              ),
+            )
+          else
+            ..._outgrowerCoops.map((coop) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF1E293B))),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(coop['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14.5, color: Colors.white)),
+                          Text('${coop['region']} • Lead: ${coop['lead']}', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF10B981))),
+                        child: Text(coop['status'], style: const TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Color(0xFF1E293B), height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _coopStat('Network Size', '${coop['farmers']} Farmers (${coop['hectares']} Ha)'),
+                      _coopStat('Intake Volume', coop['deliveredMT']),
+                      _coopStat('Grade A %', coop['gradeA']),
+                      _coopStat('Defect Rate', coop['defectRate']),
+                      _coopStat('OTIF Score', coop['otifScore']),
+                      _coopStat('Escrow Settled', coop['escrowSettled']),
+                    ],
+                  ),
+                ],
+              ),
+            )),
         ],
       ),
     );
@@ -1776,6 +1803,11 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
 
   // TAB 3: Escrow Vault & Working Capital
   Widget _buildEscrowCapitalTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final stage1 = isDemo ? 'US\$ 18,500.00' : 'US\$ 0.00';
+    final stage2 = isDemo ? 'US\$ 24,000.00' : 'US\$ 0.00';
+    final stage3 = isDemo ? 'US\$ 142,800.00' : 'US\$ 0.00';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1786,11 +1818,11 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _escrowCard('Stage 1: Deposit In Custody', 'US\$ 18,500.00', 'Funds locked pending dispatch', Icons.lock_clock_outlined, const Color(0xFFF59E0B))),
+              Expanded(child: _escrowCard('Stage 1: Deposit In Custody', stage1, isDemo ? 'Funds locked pending dispatch' : 'No active deposits', Icons.lock_clock_outlined, const Color(0xFFF59E0B))),
               const SizedBox(width: 12),
-              Expanded(child: _escrowCard('Stage 2: Transit & Inspection', 'US\$ 24,000.00', 'En-route / Lab testing clearance', Icons.local_shipping_outlined, const Color(0xFF3B82F6))),
+              Expanded(child: _escrowCard('Stage 2: Transit & Inspection', stage2, isDemo ? 'En-route / Lab testing clearance' : 'No consignments in transit', Icons.local_shipping_outlined, const Color(0xFF3B82F6))),
               const SizedBox(width: 12),
-              Expanded(child: _escrowCard('Stage 3: Settled Payouts', 'US\$ 142,800.00', 'Disbursed to outgrowers in 30D', Icons.task_alt, const Color(0xFF10B981))),
+              Expanded(child: _escrowCard('Stage 3: Settled Payouts', stage3, isDemo ? 'Disbursed to outgrowers in 30D' : 'No live settlements yet', Icons.task_alt, const Color(0xFF10B981))),
             ],
           ),
           const SizedBox(height: 24),
@@ -1799,15 +1831,25 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF1E293B))),
-            child: Column(
-              children: [
-                _escrowLedgerRow('ESC-9921-A', 'Mashonaland West Silos (White Maize 60 MT)', 'US\$ 17,280.00', 'Stage 3 Cleared', const Color(0xFF10B981)),
-                const Divider(color: Color(0xFF1E293B)),
-                _escrowLedgerRow('ESC-9922-B', 'Mazowe Horticultural Hub (Tomatoes 22 MT)', 'US\$ 20,900.00', 'Stage 2 In Transit', const Color(0xFF3B82F6)),
-                const Divider(color: Color(0xFF1E293B)),
-                _escrowLedgerRow('ESC-9923-C', 'Chinhoyi Oilseed Syndicate (Soybeans 45 MT)', 'US\$ 19,125.00', 'Stage 1 Deposit Locked', const Color(0xFFF59E0B)),
-              ],
-            ),
+            child: isDemo
+                ? Column(
+                    children: [
+                      _escrowLedgerRow('ESC-9921-A', 'Mashonaland West Silos (White Maize 60 MT)', 'US\$ 17,280.00', 'Stage 3 Cleared', const Color(0xFF10B981)),
+                      const Divider(color: Color(0xFF1E293B)),
+                      _escrowLedgerRow('ESC-9922-B', 'Mazowe Horticultural Hub (Tomatoes 22 MT)', 'US\$ 20,900.00', 'Stage 2 In Transit', const Color(0xFF3B82F6)),
+                      const Divider(color: Color(0xFF1E293B)),
+                      _escrowLedgerRow('ESC-9923-C', 'Chinhoyi Oilseed Syndicate (Soybeans 45 MT)', 'US\$ 19,125.00', 'Stage 1 Deposit Locked', const Color(0xFFF59E0B)),
+                    ],
+                  )
+                : const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(
+                        'No live smart contract escrow ledger entries recorded yet.',
+                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontStyle: FontStyle.italic),
+                      ),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -1816,6 +1858,14 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
 
   // TAB 4: Cold-Chain & EUDR Audits
   Widget _buildColdChainEudrTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+    final comp = isDemo ? '98.4%' : '100.0%';
+    final compSub = isDemo ? 'Mean 3.8°C Target' : 'No active consignments';
+    final loss = isDemo ? '0.18%' : '0.00%';
+    final lossSub = isDemo ? 'Industry Standard < 1.5%' : '0 Lots in transit';
+    final eudr = isDemo ? '100.0%' : '0 Lots';
+    final eudrSub = isDemo ? 'Zero Deforestation Cleared' : 'Deforestation Audits Ready';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1826,11 +1876,11 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _b2bKpiCard('Reefer Temp Compliance', '98.4%', 'Mean 3.8°C Target', Icons.ac_unit, const Color(0xFF3B82F6), double.infinity)),
+              Expanded(child: _b2bKpiCard('Reefer Temp Compliance', comp, compSub, Icons.ac_unit, const Color(0xFF3B82F6), double.infinity)),
               const SizedBox(width: 12),
-              Expanded(child: _b2bKpiCard('In-Transit Loss Rate', '0.18%', 'Industry Standard < 1.5%', Icons.trending_down, const Color(0xFF10B981), double.infinity)),
+              Expanded(child: _b2bKpiCard('In-Transit Loss Rate', loss, lossSub, Icons.trending_down, const Color(0xFF10B981), double.infinity)),
               const SizedBox(width: 12),
-              Expanded(child: _b2bKpiCard('EUDR Geofenced Lots', '100.0%', 'Zero Deforestation Cleared', Icons.forest_outlined, const Color(0xFF10B981), double.infinity)),
+              Expanded(child: _b2bKpiCard('EUDR Geofenced Lots', eudr, eudrSub, Icons.forest_outlined, const Color(0xFF10B981), double.infinity)),
             ],
           ),
           const SizedBox(height: 24),
@@ -1843,11 +1893,11 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('EUDR Compliance Audit Certificate: ZIM-EXP-2026-LIVE', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+                    Text(isDemo ? 'EUDR Compliance Audit Certificate: ZIM-EXP-2026-LIVE' : 'EUDR Compliance Audit Engine: Active', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
                     ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: isDemo ? () {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Downloading EUDR Digital Compliance Certificate (PDF)...')));
-                      },
+                      } : null,
                       icon: const Icon(Icons.picture_as_pdf, size: 14),
                       label: const Text('Download Audit Pass', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
@@ -1855,7 +1905,12 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('All 1,240 MT exported through Beira and Durban corridors have passed satellite polygon deforestation checks with valid European Union Traceability IDs.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                Text(
+                  isDemo
+                      ? 'All 1,240 MT exported through Beira and Durban corridors have passed satellite polygon deforestation checks with valid European Union Traceability IDs.'
+                      : 'Satellite polygon deforestation verification will automatically certify produce when export consignments are registered in live mode.',
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                ),
               ],
             ),
           ),

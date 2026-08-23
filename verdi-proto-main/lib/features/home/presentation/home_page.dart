@@ -709,6 +709,34 @@ class _PriorityQueueSection extends ConsumerWidget {
     if (role == UserRole.buyer || role == UserRole.consumer) {
       final isEndUser = (role == UserRole.buyer && ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
       if (isEndUser) {
+        if (!isDemo) {
+          return [
+            _PriorityCard(
+              badgeLabel: 'MARKETPLACE',
+              badgeColor: const Color(0xFF16A34A),
+              title: 'Direct Farmgate Produce Ready',
+              subtitle: 'Browse fresh harvests direct from local smallholder farms',
+              buttonLabel: 'Browse Fresh',
+              onTap: () => notifier.setNavIndex(1),
+            ),
+            _PriorityCard(
+              badgeLabel: 'ORDERS',
+              badgeColor: const Color(0xFF2563EB),
+              title: '0 Active Deliveries',
+              subtitle: 'Your live grocery orders & InDrive delivery tracking will appear here',
+              buttonLabel: 'View Orders',
+              onTap: () => notifier.setNavIndex(4),
+            ),
+            _PriorityCard(
+              badgeLabel: 'DIRECT SAVINGS',
+              badgeColor: const Color(0xFFEA580C),
+              title: 'Zero Middleman Markups',
+              subtitle: 'Save up to 35% on farmgate vegetables, grains, and eggs',
+              buttonLabel: 'Explore Deals',
+              onTap: () => notifier.setNavIndex(1),
+            ),
+          ];
+        }
         return [
           _PriorityCard(
             badgeLabel: 'FRESH HARVEST',
@@ -733,6 +761,34 @@ class _PriorityQueueSection extends ConsumerWidget {
             subtitle: 'Chipinge highland harvest discount available today',
             buttonLabel: 'View Deal',
             onTap: () => notifier.setNavIndex(1),
+          ),
+        ];
+      }
+      if (!isDemo) {
+        return [
+          _PriorityCard(
+            badgeLabel: 'COMMODITY DESK',
+            badgeColor: const Color(0xFF16A34A),
+            title: 'Live Commodity Sourcing Active',
+            subtitle: 'Explore bulk grain, oilseed, and pulse listings ready for intake',
+            buttonLabel: 'Source Lots',
+            onTap: () => notifier.setNavIndex(1),
+          ),
+          _PriorityCard(
+            badgeLabel: 'FORWARD DESK',
+            badgeColor: const Color(0xFF2563EB),
+            title: '0 Active Forward Contracts',
+            subtitle: 'Issue procurement purchase orders or establish forward contracts',
+            buttonLabel: 'Trade Desk',
+            onTap: () => notifier.setNavIndex(19),
+          ),
+          _PriorityCard(
+            badgeLabel: 'ESCROW VAULT',
+            badgeColor: const Color(0xFF7C3AED),
+            title: 'US\$ 0.00 in Live Escrow',
+            subtitle: '3-stage smart contract custody ready for commercial disbursements',
+            buttonLabel: 'Escrow Vault',
+            onTap: () => notifier.setNavIndex(6),
           ),
         ];
       }
