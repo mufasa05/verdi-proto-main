@@ -1617,73 +1617,93 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF1E293B)),
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingRowColor: MaterialStateProperty.all(const Color(0xFF1E293B).withOpacity(0.6)),
-                dataRowHeight: 60,
-                columns: const [
-                  DataColumn(label: Text('Commodity & Code', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('Verdi Contract', style: TextStyle(color: Color(0xFF60A5FA), fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('Supermarket Spot', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('SADC Benchmark', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('Net Arbitrage Saving', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('30D Forecast', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('Available Inventory', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('Action', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+          if (!isDemo)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.analytics_outlined, size: 40, color: Color(0xFF64748B)),
+                  const SizedBox(height: 12),
+                  Text('No Active Forward Procurement Lots in Queue', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                  const SizedBox(height: 6),
+                  const Text('Live commodity arbitrage and pricing variance benchmarking will populate as purchase orders and forward contracts are issued.', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
                 ],
-                rows: _commodityMatrix.map((item) {
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(item['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text('${item['code']} • Moisture: ${item['moisture']}', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                      DataCell(Text(item['verdiRate'], style: const TextStyle(color: Color(0xFF60A5FA), fontWeight: FontWeight.bold, fontSize: 13))),
-                      DataCell(Text(item['supermarket'], style: const TextStyle(color: Color(0xFFEF4444), decoration: TextDecoration.lineThrough, fontSize: 12))),
-                      DataCell(Text(item['sadcBenchmark'], style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12))),
-                      DataCell(
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
-                          child: Text(item['arbitrage'], style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 11.5)),
-                        ),
-                      ),
-                      DataCell(Text(item['forward30d'], style: TextStyle(color: item['trendColor'], fontWeight: FontWeight.bold, fontSize: 12))),
-                      DataCell(Text(item['stockAvailable'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12))),
-                      DataCell(
-                        ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Forward contract desk initiated for ${item['name']}.'), backgroundColor: const Color(0xFF2563EB)),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              ),
+            )
+          else
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.all(const Color(0xFF1E293B).withOpacity(0.6)),
+                  dataRowHeight: 60,
+                  columns: const [
+                    DataColumn(label: Text('Commodity & Code', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('Verdi Contract', style: TextStyle(color: Color(0xFF60A5FA), fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('Supermarket Spot', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('SADC Benchmark', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('Net Arbitrage Saving', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('30D Forecast', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('Available Inventory', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('Action', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                  ],
+                  rows: _commodityMatrix.map((item) {
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(item['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                              Text('${item['code']} • Moisture: ${item['moisture']}', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                            ],
                           ),
-                          child: const Text('Issue PO', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
-                      ),
-                    ],
-                  );
-                }).toList(),
+                        DataCell(Text(item['verdiRate'], style: const TextStyle(color: Color(0xFF60A5FA), fontWeight: FontWeight.bold, fontSize: 13))),
+                        DataCell(Text(item['supermarket'], style: const TextStyle(color: Color(0xFFEF4444), decoration: TextDecoration.lineThrough, fontSize: 12))),
+                        DataCell(Text(item['sadcBenchmark'], style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12))),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+                            child: Text(item['arbitrage'], style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 11.5)),
+                          ),
+                        ),
+                        DataCell(Text(item['forward30d'], style: TextStyle(color: item['trendColor'], fontWeight: FontWeight.bold, fontSize: 12))),
+                        DataCell(Text(item['stockAvailable'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12))),
+                        DataCell(
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Forward contract desk initiated for ${item['name']}.'), backgroundColor: const Color(0xFF2563EB)),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            child: const Text('Issue PO', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-          ),
           const SizedBox(height: 24),
 
           // Monthly Procurement Budget vs Actual Variance

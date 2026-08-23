@@ -674,6 +674,8 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildCreditRadarTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -694,18 +696,23 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                   Text('FARMER CREDIT RATING SCORE', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E), letterSpacing: 1.0)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(color: const Color(0xFF22C55E).withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                    child: const Text('AAA+ EXCELLENT', style: TextStyle(color: Color(0xFF22C55E), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    decoration: BoxDecoration(color: (isDemo ? const Color(0xFF22C55E) : const Color(0xFF64748B)).withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                    child: Text(isDemo ? 'AAA+ EXCELLENT' : 'UNRATED (NEW LIVE ACCOUNT)', style: TextStyle(color: isDemo ? const Color(0xFF22C55E) : const Color(0xFF94A3B8), fontSize: 10.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Text('840 / 900', style: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text(isDemo ? '840 / 900' : 'Unrated', style: GoogleFonts.inter(fontSize: isDemo ? 32 : 24, fontWeight: FontWeight.w900, color: Colors.white)),
                   const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text('Based on 98.4% trade fulfillment, zero default history, and verified Landsat field polygons.', style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3)),
+                  Expanded(
+                    child: Text(
+                      isDemo
+                          ? 'Based on 98.4% trade fulfillment, zero default history, and verified Landsat field polygons.'
+                          : 'No historical contract defaults or verified trade fulfillment recorded yet on this live account.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                    ),
                   ),
                 ],
               ),
@@ -723,18 +730,30 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             children: [
               Text('REQUEST WORKING CAPITAL ADVANCE (80% PRE-HARVEST)', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
               const SizedBox(height: 12),
-              const Text('Approved Credit Line: \$15,000.00 USD @ 1.2% monthly interest.', style: TextStyle(fontSize: 12.5, color: muted)),
-              const SizedBox(height: 14),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Working Capital Advance of \$5,000 disbursed to Escrow Wallet!'), backgroundColor: green),
-                  );
-                },
-                icon: const Icon(Icons.flash_on_outlined, size: 18),
-                label: const Text('Disburse \$5,000 Instant Advance', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(backgroundColor: green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              Text(
+                isDemo
+                    ? 'Approved Credit Line: \$15,000.00 USD @ 1.2% monthly interest.'
+                    : 'Approved Credit Line: \$0.00 USD (Complete first live trade fulfillment to establish active credit line).',
+                style: const TextStyle(fontSize: 12.5, color: muted),
               ),
+              const SizedBox(height: 14),
+              if (isDemo)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Working Capital Advance of \$5,000 disbursed to Escrow Wallet!'), backgroundColor: green),
+                    );
+                  },
+                  icon: const Icon(Icons.flash_on_outlined, size: 18),
+                  label: const Text('Disburse \$5,000 Instant Advance', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                )
+              else
+                OutlinedButton(
+                  onPressed: null,
+                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  child: const Text('Complete First Trade to Unlock Credit Facility', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
             ],
           ),
         ),
@@ -747,14 +766,61 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildYieldCalculatorTab() {
+    final isDemo = ref.watch(isDemoModeProvider);
     final escrowProtectionFee = _calcTradeVolume * (_calcFeeRate / 100);
     final netSellerPayout = _calcTradeVolume - escrowProtectionFee;
     final interestEarned = (_calcTradeVolume * 0.08 * (_calcHoldDays / 365));
 
+    if (!isDemo) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Volume Discount & Fee Engine', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+          Text('Live protocol fee parameters and active trade settlement volume tiers.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
+          const SizedBox(height: 16),
+
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E293B)]), borderRadius: BorderRadius.circular(20)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('LIVE PROTOCOL SETTLEMENT STATUS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF38BDF8), letterSpacing: 1.0)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFF38BDF8).withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                      child: const Text('TIER 1 BASELINE', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _simOutputMetric('Active Sourcing Volume', '0.0 MT', Colors.white),
+                    _simOutputMetric('Escrow Protection Fee', '1.5% (Standard)', const Color(0xFF22C55E)),
+                    _simOutputMetric('Accrued Yield', 'US\$ 0.00', const Color(0xFF38BDF8)),
+                  ],
+                ),
+                const Divider(color: Color(0xFF334155), height: 28),
+                const Text(
+                  'No live trade contracts currently accruing escrow settlement fees. Volume discount rebates will apply automatically as monthly procurement exceeds 50 MT.',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Interactive Escrow Yield & Fee Calculator', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
+        Text('Interactive Escrow Yield & Fee Calculator (Demo Simulation)', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
         Text('Simulate trade settlement fees, escrow protection margins, and net seller payouts.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
         const SizedBox(height: 16),
 
@@ -764,7 +830,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('TRADE SETTLEMENT PARAMETERS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
+              Text('TRADE SETTLEMENT PARAMETERS (DEMO SANDBOX)', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
               const SizedBox(height: 12),
 
               Text('Monthly Trade Settlement Volume: \$${_calcTradeVolume.toStringAsFixed(0)} USD', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: dark)),
