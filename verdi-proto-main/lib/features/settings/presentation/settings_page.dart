@@ -637,6 +637,7 @@ class _GeneralSettingsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(appStateProvider).role;
     final isAdmin = role == UserRole.admin;
+    final isFarmerOrExpert = role == UserRole.farmer || role == UserRole.expert;
 
     return SafeArea(
       child: Align(
@@ -650,9 +651,13 @@ class _GeneralSettingsTab extends ConsumerWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
                   onTap: () => _showProfileEditor(context, ref),
-                  leading: const Icon(Icons.person_outline),
-                  title: const Text('Profile Preferences'),
-                  subtitle: const Text('Edit your name, phone number, and stakeholder category.'),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: SettingsPage.green.withOpacity(0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.badge_outlined, color: SettingsPage.green, size: 20),
+                  ),
+                  title: const Text('Enterprise Profile & Identity', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Manage legal company name, VAT/Tax ID, phone number, and KYC tier.'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 ),
               ),
@@ -660,21 +665,61 @@ class _GeneralSettingsTab extends ConsumerWidget {
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
-                  onTap: () => _showLoraGatewayDialog(context),
-                  leading: const Icon(Icons.sensors_outlined),
-                  title: const Text('LoRa Telemetry Gateway'),
-                  subtitle: const Text('Configure physical soil sensors, flow-meters, and water pressure valves.'),
+                  onTap: () => _showNotificationPreferencesDialog(context),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.notifications_active_outlined, color: Colors.blue, size: 20),
+                  ),
+                  title: const Text('Notification & SMS Channels', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Configure instant WhatsApp dispatch alerts, SMS order receipts, and e-waybill emails.'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 ),
               ),
+              const SizedBox(height: 12),
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: ListTile(
+                  onTap: () => _showSecurityDialog(context),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.purple.withOpacity(0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.security_outlined, color: Colors.purple, size: 20),
+                  ),
+                  title: const Text('Security & Two-Factor Authentication', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Manage 2FA authenticator, biometric passkey login, and active device sessions.'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                ),
+              ),
+              if (isFarmerOrExpert) ...[
+                const SizedBox(height: 12),
+                Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: ListTile(
+                    onTap: () => _showLoraGatewayDialog(context),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.teal.withOpacity(0.1), shape: BoxShape.circle),
+                      child: const Icon(Icons.sensors_outlined, color: Colors.teal, size: 20),
+                    ),
+                    title: const Text('LoRa Telemetry Gateway', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    subtitle: const Text('Configure physical soil sensors, flow-meters, and water pressure valves.'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
                   onTap: () => _showLanguageLocationDialog(context),
-                  leading: const Icon(Icons.language_outlined),
-                  title: const Text('Language & Location'),
-                  subtitle: const Text('Select preferred local language (English, Shona, Ndebele).'),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.language_outlined, color: Colors.amber, size: 20),
+                  ),
+                  title: const Text('Language, Currency & Region', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Select preferred local language (English, Shona, Ndebele) and primary currency.'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 ),
               ),
@@ -701,8 +746,12 @@ class _GeneralSettingsTab extends ConsumerWidget {
                         ),
                       );
                     },
-                    leading: const Icon(Icons.support_agent_outlined),
-                    title: const Text('Request Access Modification'),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), shape: BoxShape.circle),
+                      child: const Icon(Icons.support_agent_outlined, color: Colors.orange, size: 20),
+                    ),
+                    title: const Text('Request Access Modification', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                     subtitle: const Text('Send a privilege upgrade or revocation request to support.'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                   ),
@@ -880,6 +929,156 @@ class _GeneralSettingsTab extends ConsumerWidget {
     );
   }
 
+  void _showNotificationPreferencesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          bool whatsapp = true;
+          bool sms = true;
+          bool emailWaybill = true;
+          bool priceAlerts = true;
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: const [
+                Icon(Icons.notifications_active, color: Colors.blue),
+                SizedBox(width: 8),
+                Text('Notification Channels', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('WhatsApp Instant Order Alerts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Receive real-time harvest dispatch and waybill status on WhatsApp.', style: TextStyle(fontSize: 11, color: SettingsPage.muted)),
+                    value: whatsapp,
+                    activeColor: SettingsPage.green,
+                    onChanged: (v) => setState(() => whatsapp = v),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('SMS Payment & Escrow Alerts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Direct SMS alerts for EcoCash/RTGS deposits and releases.', style: TextStyle(fontSize: 11, color: SettingsPage.muted)),
+                    value: sms,
+                    activeColor: SettingsPage.green,
+                    onChanged: (v) => setState(() => sms = v),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Automated e-Waybill & PDF Invoices', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Email certified tax invoice PDFs upon delivery confirmation.', style: TextStyle(fontSize: 11, color: SettingsPage.muted)),
+                    value: emailWaybill,
+                    activeColor: SettingsPage.green,
+                    onChanged: (v) => setState(() => emailWaybill = v),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('National Market Pulse Price Alerts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Daily morning price indices for major commodity auction floors.', style: TextStyle(fontSize: 11, color: SettingsPage.muted)),
+                    value: priceAlerts,
+                    activeColor: SettingsPage.green,
+                    onChanged: (v) => setState(() => priceAlerts = v),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Notification channels updated successfully.'), backgroundColor: Colors.blue),
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                child: const Text('Save Preferences'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showSecurityDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          bool twoFactor = true;
+          bool biometricPasskey = true;
+          bool sessionAudit = true;
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: const [
+                Icon(Icons.security, color: Colors.purple),
+                SizedBox(width: 8),
+                Text('Security & Authentication', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Two-Factor Authentication (2FA)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Require OTP on high-value trade contract and payout disbursements.', style: TextStyle(fontSize: 11, color: SettingsPage.muted)),
+                    value: twoFactor,
+                    activeColor: Colors.purple,
+                    onChanged: (v) => setState(() => twoFactor = v),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Biometric Passkey Login (WebAuthn)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Enable fingerprint / FaceID passwordless signing on authorized devices.', style: TextStyle(fontSize: 11, color: SettingsPage.muted)),
+                    value: biometricPasskey,
+                    activeColor: Colors.purple,
+                    onChanged: (v) => setState(() => biometricPasskey = v),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Session Anomaly & Geolocation Shield', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: const Text('Instant alert and lockdown if login IP originates outside registered corridor.', style: TextStyle(fontSize: 11, color: SettingsPage.muted)),
+                    value: sessionAudit,
+                    activeColor: Colors.purple,
+                    onChanged: (v) => setState(() => sessionAudit = v),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Security parameters updated and logged.'), backgroundColor: Colors.purple),
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white),
+                child: const Text('Update Security'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   void _showProfileEditor(BuildContext context, WidgetRef ref) {
     final authState = ref.read(authStateProvider);
     final user = authState.user;
@@ -887,36 +1086,124 @@ class _GeneralSettingsTab extends ConsumerWidget {
 
     final nameController = TextEditingController(text: user.fullName);
     final emailController = TextEditingController(text: user.email);
+    final phoneController = TextEditingController(text: '+263 77 412 9081');
+    final companyController = TextEditingController(text: 'Southern Fresh & Agri Trade Syndicate');
+    final vatController = TextEditingController(text: 'VAT-ZIM-994201-B');
+    final addressController = TextEditingController(text: '14 Avondale West / Workington Hub, Harare');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'Edit Profile Preferences',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: SettingsPage.green.withOpacity(0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.badge_outlined, color: SettingsPage.green, size: 22),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Enterprise Profile Preferences',
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+          ],
         ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Full Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              // KYC Verification Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFF86EFAC))),
+                child: Row(
+                  children: const [
+                    Icon(Icons.verified, color: Color(0xFF16A34A), size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text('Tier-3 Enterprise KYC Verified • SADC Cross-Border Sourcing Approved', style: TextStyle(color: Color(0xFF15803D), fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              const Text('Full Name / Representative', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
               const SizedBox(height: 6),
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
                   hintText: 'Enter name',
+                  prefixIcon: const Icon(Icons.person_outline, size: 18),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text('Email Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 14),
+
+              const Text('Business Email Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
               const SizedBox(height: 6),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
                   hintText: 'Enter email',
+                  prefixIcon: const Icon(Icons.email_outlined, size: 18),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              const Text('Direct Mobile / WhatsApp Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: phoneController,
+                decoration: InputDecoration(
+                  hintText: '+263 ...',
+                  prefixIcon: const Icon(Icons.phone_outlined, size: 18),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              const Text('Company / Legal Trading Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: companyController,
+                decoration: InputDecoration(
+                  hintText: 'Enter trading entity name',
+                  prefixIcon: const Icon(Icons.business_outlined, size: 18),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              const Text('Tax / VAT Registration Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: vatController,
+                decoration: InputDecoration(
+                  hintText: 'VAT-ZIM-...',
+                  prefixIcon: const Icon(Icons.receipt_long_outlined, size: 18),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              const Text('Physical / Receiving Warehouse Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  hintText: 'Enter physical delivery address',
+                  prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
                 ),
               ),
             ],
@@ -943,7 +1230,7 @@ class _GeneralSettingsTab extends ConsumerWidget {
 
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated successfully.')),
+                  const SnackBar(content: Text('Enterprise profile & identity updated successfully.'), backgroundColor: SettingsPage.green),
                 );
               }
             },
