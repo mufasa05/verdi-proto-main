@@ -19,8 +19,6 @@ List<_PaymentRoleTab> _getTabsForRole(UserRole role, BuyerSubRole buyerSubRole) 
   if (isEndUser) {
     return const [
       _PaymentRoleTab(0, '🛒 Grocery Orders & Receipts', Icons.receipt_long_outlined),
-      _PaymentRoleTab(1, '📱 Mobile Wallets & Cards', Icons.phone_android_outlined),
-      _PaymentRoleTab(2, '🛵 InDrive Delivery Pooling & Tips', Icons.local_shipping_outlined),
     ];
   }
 
@@ -249,48 +247,50 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             // ─────────────────────────────────────────────────────────────────
             // Live Settlement Ticker Pulse Bar (Tailored Per Role)
             // ─────────────────────────────────────────────────────────────────
-            Container(
-              width: double.infinity,
-              color: const Color(0xFF0F172A),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF22C55E))),
-                    const SizedBox(width: 8),
-                    Text(
-                      isEndUser ? 'GROCERY PAYMENT PULSE: ' : (isB2BWholesaler ? 'COMMERCIAL ESCROW PULSE: ' : 'FINANCIAL ESCROW PULSE: '),
-                      style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E), letterSpacing: 1.0),
-                    ),
-                    Text(
-                      _getTickerText(currentRole, isEndUser, isB2BWholesaler, ref.watch(isDemoModeProvider)),
-                      style: GoogleFonts.inter(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500),
-                    ),
-                  ],
+            if (!isEndUser)
+              Container(
+                width: double.infinity,
+                color: const Color(0xFF0F172A),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF22C55E))),
+                      const SizedBox(width: 8),
+                      Text(
+                        isB2BWholesaler ? 'COMMERCIAL ESCROW PULSE: ' : 'FINANCIAL ESCROW PULSE: ',
+                        style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E), letterSpacing: 1.0),
+                      ),
+                      Text(
+                        _getTickerText(currentRole, isEndUser, isB2BWholesaler, ref.watch(isDemoModeProvider)),
+                        style: GoogleFonts.inter(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
             // ─────────────────────────────────────────────────────────────────
             // Role-Tailored Financial Tab Navigation
             // ─────────────────────────────────────────────────────────────────
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (int i = 0; i < roleTabs.length; i++) ...[
-                      _buildTabChip(i, roleTabs[i].label, roleTabs[i].icon),
-                      if (i != roleTabs.length - 1) const SizedBox(width: 8),
+            if (!isEndUser)
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < roleTabs.length; i++) ...[
+                        _buildTabChip(i, roleTabs[i].label, roleTabs[i].icon),
+                        if (i != roleTabs.length - 1) const SizedBox(width: 8),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-            const Divider(height: 1),
+            if (!isEndUser) const Divider(height: 1),
 
             // ─────────────────────────────────────────────────────────────────
             // Tab Content (Dynamic based on selected role tab)
@@ -330,7 +330,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
 
   String _getTickerText(UserRole role, bool isEndUser, bool isB2BWholesaler, bool isDemo) {
     if (isEndUser) {
-      return 'EcoCash / OneMoney / InnBucks: Operational • Average Delivery Tip: \$1.50 • Local SADC Currency Rate: 13.85 • 100% Secure Checkout';
+      return '100% Secure Direct Checkout';
     }
     if (isB2BWholesaler) {
       return isDemo
@@ -353,10 +353,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
     required List<PaymentItem> allPayments,
   }) {
     if (isEndUser) {
-      if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
-      if (tabIndex == 1) return _buildMobileGatewayTab();
-      if (tabIndex == 2) return _buildInDriveDeliveryTipsTab();
-      return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
+      return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments, isEndUser: true);
     }
 
     if (isB2BWholesaler) {
@@ -427,10 +424,190 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   // TAB 0: ESCROW & TRADE SETTLEMENTS
   // ───────────────────────────────────────────────────────────────────────────
 
-  Widget _buildEscrowTab(List<PaymentItem> payments, PaymentItem selectedPayment, bool isDesktop, List<PaymentItem> allPayments) {
+  Widget _buildCurrencyConverterCard() {
+    double rate = 13.85; // ZiG
+    String symbol = 'ZiG';
+    if (_targetCurrency.contains('ZAR')) {
+      rate = 18.20;
+      symbol = 'ZAR';
+    } else if (_targetCurrency.contains('EcoCash')) {
+      rate = 14.10;
+      symbol = 'ZWG';
+    }
+    final converted = _converterUsd * rate;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E293B)]),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: const Color(0xFF22C55E).withOpacity(0.15), shape: BoxShape.circle),
+                    child: const Icon(Icons.currency_exchange, color: Color(0xFF22C55E), size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Live Currency Converter & Checkout Rates', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const Text('Official interbank & local mobile money settlement rates', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: const Color(0xFF22C55E).withOpacity(0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.4))),
+                child: const Text('LIVE INTERBANK', style: TextStyle(color: Color(0xFF22C55E), fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+              final inputField = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('AMOUNT (USD)', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    decoration: BoxDecoration(color: const Color(0xFF0A0F1D), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF334155))),
+                    child: Row(
+                      children: [
+                        const Text('\$', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextFormField(
+                            initialValue: _converterUsd.toStringAsFixed(0),
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                            onChanged: (v) {
+                              final val = double.tryParse(v);
+                              if (val != null) setState(() => _converterUsd = val);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+
+              final dropdownField = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('TARGET CURRENCY', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xFF0A0F1D), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF334155))),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _targetCurrency,
+                        dropdownColor: const Color(0xFF1E293B),
+                        isExpanded: true,
+                        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                        items: const [
+                          DropdownMenuItem(value: 'ZiG (Zimbabwe Gold)', child: Text('ZiG (Zimbabwe Gold) @ 13.85', style: TextStyle(color: Colors.white, fontSize: 13))),
+                          DropdownMenuItem(value: 'EcoCash ZWG', child: Text('EcoCash ZWG @ 14.10', style: TextStyle(color: Colors.white, fontSize: 13))),
+                          DropdownMenuItem(value: 'ZAR (South African Rand)', child: Text('ZAR (SA Rand) @ 18.20', style: TextStyle(color: Colors.white, fontSize: 13))),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) setState(() => _targetCurrency = v);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  children: [
+                    inputField,
+                    const SizedBox(height: 12),
+                    dropdownField,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: inputField),
+                  const SizedBox(width: 14),
+                  Expanded(child: dropdownField),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          // Converted Outcome Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF16A34A).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF16A34A).withOpacity(0.3)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('CONVERTED ESTIMATE', style: TextStyle(color: Color(0xFF86EFAC), fontSize: 10.5, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                    const SizedBox(height: 2),
+                    Text('$symbol ${converted.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E))),
+                  ],
+                ),
+                Wrap(
+                  spacing: 6,
+                  children: [10.0, 25.0, 50.0, 100.0].map((quick) {
+                    final isSel = _converterUsd == quick;
+                    return InkWell(
+                      onTap: () => setState(() => _converterUsd = quick),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSel ? const Color(0xFF16A34A) : const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: isSel ? const Color(0xFF16A34A) : const Color(0xFF334155)),
+                        ),
+                        child: Text('\$${quick.toInt()}', style: TextStyle(color: isSel ? Colors.white : const Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEscrowTab(List<PaymentItem> payments, PaymentItem selectedPayment, bool isDesktop, List<PaymentItem> allPayments, {bool isEndUser = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (isEndUser) _buildCurrencyConverterCard(),
         _Header(
           isCompact: !isDesktop,
           selectedFilter: _selectedFilter,
@@ -900,112 +1077,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
       ],
     );
   }
-  // ───────────────────────────────────────────────────────────────────────────
-  // TAB: INDRIVE SHARED LOGISTICS & DRIVER TIPS (END-USER CONSUMER)
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildInDriveDeliveryTipsTab() {
-    final isDemo = ref.watch(isDemoModeProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('InDrive Shared Delivery & Driver Tips', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark)),
-        Text('Track your delivery cost savings from neighborhood vehicle pooling and manage driver tips.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
-        const SizedBox(height: 16),
-
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF065F46), Color(0xFF047857)]),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('NEIGHBORHOOD POOLING SAVINGS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white70, letterSpacing: 1.0)),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                    child: Text(isDemo ? 'ZONE SAVINGS ACTIVE' : 'NO POOLING ACTIVE', style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Text(isDemo ? '\$18.50 Saved' : '\$0.00 Saved', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      isDemo
-                          ? 'You shared InDrive delivery routes on 4 orders this month, cutting direct courier fees from \$6.00 to \$2.00 per drop.'
-                          : 'No live shared delivery routes active yet. Delivery route pooling savings will calculate when you place multi-stop orders.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black12)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('RECENT DELIVERY COURIER TIPS & RECEIPTS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
-              const SizedBox(height: 14),
-              if (isDemo) ...[
-                _deliveryTipRow('Order #ORD-7741 (Fresh Vegetables)', 'Driver: Tinashe M. (InDrive)', '\$2.00 Tip Paid', 'Delivered • 2h ago'),
-                const Divider(),
-                _deliveryTipRow('Order #ORD-6629 (Dairy & Free-Range Eggs)', 'Driver: Kelvin D. (InDrive)', '\$1.50 Tip Paid', 'Delivered • Yesterday'),
-                const Divider(),
-                _deliveryTipRow('Order #ORD-5502 (Staple Meal)', 'Driver: Farai K. (InDrive)', '\$2.50 Tip Paid', 'Delivered • 3 days ago'),
-              ] else
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: Text('No live delivery tips or courier receipts recorded yet.', style: TextStyle(color: muted, fontSize: 12, fontStyle: FontStyle.italic)),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _deliveryTipRow(String title, String driver, String tip, String time) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: green.withOpacity(0.1), shape: BoxShape.circle),
-            child: const Icon(Icons.two_wheeler_outlined, color: green, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: dark)),
-                Text('$driver • $time', style: const TextStyle(fontSize: 11, color: muted)),
-              ],
-            ),
-          ),
-          Text(tip, style: const TextStyle(fontWeight: FontWeight.w800, color: green, fontSize: 13)),
-        ],
-      ),
-    );
-  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // TAB: SADC RTGS & BANK WIRE GATEWAY (B2B WHOLESALER)
