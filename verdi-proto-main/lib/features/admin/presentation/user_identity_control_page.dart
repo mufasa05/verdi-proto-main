@@ -254,49 +254,166 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
   }
 
   void _showElevateRoleModal(Map<String, dynamic> user) {
-    String currentRole = user['role'];
+    String currentRole = user['role'] ?? 'Farmer';
+    bool grantFullSovereignty = currentRole == 'Admin' || currentRole == 'Super Admin';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          backgroundColor: cardDark,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: cardBorder)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: accentBlue.withOpacity(0.15), shape: BoxShape.circle),
+                child: const Icon(Icons.vpn_key_outlined, color: accentBlue, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Elevate Privilege: ${user['name']}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                    Text('User ID: ${user['id']} • Current: ${user['role']}', style: const TextStyle(color: textMuted, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Select new stakeholder privilege level:', style: TextStyle(color: textMuted, fontSize: 12)),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: ['Farmer', 'Buyer', 'Transporter', 'ValueAdder', 'Financier', 'Expert', 'Government', 'Admin'].contains(currentRole) ? currentRole : 'Farmer',
+                  dropdownColor: cardDark,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  items: [
+                    'Farmer',
+                    'Buyer',
+                    'Transporter',
+                    'ValueAdder',
+                    'Financier',
+                    'Expert',
+                    'Government',
+                    'Admin',
+                  ].map((r) => DropdownMenuItem(value: r, child: Text(r == 'Admin' ? '👑 Super Admin / Admin' : r))).toList(),
+                  onChanged: (v) {
+                    if (v != null) {
+                      setModalState(() {
+                        currentRole = v;
+                        grantFullSovereignty = v == 'Admin';
+                      });
+                    }
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: bgDark,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(10), border: Border.all(color: cardBorder)),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Bypass Verification Gate', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Grant automatic KYC Level 3 Clearance', style: TextStyle(color: textMuted, fontSize: 10.5)),
+                        value: grantFullSovereignty,
+                        activeColor: accentGreen,
+                        onChanged: (v) => setModalState(() => grantFullSovereignty = v),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: textMuted))),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  user['role'] = currentRole;
+                  if (grantFullSovereignty) user['kyc'] = 'VERIFIED';
+                });
+                SupabaseService.instance.logActivity(
+                  userName: user['name'],
+                  userId: user['id'],
+                  userRole: currentRole,
+                  actionTitle: '👑 Role Elevated by Super Admin',
+                  actionDescription: 'Privilege updated to $currentRole for ${user['name']}.',
+                  module: 'Security & Privileges',
+                  targetResource: user['id'],
+                );
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Role elevated to $currentRole for ${user['name']}.'), backgroundColor: accentBlue),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: accentBlue, foregroundColor: Colors.white),
+              child: const Text('Confirm Elevation'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showImpersonateModal(Map<String, dynamic> user) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: cardDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: cardBorder)),
-        title: Text('Elevate Role: ${user['name']}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            const Text('Select new stakeholder privilege level:', style: TextStyle(color: textMuted, fontSize: 12)),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: currentRole,
-              dropdownColor: cardDark,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              items: ['Farmer', 'Buyer', 'Transporter', 'ValueAdder', 'Financier', 'Expert', 'Government', 'Admin']
-                  .map((r) => DropdownMenuItem(value: r, child: Text(r)))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) currentRole = v;
-              },
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: bgDark,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-              ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: Colors.purple.withOpacity(0.2), shape: BoxShape.circle),
+              child: const Icon(Icons.visibility_outlined, color: Colors.purpleAccent, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('Inspect Perspective: ${user['name']}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
             ),
           ],
+        ),
+        content: Text(
+          'Switch your live interface perspective to experience the Verdi ecosystem as (${user['name']} • ${user['role']}). Full Super Admin audit logging remains active.',
+          style: const TextStyle(color: textMuted, fontSize: 12.5),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: textMuted))),
           ElevatedButton(
             onPressed: () {
-              setState(() => user['role'] = currentRole);
               Navigator.pop(context);
+              final userRole = switch (user['role'].toString().toLowerCase()) {
+                'farmer' => UserRole.farmer,
+                'buyer' => UserRole.buyer,
+                'transporter' => UserRole.transporter,
+                'financier' => UserRole.financier,
+                'valueadder' => UserRole.valueAdder,
+                'expert' => UserRole.expert,
+                'government' => UserRole.government,
+                _ => UserRole.admin,
+              };
+              ref.read(appStateProvider.notifier).setRole(userRole);
+              ref.read(appStateProvider.notifier).setNavIndex(0);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Role elevated to $currentRole for ${user['name']}.'), backgroundColor: accentBlue),
+                SnackBar(content: Text('Switched perspective to ${user['name']} (${user['role']}).'), backgroundColor: Colors.purple),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: accentBlue, foregroundColor: Colors.white),
-            child: const Text('Confirm Elevation'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white),
+            child: const Text('Switch Perspective'),
           ),
         ],
       ),
@@ -809,6 +926,19 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                           style: OutlinedButton.styleFrom(
                             foregroundColor: accentGold,
                             side: const BorderSide(color: accentGold),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          ),
+                        ),
+
+                        // 7. Impersonate / Perspective Switcher (Purple Outline)
+                        OutlinedButton.icon(
+                          onPressed: () => _showImpersonateModal(u),
+                          icon: const Icon(Icons.visibility_outlined, size: 14),
+                          label: const Text('Inspect View'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.purpleAccent,
+                            side: const BorderSide(color: Colors.purpleAccent),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                           ),
