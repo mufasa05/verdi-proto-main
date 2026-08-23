@@ -30,6 +30,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
   String _searchQuery = '';
   String _selectedRoleFilter = 'All Roles';
   String _selectedKycFilter = 'All KYC Status';
+  final Set<String> _deletedUserIds = {};
 
   final List<Map<String, dynamic>> _userDatabase = [
     {
@@ -420,12 +421,150 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
     );
   }
 
+  void _showRegisterUserModal() {
+    final nameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final locationCtrl = TextEditingController();
+    String selectedRole = 'Farmer';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          backgroundColor: cardDark,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: cardBorder)),
+          title: Row(
+            children: [
+              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: accentGreen.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.person_add_outlined, color: accentGreen, size: 20)),
+              const SizedBox(width: 10),
+              Text('Register New Platform Stakeholder', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Full Name / Enterprise Name',
+                    labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+                    filled: true,
+                    fillColor: bgDark,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: emailCtrl,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Email Address',
+                    labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+                    filled: true,
+                    fillColor: bgDark,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: phoneCtrl,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+                    filled: true,
+                    fillColor: bgDark,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: locationCtrl,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Location / Region',
+                    labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+                    filled: true,
+                    fillColor: bgDark,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: selectedRole,
+                  dropdownColor: cardDark,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  items: ['Farmer', 'Buyer', 'Transporter', 'ValueAdder', 'Financier', 'Expert', 'Government', 'Admin'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                  onChanged: (v) {
+                    if (v != null) setModalState(() => selectedRole = v);
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Stakeholder Role',
+                    labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+                    filled: true,
+                    fillColor: bgDark,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: textMuted))),
+            ElevatedButton(
+              onPressed: () {
+                if (nameCtrl.text.trim().isEmpty) return;
+                final newId = 'USR-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+                final newUser = {
+                  'id': newId,
+                  'name': nameCtrl.text.trim(),
+                  'email': emailCtrl.text.trim().isNotEmpty ? emailCtrl.text.trim() : '$newId@verdi.co',
+                  'role': selectedRole,
+                  'kyc': 'VERIFIED',
+                  'location': locationCtrl.text.trim().isNotEmpty ? locationCtrl.text.trim() : 'Harare Central Hub',
+                  'eudr': 'EUDR-ZIM-2026-LIVE',
+                  'status': 'ACTIVE',
+                  'sessions': 1,
+                  'lastSeen': 'Just now',
+                  'joiningDate': 'Registered Today (Super Admin Desk)',
+                  'phone': phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : '+263 77 000 0000',
+                  'escrowBalance': 'US\$ 0.00',
+                };
+                setState(() {
+                  _userDatabase.insert(0, newUser);
+                });
+                SupabaseService.instance.logActivity(
+                  userName: newUser['name'] as String,
+                  userId: newId,
+                  userRole: selectedRole,
+                  actionTitle: '👤 Stakeholder Registered by Super Admin',
+                  actionDescription: 'Direct directory registration for ${newUser['name']}.',
+                  module: 'User Management',
+                  targetResource: newId,
+                );
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Registered stakeholder ${newUser['name']} ($newId) successfully.'), backgroundColor: accentGreen),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: accentGreen, foregroundColor: Colors.white),
+              child: const Text('Create Stakeholder'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authUser = ref.watch(authStateProvider).user;
     final List<Map<String, dynamic>> combinedUsers = [];
 
-    if (authUser != null) {
+    if (authUser != null && !_deletedUserIds.contains(authUser.id)) {
       combinedUsers.add({
         'id': authUser.id,
         'name': authUser.fullName,
@@ -444,7 +583,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
     }
 
     for (final u in _userDatabase) {
-      if (!combinedUsers.any((x) => x['id'] == u['id'] || x['name'].toString().toLowerCase() == u['name'].toString().toLowerCase())) {
+      if (!_deletedUserIds.contains(u['id']) && !combinedUsers.any((x) => x['id'] == u['id'])) {
         combinedUsers.add(u);
       }
     }
@@ -503,11 +642,13 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(10), border: Border.all(color: cardBorder)),
+                  child: Text('Active Directory: ${filteredUsers.length} Users Listed', style: const TextStyle(color: textMuted, fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening user registration desk...')));
-                  },
+                  onPressed: _showRegisterUserModal,
                   icon: const Icon(Icons.person_add_outlined, size: 16),
                   label: const Text('Register User', style: TextStyle(fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
@@ -613,9 +754,9 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                     Row(
                       children: [
                         CircleAvatar(
-                          backgroundColor: accentGreen.withOpacity(0.18),
+                          backgroundColor: isSuspended ? accentDanger.withOpacity(0.18) : accentGreen.withOpacity(0.18),
                           radius: 20,
-                          child: const Icon(Icons.person, color: accentGreen, size: 20),
+                          child: Icon(isSuspended ? Icons.person_off_outlined : Icons.person, color: isSuspended ? accentDanger : accentGreen, size: 20),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -624,18 +765,28 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                             children: [
                               Row(
                                 children: [
-                                  Text(u['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+                                  Text(u['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: isSuspended ? Colors.white70 : Colors.white)),
                                   const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(4)),
                                     child: Text(u['id'], style: const TextStyle(color: accentBlue, fontSize: 10, fontWeight: FontWeight.bold)),
                                   ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isSuspended ? accentDanger.withOpacity(0.2) : accentGreen.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: isSuspended ? accentDanger : accentGreen, width: 0.8),
+                                    ),
+                                    child: Text(isSuspended ? 'SUSPENDED' : 'ACTIVE', style: TextStyle(color: isSuspended ? accentDanger : accentGreen, fontSize: 9.5, fontWeight: FontWeight.w900)),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 2),
                               Text('${u['email']} • Location: ${u['location']}', style: const TextStyle(fontSize: 11.5, color: textMuted)),
-                              Text('Role: ${u['role']}', style: const TextStyle(fontSize: 11.5, color: textMuted)),
+                              Text('Role: ${u['role']}', style: TextStyle(fontSize: 11.5, color: isSuspended ? textMuted : accentBlue, fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
@@ -650,6 +801,20 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                         ),
                       ],
                     ),
+                    if (isSuspended) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(color: accentDanger.withOpacity(0.12), borderRadius: BorderRadius.circular(8), border: Border.all(color: accentDanger.withOpacity(0.3))),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.block, color: accentDanger, size: 16),
+                            SizedBox(width: 8),
+                            Expanded(child: Text('ACCOUNT SUSPENDED: Platform login & automated smart contract escrow payouts are blocked.', style: TextStyle(color: accentDanger, fontSize: 11, fontWeight: FontWeight.bold))),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 14),
 
                     // 6 Direct Action Buttons with Real Logic & Safety Confirmation Modals
@@ -860,6 +1025,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                                 final deletedUserName = u['name'];
                                 final deletedUserId = u['id'];
                                 setState(() {
+                                  _deletedUserIds.add(deletedUserId);
                                   _userDatabase.removeWhere((item) => item['id'] == deletedUserId);
                                 });
                                 SupabaseService.instance.logActivity(
@@ -873,7 +1039,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                                 );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Account for $deletedUserName has been permanently deleted.'),
+                                    content: Text('Account for $deletedUserName ($deletedUserId) has been permanently removed.'),
                                     backgroundColor: accentDanger,
                                   ),
                                 );
