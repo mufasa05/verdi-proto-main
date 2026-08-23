@@ -146,6 +146,18 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
     final docs = batch != null ? _docsFor(batch.id, isTransporter) : <_BatchDocument>[];
     final scans = batch != null ? _scansFor(batch.id, isTransporter) : <_ScanLog>[];
 
+    final isBuyer = role == UserRole.buyer;
+    final titleText = isTransporter
+        ? 'Freight Chain of Custody & Consignment Tracking'
+        : (isBuyer
+            ? 'Produce Provenance & Buyer Batch Verification'
+            : 'Batch Traceability & Provenance Verification');
+    final subtitleText = isTransporter
+        ? 'Live cargo manifest, Bill of Lading, transit checkpoints, cold-chain integrity, and offload handovers.'
+        : (isBuyer
+            ? 'Verify farm origin polygons, EUDR deforestation compliance certificates, pesticide residue reports, and consignment QR codes.'
+            : 'Track origin, field events, compliance documents, scan audits, and export readiness.');
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -163,14 +175,12 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isTransporter ? 'Freight Chain of Custody & Consignment Tracking' : 'Traceability',
+                            titleText,
                             style: GoogleFonts.inter(fontSize: 21, fontWeight: FontWeight.w800, color: dark),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            isTransporter
-                                ? 'Live cargo manifest, Bill of Lading, transit checkpoints, cold-chain integrity, and offload handovers.'
-                                : 'Track origin, events, documents, scans, and readiness.',
+                            subtitleText,
                             style: GoogleFonts.inter(color: muted, fontSize: 13),
                           ),
                         ],
@@ -181,7 +191,7 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999), border: Border.all(color: Colors.black12)),
                         child: Text(
-                          isTransporter ? 'Seal Verified 99.4%' : 'Avg ${(_overallReadiness(batches) * 100).round()}%',
+                          isTransporter ? 'Seal Verified 99.4%' : (isBuyer ? 'EUDR Verified 98.6%' : 'Avg ${(_overallReadiness(batches) * 100).round()}%'),
                           style: const TextStyle(fontWeight: FontWeight.w700, color: dark, fontSize: 12),
                         ),
                       ),
@@ -209,12 +219,19 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                               {'label': 'Cold-Chain OK', 'value': '${batches.length}', 'icon': Icons.ac_unit_outlined},
                               {'label': 'Cleared', 'value': '${batches.where((b) => b.status != 'Blocked').length}', 'icon': Icons.verified_user_outlined},
                             ]
-                          : [
-                              {'label': 'Batches', 'value': '${batches.length}', 'icon': Icons.inventory_2_outlined},
-                              {'label': 'Ready', 'value': '${batches.where((b) => b.status == 'Ready').length}', 'icon': Icons.verified_outlined},
-                              {'label': 'Review', 'value': '${batches.where((b) => b.status == 'Review').length}', 'icon': Icons.rate_review_outlined},
-                              {'label': 'Blocked', 'value': '${batches.where((b) => b.status == 'Blocked').length}', 'icon': Icons.block_outlined},
-                            ];
+                          : (isBuyer
+                              ? [
+                                  {'label': 'Sourced Batches', 'value': '${batches.length}', 'icon': Icons.inventory_2_outlined},
+                                  {'label': 'EUDR Compliant', 'value': '${batches.where((b) => b.originVerified).length}', 'icon': Icons.verified_outlined},
+                                  {'label': 'Lab Certified', 'value': '${batches.where((b) => b.inspectionPassed).length}', 'icon': Icons.fact_check_outlined},
+                                  {'label': 'Audit Ready', 'value': '${batches.where((b) => b.status == 'Ready').length}', 'icon': Icons.task_alt_outlined},
+                                ]
+                              : [
+                                  {'label': 'Batches', 'value': '${batches.length}', 'icon': Icons.inventory_2_outlined},
+                                  {'label': 'Ready', 'value': '${batches.where((b) => b.status == 'Ready').length}', 'icon': Icons.verified_outlined},
+                                  {'label': 'Review', 'value': '${batches.where((b) => b.status == 'Review').length}', 'icon': Icons.rate_review_outlined},
+                                  {'label': 'Blocked', 'value': '${batches.where((b) => b.status == 'Blocked').length}', 'icon': Icons.block_outlined},
+                                ]);
                       if (constraints.maxWidth >= 900) {
                         return Row(
                           children: stats.map((s) => Expanded(

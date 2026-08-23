@@ -706,7 +706,65 @@ class _PriorityQueueSection extends ConsumerWidget {
       ];
     }
 
-    // Default / Buyer / Other roles fallback cards
+    if (role == UserRole.buyer || role == UserRole.consumer) {
+      final isEndUser = (role == UserRole.buyer && ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
+      if (isEndUser) {
+        return [
+          _PriorityCard(
+            badgeLabel: 'FRESH HARVEST',
+            badgeColor: const Color(0xFF16A34A),
+            title: 'Fresh Produce In Stock',
+            subtitle: 'Mazowe tomatoes & Marondera sweet maize harvested today',
+            buttonLabel: 'Browse Fresh',
+            onTap: () => notifier.setNavIndex(1),
+          ),
+          _PriorityCard(
+            badgeLabel: 'DELIVERY ETA',
+            badgeColor: const Color(0xFF2563EB),
+            title: 'Active Grocery Order #ORD-1002',
+            subtitle: 'Driver Blessing Chisora is en route (ETA 18 mins)',
+            buttonLabel: 'Track Delivery',
+            onTap: () => notifier.setNavIndex(4),
+          ),
+          _PriorityCard(
+            badgeLabel: 'FLASH SALE',
+            badgeColor: const Color(0xFFEA580C),
+            title: '18% Off Organic Avocado Packs',
+            subtitle: 'Chipinge highland harvest discount available today',
+            buttonLabel: 'View Deal',
+            onTap: () => notifier.setNavIndex(1),
+          ),
+        ];
+      }
+      return [
+        _PriorityCard(
+          badgeLabel: 'BULK SUPPLY',
+          badgeColor: const Color(0xFF16A34A),
+          title: '3,200 MT White Maize Ready',
+          subtitle: 'Masvingo grain silos reporting fresh Grade A intake',
+          buttonLabel: 'Source Lots',
+          onTap: () => notifier.setNavIndex(1),
+        ),
+        _PriorityCard(
+          badgeLabel: 'FORWARD CONTRACT',
+          badgeColor: const Color(0xFF2563EB),
+          title: 'Forward Contract FC-994 Active',
+          subtitle: '150 MT Soybeans locked at \$420/MT floor price',
+          buttonLabel: 'Trade Desk',
+          onTap: () => notifier.setNavIndex(19),
+        ),
+        _PriorityCard(
+          badgeLabel: 'COMMERCIAL ESCROW',
+          badgeColor: const Color(0xFF7C3AED),
+          title: 'US\$ 14,200 Escrow Secured',
+          subtitle: 'Awaiting digital e-POD consignee confirmation',
+          buttonLabel: 'Review Escrow',
+          onTap: () => notifier.setNavIndex(6),
+        ),
+      ];
+    }
+
+    // Default other roles fallback cards
     return [
       _PriorityCard(
         badgeLabel: 'ACTION NEEDED',
@@ -841,7 +899,8 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final actions = _getRoleActions(role);
+    final buyerSubRole = ref.watch(appStateProvider).buyerSubRole;
+    final actions = _getRoleActions(role, buyerSubRole);
     final notifier = ref.read(appStateProvider.notifier);
 
     return LayoutBuilder(
@@ -929,7 +988,7 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
     );
   }
 
-  List<_QuickActionConfig> _getRoleActions(UserRole role) {
+  List<_QuickActionConfig> _getRoleActions(UserRole role, BuyerSubRole buyerSubRole) {
     if (role == UserRole.expert) {
       return const [
         _QuickActionConfig('Start Advisory Session', 'Agronomy & client chat', Icons.lightbulb_outline, Color(0xFF16A34A), 2),
@@ -949,11 +1008,28 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
     }
 
     if (role == UserRole.buyer) {
+      if (buyerSubRole == BuyerSubRole.endUserCustomer) {
+        return const [
+          _QuickActionConfig('Fresh Grocery Store', 'Farm-to-table produce', Icons.storefront_outlined, Color(0xFF16A34A), 1),
+          _QuickActionConfig('Track Deliveries', 'InDrive live ETA & orders', Icons.local_shipping_outlined, Color(0xFF2563EB), 4),
+          _QuickActionConfig('Direct Messenger', 'Chat with drivers & farmers', Icons.message_outlined, Color(0xFF7C3AED), 2),
+          _QuickActionConfig('Household Savings', 'Grocery spending analytics', Icons.insights_outlined, Color(0xFFF97316), 3),
+        ];
+      }
       return const [
         _QuickActionConfig('Wholesale Marketplace', 'Bulk produce sourcing', Icons.storefront_outlined, Color(0xFF16A34A), 1),
-        _QuickActionConfig('Forward Contracts', 'Outgrower commitments', Icons.handshake_outlined, Color(0xFF2563EB), 19),
+        _QuickActionConfig('Trade Intelligence', 'Forward procurement desk', Icons.work_outline, Color(0xFF2563EB), 19),
         _QuickActionConfig('Commercial Escrow', 'Secured bank settlements', Icons.shield_outlined, Color(0xFF7C3AED), 6),
-        _QuickActionConfig('Haulage & Freight', 'Fleet transport dispatch', Icons.local_shipping_outlined, Color(0xFFF97316), 5),
+        _QuickActionConfig('Sourcing Analytics', 'Supply chain & price AI', Icons.insights_outlined, Color(0xFFF97316), 3),
+      ];
+    }
+
+    if (role == UserRole.consumer) {
+      return const [
+        _QuickActionConfig('Fresh Grocery Store', 'Farm-to-table produce', Icons.storefront_outlined, Color(0xFF16A34A), 1),
+        _QuickActionConfig('Track Deliveries', 'InDrive live ETA & orders', Icons.local_shipping_outlined, Color(0xFF2563EB), 4),
+        _QuickActionConfig('Direct Messenger', 'Chat with drivers & farmers', Icons.message_outlined, Color(0xFF7C3AED), 2),
+        _QuickActionConfig('Household Savings', 'Grocery spending analytics', Icons.insights_outlined, Color(0xFFF97316), 3),
       ];
     }
 

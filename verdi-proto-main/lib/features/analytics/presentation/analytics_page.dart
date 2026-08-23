@@ -404,19 +404,21 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
               switch (effectiveRole) {
                 UserRole.farmer => 'Field & Yield Analytics',
                 UserRole.transporter => 'Freight & Logistics Analytics',
-                UserRole.buyer => 'Supply Chain Sourcing Analytics',
+                UserRole.buyer => ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer ? 'Household Grocery & Savings Analytics' : 'Supply Chain Sourcing Analytics',
                 UserRole.expert => 'Agronomy Diagnostic Analytics',
                 UserRole.financier => 'Agri-Credit Portfolio Analytics',
                 UserRole.valueAdder => 'Agri-Processing Analytics',
                 UserRole.government => 'Grain Security & Trade Analytics',
-                UserRole.consumer => 'Produce Origin Analytics',
+                UserRole.consumer => 'Household Grocery & Savings Analytics',
                 UserRole.admin => 'Executive Value Chain Analytics',
               },
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: AnalyticsPage.dark),
             ),
             Text(
-              'Spatial Telemetry & Predictive AI',
+              (effectiveRole == UserRole.consumer || (effectiveRole == UserRole.buyer && ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer))
+                  ? 'Farmgate Price Savings & Nutrition Insights'
+                  : 'Spatial Telemetry & Predictive AI',
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(fontSize: 11, color: AnalyticsPage.muted, fontWeight: FontWeight.w500),
             ),
@@ -876,9 +878,14 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
           UserRole.farmer => isDemo
               ? [_kpiCard('Harvest Yield', '3.8 Tons/ha', '+14.2%', Icons.agriculture_outlined, AnalyticsPage.green, width), _kpiCard('Field Health NDVI', '0.78 (Good)', '+5.1%', Icons.eco_outlined, AnalyticsPage.blue, width), _kpiCard('Farmgate Margin', '\$12,480', '+11.8%', Icons.payments_outlined, AnalyticsPage.orange, width), _kpiCard('Storage Reserve', '45.0 Tons', 'Stable', Icons.inventory_2_outlined, AnalyticsPage.purple, width)]
               : [_kpiCard('Harvest Yield', '0.0 Tons/ha', '+0.0%', Icons.agriculture_outlined, AnalyticsPage.green, width), _kpiCard('Field Health NDVI', '0.00 (Baseline)', '+0.0%', Icons.eco_outlined, AnalyticsPage.blue, width), _kpiCard('Farmgate Margin', '\$0', '+0.0%', Icons.payments_outlined, AnalyticsPage.orange, width), _kpiCard('Storage Reserve', '0.0 Tons', 'Baseline', Icons.inventory_2_outlined, AnalyticsPage.purple, width)],
-          UserRole.buyer || UserRole.consumer => isDemo
-              ? [_kpiCard('Sourcing Volume', '142 Tons', '+16.5%', Icons.shopping_cart_outlined, AnalyticsPage.green, width), _kpiCard('Order Fulfillment', '95.4%', '+1.8%', Icons.task_alt_outlined, AnalyticsPage.blue, width), _kpiCard('Avg Produce Rate', '\$1.45/kg', '-3.2%', Icons.price_change_outlined, AnalyticsPage.orange, width), _kpiCard('Supplier Quality', '4.8 / 5.0', '+0.2', Icons.star_outline_rounded, AnalyticsPage.purple, width)]
+          UserRole.buyer => isDemo
+              ? (ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer
+                  ? [_kpiCard('Monthly Spend', '\$142.50', '-12.4%', Icons.shopping_basket_outlined, AnalyticsPage.green, width), _kpiCard('Farmgate Savings', '18.5%', '+3.2%', Icons.savings_outlined, AnalyticsPage.blue, width), _kpiCard('Fresh Deliveries', '12 Orders', '+2', Icons.local_shipping_outlined, AnalyticsPage.orange, width), _kpiCard('Carbon Offset', '-42 kg CO2', 'Local', Icons.eco_outlined, AnalyticsPage.purple, width)]
+                  : [_kpiCard('Sourcing Volume', '142 Tons', '+16.5%', Icons.shopping_cart_outlined, AnalyticsPage.green, width), _kpiCard('Order Fulfillment', '95.4%', '+1.8%', Icons.task_alt_outlined, AnalyticsPage.blue, width), _kpiCard('Avg Produce Rate', '\$1.45/kg', '-3.2%', Icons.price_change_outlined, AnalyticsPage.orange, width), _kpiCard('Supplier Quality', '4.8 / 5.0', '+0.2', Icons.star_outline_rounded, AnalyticsPage.purple, width)])
               : [_kpiCard('Sourcing Volume', '0 Tons', '+0.0%', Icons.shopping_cart_outlined, AnalyticsPage.green, width), _kpiCard('Order Fulfillment', dataset.fulfillment, '+0.0%', Icons.task_alt_outlined, AnalyticsPage.blue, width), _kpiCard('Avg Produce Rate', '\$0.00/kg', '+0.0%', Icons.price_change_outlined, AnalyticsPage.orange, width), _kpiCard('Supplier Quality', '0.0 / 5.0', '+0.0', Icons.star_outline_rounded, AnalyticsPage.purple, width)],
+          UserRole.consumer => isDemo
+              ? [_kpiCard('Monthly Spend', '\$142.50', '-12.4%', Icons.shopping_basket_outlined, AnalyticsPage.green, width), _kpiCard('Farmgate Savings', '18.5%', '+3.2%', Icons.savings_outlined, AnalyticsPage.blue, width), _kpiCard('Fresh Deliveries', '12 Orders', '+2', Icons.local_shipping_outlined, AnalyticsPage.orange, width), _kpiCard('Carbon Offset', '-42 kg CO2', 'Local', Icons.eco_outlined, AnalyticsPage.purple, width)]
+              : [_kpiCard('Monthly Spend', dataset.revenue, '+0.0%', Icons.shopping_basket_outlined, AnalyticsPage.green, width), _kpiCard('Farmgate Savings', '0.0%', '+0.0%', Icons.savings_outlined, AnalyticsPage.blue, width), _kpiCard('Fresh Deliveries', '${dataset.deliveries} Orders', '+0.0%', Icons.local_shipping_outlined, AnalyticsPage.orange, width), _kpiCard('Carbon Offset', '0 kg CO2', 'Local', Icons.eco_outlined, AnalyticsPage.purple, width)],
           UserRole.transporter => isDemo
               ? [_kpiCard('Distance Driven', '4,280 km', '+12.3%', Icons.route_outlined, AnalyticsPage.green, width), _kpiCard('Completed Trips', '48 Trips', '+8.0%', Icons.local_shipping_outlined, AnalyticsPage.blue, width), _kpiCard('Fuel Efficiency', '28.5 L/100km', '-4.1%', Icons.local_gas_station_outlined, AnalyticsPage.orange, width), _kpiCard('Haulage Earnings', '\$3,420', '+15.2%', Icons.account_balance_wallet_outlined, AnalyticsPage.purple, width)]
               : [_kpiCard('Distance Driven', '0 km', '+0.0%', Icons.route_outlined, AnalyticsPage.green, width), _kpiCard('Completed Trips', '0 Trips', '+0.0%', Icons.local_shipping_outlined, AnalyticsPage.blue, width), _kpiCard('Fuel Efficiency', '0.0 L/100km', '+0.0%', Icons.local_gas_station_outlined, AnalyticsPage.orange, width), _kpiCard('Haulage Earnings', '\$0', '+0.0%', Icons.account_balance_wallet_outlined, AnalyticsPage.purple, width)],
@@ -1117,7 +1124,10 @@ class _AiAdvisoryCard extends ConsumerWidget {
         ? switch (role) {
             UserRole.admin => (title: 'Macro Value Chain Expansion & Export Bottleneck Warning', text: 'Regional trade volume is up 18.4% with strong Beira corridor exports. Recommended action: Accelerate EUDR polygon verification for smallholder suppliers to prevent customs delays.'),
             UserRole.farmer => (title: 'Irrigation & Frost Advisory for Tomato & Potato Blocks', text: 'Moisture dip registered in Sector 4. Recommended action: Schedule early morning fertigation and verify frost protection covers before night temperature drop.'),
-            UserRole.buyer || UserRole.consumer => (title: 'Grade A White Maize Procurement Opportunity', text: 'Masvingo grain silos reporting 3,200 MT fresh harvest arrival. Recommended action: Place forward orders to lock in lower farmgate floor pricing.'),
+            UserRole.buyer => ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer
+                ? (title: 'Farmgate Fresh Harvest & Price Drop Alert', text: 'Mazowe tomatoes and Marondera sweet maize are 18% cheaper today due to peak morning harvest. Best value grocery window is active.')
+                : (title: 'Grade A White Maize Procurement Opportunity', text: 'Masvingo grain silos reporting 3,200 MT fresh harvest arrival. Recommended action: Place forward orders to lock in lower farmgate floor pricing.'),
+            UserRole.consumer => (title: 'Farmgate Fresh Harvest & Price Drop Alert', text: 'Mazowe tomatoes and Marondera sweet maize are 18% cheaper today due to peak morning harvest. Best value grocery window is active.'),
             UserRole.transporter => (title: 'Beira Customs Corridor Freight Clearance Peak', text: 'Port scanner queues down to 20 minutes. Recommended action: Accept refrigerated container dispatches for immediate transport.'),
             UserRole.financier => (title: 'Low Portfolio Default Risk across Smallholder Credit Lines', text: 'Repayment compliance reaches 96.8%. Recommended action: Expand working capital loans for certified macadamia and blueberry growers.'),
             UserRole.valueAdder => (title: 'Oilseed Processing Throughput Optimization', text: 'Soybean crushing margin increased to 42.5%. Recommended action: Maximize shift capacity during low electricity tariff hours.'),

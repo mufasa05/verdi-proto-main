@@ -36,7 +36,6 @@ import 'features/weather/presentation/weather_provider.dart';
 import 'features/news/presentation/news_page.dart';
 import 'features/processing/presentation/value_adder_processing_page.dart';
 import 'features/assistant/presentation/widgets/global_voice_agent_overlay.dart';
-import 'features/buyer_consumer/presentation/end_user_consumer_home_page.dart';
 import 'features/auth/presentation/widgets/buyer_sub_role_dialog.dart';
 import 'core/enums/verdi_screen.dart';
 import 'state/app_state.dart';
@@ -49,15 +48,6 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // DEDICATED CONSUMER / END-USER WEB STORE EXPERIENCE (NO SIDEBAR!)
-    // ─────────────────────────────────────────────────────────────────────────
-    if ((state.role == UserRole.buyer && state.buyerSubRole == BuyerSubRole.endUserCustomer) || state.role == UserRole.consumer) {
-      return const GlobalVoiceAgentOverlay(
-        child: EndUserConsumerHomePage(),
-      );
-    }
 
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 900;
@@ -302,7 +292,10 @@ class Sidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(appStateProvider).role;
+    final appState = ref.watch(appStateProvider);
+    final role = appState.role;
+    final buyerSubRole = appState.buyerSubRole;
+    final isEndUserCustomer = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
     final authState = ref.watch(authStateProvider);
     final user = authState.user;
     final userName = user?.fullName ?? 'Operator';
@@ -312,42 +305,53 @@ class Sidebar extends ConsumerWidget {
     final filteredItems = _sidebarItems.where((item) {
       if (role == UserRole.admin) return true;
 
-      // Shared/Universal modules
+      // Shared/Universal modules: Home, Marketplace, My Chats, Settings
       if (item.index == 0 ||
           item.index == 1 ||
           item.index == 2 ||
-          item.index == 7 ||
-          item.index == 21 ||
-          item.index == 24) {
+          item.index == 21) {
         return true;
       }
 
       switch (role) {
         case UserRole.farmer:
         case UserRole.expert:
-          return item.index == 11 ||
+          return item.index == 7 ||
+              item.index == 11 ||
               item.index == 13 ||
               item.index == 14 ||
               item.index == 17 ||
-              item.index == 20;
+              item.index == 20 ||
+              item.index == 24;
 
         case UserRole.transporter:
           return item.index == 4 || item.index == 5 || item.index == 15;
 
         case UserRole.buyer:
-          return item.index == 3 || item.index == 4 || item.index == 5 || item.index == 6 || item.index == 15 || item.index == 19;
+          if (isEndUserCustomer) {
+            // End-user / direct consumer:
+            // Remove: Trade (19), Traceability (15), News (24), Verdi Logistics OS (5), Notifications (7)
+            // Keep: Analytics (3), Orders (4), Payments (6)
+            return item.index == 3 || item.index == 4 || item.index == 6;
+          } else {
+            // Buyer B2B (Retailer / Wholesaler):
+            // Remove: Verdi Logistics OS (5), Notifications (7), News (24)
+            // Keep: Analytics (3), Orders (4), Payments (6), Traceability (15), Trade (19)
+            return item.index == 3 || item.index == 4 || item.index == 6 || item.index == 15 || item.index == 19;
+          }
 
         case UserRole.financier:
-          return item.index == 6 || item.index == 16;
+          return item.index == 3 || item.index == 6 || item.index == 16;
 
         case UserRole.government:
-          return item.index == 3 || item.index == 17 || item.index == 18 || item.index == 20;
+          return item.index == 3 || item.index == 7 || item.index == 17 || item.index == 18 || item.index == 20 || item.index == 24;
 
         case UserRole.valueAdder:
-          return item.index == 4 || item.index == 6 || item.index == 16 || item.index == 25;
+          return item.index == 3 || item.index == 4 || item.index == 6 || item.index == 16 || item.index == 25;
 
         case UserRole.consumer:
-          return item.index == 4;
+          // Consumer: Analytics (3), Orders (4), Payments (6)
+          return item.index == 3 || item.index == 4 || item.index == 6;
 
         default:
           return false;
@@ -464,18 +468,22 @@ class Sidebar extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.storefront_outlined, size: 15, color: Color(0xFF3B82F6)),
-                          SizedBox(width: 8),
+                          Icon(
+                            isEndUserCustomer ? Icons.shopping_basket_outlined : Icons.storefront_outlined,
+                            size: 15,
+                            color: const Color(0xFF3B82F6),
+                          ),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Profile: B2B Wholesaler (Switch)',
-                              style: TextStyle(color: Color(0xFF2563EB), fontSize: 11, fontWeight: FontWeight.bold),
+                              isEndUserCustomer ? 'Profile: End-User (Switch)' : 'Profile: B2B Wholesaler (Switch)',
+                              style: const TextStyle(color: Color(0xFF2563EB), fontSize: 11, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Icon(Icons.arrow_drop_down, size: 16, color: Color(0xFF3B82F6)),
+                          const Icon(Icons.arrow_drop_down, size: 16, color: Color(0xFF3B82F6)),
                         ],
                       ),
                     ),
