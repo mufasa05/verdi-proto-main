@@ -38,6 +38,7 @@ import 'features/news/presentation/news_page.dart';
 import 'features/processing/presentation/value_adder_processing_page.dart';
 import 'features/assistant/presentation/widgets/global_voice_agent_overlay.dart';
 import 'features/auth/presentation/widgets/buyer_sub_role_dialog.dart';
+import 'features/agri_expert/presentation/agri_expert_master_page.dart';
 import 'core/enums/verdi_screen.dart';
 import 'state/app_state.dart';
 import 'features/auth/state/auth_state.dart';
@@ -83,10 +84,16 @@ class AppShell extends ConsumerWidget {
       const AdminUserActivityPage(), // index 26: User Activities & System Audit Logs
       const AdminSystemHealthPage(), // index 27: System Health & Infrastructure Telemetry
       const AiCopilotPage(), // index 28: Sovereign AI Agronomist Copilot
+      const AgriExpertMasterPage(), // index 29: Agri-Expert Master Console
     ];
 
     final isTransporter = state.role == UserRole.transporter;
-    final effectiveNavIndex = (isTransporter && state.navIndex == 0) ? 5 : state.navIndex;
+    final isExpert = state.role == UserRole.expert;
+    final effectiveNavIndex = (isTransporter && state.navIndex == 0)
+        ? 5
+        : (isExpert && state.navIndex == 0)
+            ? 29
+            : state.navIndex;
 
     return ChangeNotifierProvider<WeatherProvider>(
       create: (_) {
@@ -196,7 +203,7 @@ class AppShell extends ConsumerWidget {
               ],
             ),
             drawer: Drawer(child: sidebar),
-            body: IndexedStack(index: state.navIndex, children: pages),
+            body: IndexedStack(index: effectiveNavIndex, children: pages),
             bottomNavigationBar: NavigationBar(
               selectedIndex: state.navIndex > 3 ? 0 : state.navIndex,
               onDestinationSelected: (idx) {
@@ -292,6 +299,7 @@ class Sidebar extends ConsumerWidget {
     _SidebarMenuItem(index: 25, label: 'Value Addition Hub', icon: LucideIcons.factory),
     _SidebarMenuItem(index: 26, label: 'User Activities & Logs', icon: LucideIcons.history),
     _SidebarMenuItem(index: 27, label: 'System Health & Services', icon: LucideIcons.activity),
+    _SidebarMenuItem(index: 29, label: 'Agri-Expert Console', icon: LucideIcons.stethoscope),
   ];
 
   @override
@@ -323,10 +331,18 @@ class Sidebar extends ConsumerWidget {
 
       switch (role) {
         case UserRole.farmer:
-        case UserRole.expert:
           return item.index == 7 ||
               item.index == 11 ||
               item.index == 13 ||
+              item.index == 14 ||
+              item.index == 17 ||
+              item.index == 20 ||
+              item.index == 24;
+
+        case UserRole.expert:
+          return item.index == 29 ||
+              item.index == 7 ||
+              item.index == 11 ||
               item.index == 14 ||
               item.index == 17 ||
               item.index == 20 ||
