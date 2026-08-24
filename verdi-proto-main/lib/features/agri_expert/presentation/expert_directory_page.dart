@@ -211,7 +211,7 @@ class _ExpertDirectoryPageState extends ConsumerState<ExpertDirectoryPage> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('${item.expertPersona.label} • ${item.locationDistrict}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                      Text('${item.expertPersona.label} • ${item.locationDistrict}', style: const TextStyle(fontSize: 12, color: Color(0xFF334155), fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
@@ -228,7 +228,7 @@ class _ExpertDirectoryPageState extends ConsumerState<ExpertDirectoryPage> {
             const SizedBox(height: 12),
             Text(item.title, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B))),
             const SizedBox(height: 4),
-            Text(item.description, style: const TextStyle(fontSize: 12.5, color: Color(0xFF475569), height: 1.35)),
+            Text(item.description, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B), height: 1.35, fontWeight: FontWeight.w500)),
             const Divider(height: 24),
             Row(
               children: [

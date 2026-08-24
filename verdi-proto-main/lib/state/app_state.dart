@@ -300,10 +300,34 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
   void setRole(UserRole role) {
     int initialNav = 0;
-    if (role == UserRole.transporter) {
-      initialNav = 5; // Launch directly into Verdi Logistics OS
-    } else if (role == UserRole.expert) {
-      initialNav = 29; // Launch directly into Agri-Expert Console
+    switch (role) {
+      case UserRole.farmer:
+        initialNav = 0; // Home / Farmer Cockpit
+        break;
+      case UserRole.buyer:
+        initialNav = 1; // Marketplace / B2B Trade Desk
+        break;
+      case UserRole.transporter:
+        initialNav = 5; // Verdi Logistics OS
+        break;
+      case UserRole.admin:
+        initialNav = 23; // Admin Command Center
+        break;
+      case UserRole.valueAdder:
+        initialNav = 25; // Value Addition Hub
+        break;
+      case UserRole.expert:
+        initialNav = 29; // Agri-Expert Master Console
+        break;
+      case UserRole.financier:
+        initialNav = 16; // Finance & Credit Hub
+        break;
+      case UserRole.government:
+        initialNav = 18; // Government Overview / Agritex M&E
+        break;
+      case UserRole.consumer:
+        initialNav = 1; // Direct Consumer Farm-to-Table Marketplace
+        break;
     }
     state = state.copyWith(role: role, navIndex: initialNav);
   }

@@ -298,6 +298,140 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
+  void _showDemoRolePickerDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF1E293B)),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.flash_on, color: Color(0xFFF59E0B), size: 24),
+            SizedBox(width: 8),
+            Text(
+              'Launch Offline Demo Mode',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 480,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select any stakeholder role to experience its fully-populated demo cockpit with live mock telemetry:',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5),
+                ),
+                const SizedBox(height: 14),
+                ...UserRole.values.map((role) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF334155)),
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFF16A34A).withOpacity(0.2),
+                        child: Icon(role.icon, color: const Color(0xFF16A34A), size: 20),
+                      ),
+                      title: Text(
+                        role.label,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                      ),
+                      subtitle: Text(
+                        'Demo ${role.categoryTag} workspace with live mock telemetry',
+                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 14),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        if (role == UserRole.expert) {
+                          _showExpertPersonaDemoPicker();
+                        } else {
+                          ref.read(authStateProvider.notifier).enterOfflineDemoMode(
+                            email: '${role.name}@demo.verdi.co',
+                            fullName: 'Demo ${role.label}',
+                            role: role,
+                          );
+                        }
+                      },
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showExpertPersonaDemoPicker() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF1E293B)),
+        ),
+        title: const Text(
+          'Select Agri-Expert Demo Persona',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: ExpertPersona.values.map((p) => Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: p.color.withOpacity(0.5)),
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: p.color.withOpacity(0.2),
+                child: Icon(p.icon, color: p.color, size: 20),
+              ),
+              title: Text(
+                p.label,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+              ),
+              subtitle: Text(
+                p.badgeTitle,
+                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 14),
+              onTap: () {
+                Navigator.pop(ctx);
+                ref.read(authStateProvider.notifier).enterOfflineDemoMode(
+                  email: 'dr.nyasha.expert@demo.verdi.co',
+                  fullName: 'Dr. Nyasha Sibanda',
+                  role: UserRole.expert,
+                  expertPersona: p,
+                );
+              },
+            ),
+          )).toList(),
+        ),
+      ),
+    );
+  }
+
   // ignore: unused_element
   void _showConnectionFailedDialog({String? email, String? fullName, UserRole? role}) {
     final notifier = ref.read(authStateProvider.notifier);
@@ -755,17 +889,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton.icon(
-                  onPressed: () {
-                    final email = _emailController.text.trim().isEmpty ? 'farmer@verdi.co' : _emailController.text.trim();
-                    ref.read(authStateProvider.notifier).enterOfflineDemoMode(
-                      email: email,
-                      fullName: 'Kudakwashe Moyo',
-                      role: UserRole.farmer,
-                    );
-                    _showToast('Offline Demo Mode (Farmer) Activated.');
-                  },
+                  onPressed: _showDemoRolePickerDialog,
                   icon: const Icon(Icons.flash_on_outlined, size: 16, color: Color(0xFF16A34A)),
-                  label: const Text('Offline Demo Mode', style: TextStyle(color: Color(0xFF16A34A), fontSize: 12, fontWeight: FontWeight.bold)),
+                  label: const Text('Launch Offline Demo Mode', style: TextStyle(color: Color(0xFF16A34A), fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
                 TextButton.icon(
                   onPressed: _showAdminPasskeyDialog,
@@ -841,7 +967,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           // Segment 2: Offline Demo Mode
           Expanded(
             child: InkWell(
-              onTap: () => ref.read(appStateProvider.notifier).setDemoMode(true),
+              onTap: () {
+                ref.read(appStateProvider.notifier).setDemoMode(true);
+                _showDemoRolePickerDialog();
+              },
               borderRadius: BorderRadius.circular(12),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
@@ -1037,7 +1166,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => setState(() => _currentStep = 2),
               ),
               const SizedBox(width: 8),
@@ -1050,12 +1179,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
+                        color: Colors.white,
                       ),
                     ),
                     const Text(
                       'Select your primary operating classification',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 12.5, color: Colors.white70, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -1219,7 +1348,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => setState(() => _currentStep = 21),
               ),
               const SizedBox(width: 8),
@@ -1232,12 +1361,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
+                        color: Colors.white,
                       ),
                     ),
                     Text(
                       'Provide your professional credentials and practice details',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      style: const TextStyle(fontSize: 12.5, color: Colors.white70, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),

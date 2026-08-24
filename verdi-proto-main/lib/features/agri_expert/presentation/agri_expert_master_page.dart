@@ -207,20 +207,20 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                     Text(
                       '${persona.badgeTitle} • ${profile.companyAffiliation}',
                       style: GoogleFonts.inter(
-                        color: Colors.white70,
-                        fontSize: 12.5,
+                        color: Colors.white,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, color: Colors.white60, size: 14),
+                        const Icon(Icons.location_on, color: Colors.white, size: 14),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             profile.operatingDistrict,
-                            style: const TextStyle(color: Colors.white60, fontSize: 11.5),
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -292,21 +292,21 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08),
+          color: Colors.white.withOpacity(0.12),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white12),
+          border: Border.all(color: Colors.white24),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: Colors.white70, size: 13),
+                Icon(icon, color: Colors.white, size: 14),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     label,
-                    style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.w500),
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -315,7 +315,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
             const SizedBox(height: 2),
             Text(
               value,
-              style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800),
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900),
             ),
           ],
         ),
@@ -356,7 +356,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                     'Private Advisory CRM & Retainer Management',
                     style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
                   ),
-                  const Text('Manage commercial farm retainers, automated VAT billing, and whitelabel reports', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const Text('Manage commercial farm retainers, automated VAT billing, and whitelabel reports', style: TextStyle(fontSize: 12.5, color: Color(0xFF334155), fontWeight: FontWeight.w600)),
                 ],
               ),
               ElevatedButton.icon(
@@ -403,7 +403,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(c.clientName, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
-                              Text('${c.estateName} • ${c.hectarage.toStringAsFixed(0)} Ha (${c.primaryCrops})', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                              Text('${c.estateName} • ${c.hectarage.toStringAsFixed(0)} Ha (${c.primaryCrops})', style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), fontWeight: FontWeight.w500)),
                             ],
                           ),
                         ),
@@ -425,7 +425,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                             Text(c.slaStatus, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF059669))),
                           ],
                         ),
-                        Text('Last Physical Visit: ${c.lastVisitDate}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                        Text('Last Physical Visit: ${c.lastVisitDate}', style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -462,7 +462,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
-                      Text('Ministry of Lands, Agriculture, Fisheries & Rural Development', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
+                      Text('Ministry of Lands, Agriculture, Fisheries & Rural Development', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
                       SizedBox(height: 2),
                       Text('Agritex Rural Extension & Geospatial M&E System', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                     ],
@@ -520,8 +520,8 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                   child: Icon(r.isSyncedToCloud ? Icons.cloud_done : Icons.cloud_off, color: r.isSyncedToCloud ? const Color(0xFF059669) : const Color(0xFFD97706), size: 20),
                 ),
                 title: Text('${r.farmerName} • ${r.cropType}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                subtitle: Text('National ID: ${r.farmerNationalId} • ${r.wardNumber}\nObservation: ${r.observedPest}', style: const TextStyle(fontSize: 11.5)),
-                trailing: Text(r.recordedAt, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                subtitle: Text('National ID: ${r.farmerNationalId} • ${r.wardNumber}\nObservation: ${r.observedPest}', style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), fontWeight: FontWeight.w600)),
+                trailing: Text(r.recordedAt, style: const TextStyle(fontSize: 12, color: Color(0xFF334155), fontWeight: FontWeight.bold)),
               ),
             )),
 
@@ -556,8 +556,8 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
               child: ListTile(
                 leading: const CircleAvatar(backgroundColor: Color(0xFFFEE2E2), child: Icon(Icons.warning_amber, color: Color(0xFFDC2626))),
                 title: Text(a.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                subtitle: Text('${a.targetWardDistrict} • Recipients: ${a.recipientFarmersCount} Farmers • Channel: ${a.channel}', style: const TextStyle(fontSize: 11.5)),
-                trailing: Text(a.sentAt, style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B))),
+                subtitle: Text('${a.targetWardDistrict} • Recipients: ${a.recipientFarmersCount} Farmers • Channel: ${a.channel}', style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), fontWeight: FontWeight.w600)),
+                trailing: Text(a.sentAt, style: const TextStyle(fontSize: 11.5, color: Color(0xFF334155), fontWeight: FontWeight.bold)),
               ),
             )),
         ],
@@ -637,7 +637,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                     const SizedBox(height: 10),
                     Text('Contract Farmer: ${t.farmerName} • Crop: ${t.targetCrop}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
-                    Text('Issue: ${t.issueReported}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    Text('Issue: ${t.issueReported}', style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B), fontWeight: FontWeight.w600)),
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -646,7 +646,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                         children: [
                           const Icon(Icons.inventory_2_outlined, size: 16, color: Color(0xFF7C3AED)),
                           const SizedBox(width: 6),
-                          Expanded(child: Text('Central Warehouse Match: ${t.inStockWarehouseSku}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500))),
+                          Expanded(child: Text('Central Warehouse Match: ${t.inStockWarehouseSku}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF5B21B6)))),
                         ],
                       ),
                     ),
@@ -677,7 +677,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Advisory Service Listings & Farmer Advertising', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800)),
-                  const Text('Market your specialized services directly to commercial and smallholder farmers', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const Text('Market your specialized services directly to commercial and smallholder farmers', style: TextStyle(fontSize: 12.5, color: Color(0xFF334155), fontWeight: FontWeight.w600)),
                 ],
               ),
               ElevatedButton.icon(
@@ -732,7 +732,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Text(l.description, style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B), height: 1.35)),
+                              Text(l.description, style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.35, fontWeight: FontWeight.w500)),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
@@ -824,7 +824,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(c.farmerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                              Text('${c.farmName} • ${c.districtLocation}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                              Text('${c.farmName} • ${c.districtLocation}', style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
@@ -844,7 +844,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text('Notes: ${c.summaryNotes}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    Text('Notes: ${c.summaryNotes}', style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B), fontWeight: FontWeight.w600)),
                     if (c.status == ConsultationStatus.scheduled) ...[
                       const SizedBox(height: 12),
                       Row(
@@ -923,7 +923,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(d.detectedAnomaly, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                              Text('${d.farmerName} • ${d.farmName} (${d.district})', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                              Text('${d.farmerName} • ${d.farmName} (${d.district})', style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155), fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
@@ -935,7 +935,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text('Symptoms: ${d.symptomDescription}', style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155))),
+                    Text('Symptoms: ${d.symptomDescription}', style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B), fontWeight: FontWeight.w600)),
                     const SizedBox(height: 10),
                     // Geospatial GPS coordinates bar
                     Container(
@@ -988,7 +988,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Cross-Stakeholder Agri Community', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800)),
-                  const Text('Post agronomic field updates, answer farmer questions, and publish bulletins', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const Text('Post agronomic field updates, answer farmer questions, and publish bulletins', style: TextStyle(fontSize: 12.5, color: Color(0xFF334155), fontWeight: FontWeight.w600)),
                 ],
               ),
               ElevatedButton.icon(
@@ -1037,7 +1037,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                                     const Icon(Icons.verified, color: Color(0xFFD97706), size: 15),
                                 ],
                               ),
-                              Text('${p.authorRoleTitle} • ${p.districtLocation} • ${p.timestamp}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                              Text('${p.authorRoleTitle} • ${p.districtLocation} • ${p.timestamp}', style: const TextStyle(fontSize: 12, color: Color(0xFF334155), fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
@@ -1061,7 +1061,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                         ),
                         Text('${p.upvotes} Upvotes', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
                         const Spacer(),
-                        Text('${p.comments.length} Comments', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                        Text('${p.comments.length} Comments', style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
@@ -1096,7 +1096,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Available Advisory Escrow Balance', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    const Text('Available Advisory Escrow Balance', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 6),
                     Text('\$${profile.walletBalanceUsd.toStringAsFixed(2)}', style: GoogleFonts.inter(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800)),
                   ],

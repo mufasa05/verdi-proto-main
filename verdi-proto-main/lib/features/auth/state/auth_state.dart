@@ -8,6 +8,7 @@ import 'package:verdi/core/services/verdi_api_service.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../state/app_state.dart';
 import '../../../state/platform_data_state.dart';
+import '../../agri_expert/data/agri_expert_models.dart';
 
 class AppUser {
   final String id;
@@ -165,15 +166,33 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   String get currentBaseUrl => _baseUrl;
 
-  void enterOfflineDemoMode({required String email, required String fullName, required UserRole role}) {
+  void enterOfflineDemoMode({
+    required String email,
+    required String fullName,
+    required UserRole role,
+    ExpertPersona? expertPersona,
+  }) async {
     final mockUser = AppUser(
-      id: 'usr_offline_${DateTime.now().millisecond}',
-      fullName: fullName.isEmpty ? email.split('@').first : fullName,
-      email: email.trim(),
+      id: 'usr_demo_${role.name}_${DateTime.now().millisecond}',
+      fullName: fullName.isEmpty ? 'Demo ${role.label}' : fullName,
+      email: email.trim().isEmpty ? '${role.name}@demo.verdi.co' : email.trim(),
       role: role,
     );
 
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sessionKey, jsonEncode(mockUser.toJson()));
+    await prefs.setString('verdi.auth.token', 'demo_token_2026');
+    await prefs.setString('verdi.auth.last_email', mockUser.email);
+    await prefs.setBool('verdi.app.is_demo_mode', true);
+
     _setRole(role);
+    if (expertPersona != null) {
+      if (_ref != null) {
+        _ref.read(appStateProvider.notifier).setExpertPersona(expertPersona);
+      } else if (_container != null) {
+        _container.read(appStateProvider.notifier).setExpertPersona(expertPersona);
+      }
+    }
     if (_ref != null) {
       _ref.read(appStateProvider.notifier).setDemoMode(true);
     } else if (_container != null) {
@@ -255,6 +274,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return false;
     }
 
+    final isDemoActive = _ref?.read(isDemoModeProvider) ?? _container?.read(isDemoModeProvider) ?? false;
+    final isDemoUser = isDemoActive || cleanId.contains('demo') || cleanId.contains('@demo.verdi.co');
+
+    if (isDemoUser) {
+      UserRole inferredRole = _ref?.read(appStateProvider).role ?? _container?.read(appStateProvider).role ?? UserRole.farmer;
+      for (final r in UserRole.values) {
+        if (cleanId.contains(r.name.toLowerCase())) {
+          inferredRole = r;
+          break;
+        }
+      }
+
+      enterOfflineDemoMode(
+        email: emailOrPhone.trim().isEmpty ? '${inferredRole.name}@demo.verdi.co' : emailOrPhone.trim(),
+        fullName: 'Demo ${inferredRole.label}',
+        role: inferredRole,
+      );
+      return true;
+    }
+
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
@@ -282,13 +321,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
         await prefs.setString('verdi.auth.token', token);
         await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
-        await prefs.setBool('verdi.app.is_demo_mode', false);
+        await prefs.setBool('verdi.app.is_demo_mode', isDemoActive);
 
         _setRole(user.role);
         if (_ref != null) {
-          _ref.read(appStateProvider.notifier).setDemoMode(false);
+          _ref.read(appStateProvider.notifier).setDemoMode(isDemoActive);
         } else if (_container != null) {
-          _container.read(appStateProvider.notifier).setDemoMode(false);
+          _container.read(appStateProvider.notifier).setDemoMode(isDemoActive);
         }
         _broadcastAuthEvent(user, isRegistration: false);
         state = state.copyWith(
@@ -345,13 +384,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_sessionKey, jsonEncode(user.toJson()));
       await prefs.setString('verdi.auth.last_email', emailOrPhone.trim());
-      await prefs.setBool('verdi.app.is_demo_mode', false);
+      await prefs.setBool('verdi.app.is_demo_mode', isDemoActive);
 
       _setRole(user.role);
       if (_ref != null) {
-        _ref.read(appStateProvider.notifier).setDemoMode(false);
+        _ref.read(appStateProvider.notifier).setDemoMode(isDemoActive);
       } else if (_container != null) {
-        _container.read(appStateProvider.notifier).setDemoMode(false);
+        _container.read(appStateProvider.notifier).setDemoMode(isDemoActive);
       }
       _broadcastAuthEvent(user, isRegistration: false);
       state = state.copyWith(

@@ -117,13 +117,16 @@ class AppShell extends ConsumerWidget {
             },
           );
 
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+
           if (isDesktop) {
             return GlobalVoiceAgentOverlay(
               child: Scaffold(
+                backgroundColor: isDark ? const Color(0xFF070B12) : const Color(0xFFF8FAFC),
                 body: Row(
                   children: [
                     sidebar,
-                    const VerticalDivider(width: 1, color: Colors.black12),
+                    VerticalDivider(width: 1, color: isDark ? const Color(0xFF1E293B) : Colors.black12),
                     Expanded(
                       child: IndexedStack(index: effectiveNavIndex, children: pages),
                     ),
@@ -372,9 +375,15 @@ class Sidebar extends ConsumerWidget {
       }
     }).toList();
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sidebarBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final sidebarDivider = isDark ? const Color(0xFF1E293B) : Colors.black12;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Container(
       width: 260,
-      color: Colors.white,
+      color: sidebarBg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -398,7 +407,7 @@ class Sidebar extends ConsumerWidget {
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFF0F172A),
+                          color: primaryTextColor,
                         ),
                       ),
                     ),
@@ -410,24 +419,23 @@ class Sidebar extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: secondaryTextColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 12),
                 const SizedBox(height: 12),
                 // Active Mode Status Badge (Configured on Auth Screen)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: ref.watch(isDemoModeProvider)
-                        ? const Color(0xFF16A34A).withValues(alpha: 0.08)
-                        : Colors.blue.shade50,
+                        ? (isDark ? const Color(0xFF16A34A).withOpacity(0.18) : const Color(0xFF16A34A).withOpacity(0.08))
+                        : (isDark ? const Color(0xFF1E293B) : Colors.blue.shade50),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: ref.watch(isDemoModeProvider)
-                          ? const Color(0xFF16A34A).withValues(alpha: 0.3)
-                          : Colors.blue.shade200,
+                          ? (isDark ? const Color(0xFF16A34A).withOpacity(0.4) : const Color(0xFF16A34A).withOpacity(0.3))
+                          : (isDark ? const Color(0xFF334155) : Colors.blue.shade200),
                     ),
                   ),
                   child: Row(
@@ -437,7 +445,7 @@ class Sidebar extends ConsumerWidget {
                         size: 18,
                         color: ref.watch(isDemoModeProvider)
                             ? const Color(0xFF16A34A)
-                            : Colors.blue.shade700,
+                            : (isDark ? const Color(0xFF60A5FA) : Colors.blue.shade700),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -451,12 +459,12 @@ class Sidebar extends ConsumerWidget {
                                 fontWeight: FontWeight.w800,
                                 color: ref.watch(isDemoModeProvider)
                                     ? const Color(0xFF16A34A)
-                                    : Colors.blue.shade900,
+                                    : (isDark ? Colors.white : Colors.blue.shade900),
                               ),
                             ),
                             Text(
                               ref.watch(isDemoModeProvider) ? 'Configured at Login' : 'Connected to live database',
-                              style: GoogleFonts.inter(fontSize: 9.5, color: Colors.grey.shade600),
+                              style: GoogleFonts.inter(fontSize: 9.5, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600),
                             ),
                           ],
                         ),
@@ -467,7 +475,7 @@ class Sidebar extends ConsumerWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: Colors.black12),
+          Divider(height: 1, color: sidebarDivider),
           const SizedBox(height: 12),
           Expanded(
             child: ListView(
@@ -486,7 +494,7 @@ class Sidebar extends ConsumerWidget {
                   .toList(),
             ),
           ),
-          const Divider(height: 1, color: Colors.black12),
+          Divider(height: 1, color: sidebarDivider),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -559,31 +567,19 @@ class Sidebar extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: const Text('Activate - \$9.99/mo'),
+                            child: const Text('Upgrade to Pro'),
                           ),
                         ],
                       ),
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF16A34A), Color(0xFF7C3AED)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF16A34A), Color(0xFF6366F1)],
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.purple.withValues(alpha: 0.15),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
                       children: [
@@ -626,10 +622,10 @@ class Sidebar extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: Colors.grey.shade100,
-                      child: const Icon(
+                      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.grey.shade100,
+                      child: Icon(
                         Icons.help_outline,
-                        color: Color(0xFF64748B),
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                         size: 16,
                       ),
                     ),
@@ -637,21 +633,21 @@ class Sidebar extends ConsumerWidget {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'Need help? Contact support',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
-                              color: Color(0xFF0F172A),
+                              color: primaryTextColor,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
                             'support@verdi.co • +263 78 323 7918',
                             style: TextStyle(
-                              color: Color(0xFF64748B),
-                              fontSize: 9,
+                              fontSize: 9.5,
+                              color: secondaryTextColor,
                             ),
                           ),
                         ],
@@ -659,7 +655,7 @@ class Sidebar extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -669,8 +665,8 @@ class Sidebar extends ConsumerWidget {
                     icon: const Icon(Icons.logout, size: 16),
                     label: const Text('Sign Out', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red.shade600,
-                      side: BorderSide(color: Colors.red.shade200),
+                      foregroundColor: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                      side: BorderSide(color: isDark ? Colors.red.shade900 : Colors.red.shade200),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
@@ -691,8 +687,11 @@ class Sidebar extends ConsumerWidget {
     required IconData icon,
     String? badge,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = selectedIndex == index;
-    final activeBgColor = const Color(0xFF16A34A).withValues(alpha: 0.15);
+    final activeBgColor = isDark
+        ? const Color(0xFF16A34A).withOpacity(0.2)
+        : const Color(0xFF16A34A).withValues(alpha: 0.15);
 
     return Container(
       decoration: BoxDecoration(
@@ -706,7 +705,9 @@ class Sidebar extends ConsumerWidget {
         onTap: () => onSelect(index),
         leading: Icon(
           icon,
-          color: isSelected ? const Color(0xFF16A34A) : const Color(0xFF64748B),
+          color: isSelected
+              ? const Color(0xFF16A34A)
+              : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
           size: 20,
         ),
         title: Text(
@@ -716,7 +717,7 @@ class Sidebar extends ConsumerWidget {
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             color: isSelected
                 ? const Color(0xFF16A34A)
-                : const Color(0xFF0F172A),
+                : (isDark ? Colors.white : const Color(0xFF0F172A)),
           ),
         ),
         trailing: badge != null

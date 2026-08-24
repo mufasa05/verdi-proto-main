@@ -46,20 +46,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
     final isEndUser = role == UserRole.consumer;
     final isExpert = role == UserRole.expert;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pageBg = isDark ? const Color(0xFF070B12) : SettingsPage.background;
+    final appbarBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final titleColor = isDark ? Colors.white : SettingsPage.dark;
+    final tabBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+
     if (isBuyerB2B) {
       return Scaffold(
-        backgroundColor: SettingsPage.background,
+        backgroundColor: pageBg,
         appBar: AppBar(
           title: Text(
             'Commercial Procurement & Enterprise Settings',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: titleColor),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: appbarBg,
           elevation: 0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: Container(
-              color: Colors.white,
+              color: tabBg,
               child: TabBar(
                 controller: _tabController,
                 labelColor: SettingsPage.blue,
@@ -85,18 +91,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
 
     if (isEndUser) {
       return Scaffold(
-        backgroundColor: SettingsPage.background,
+        backgroundColor: pageBg,
         appBar: AppBar(
           title: Text(
             'Household & Consumer Settings',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: titleColor),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: appbarBg,
           elevation: 0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: Container(
-              color: Colors.white,
+              color: tabBg,
               child: TabBar(
                 controller: _tabController,
                 labelColor: SettingsPage.green,
@@ -122,18 +128,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
 
     if (isTransporter) {
       return Scaffold(
-        backgroundColor: SettingsPage.background,
+        backgroundColor: pageBg,
         appBar: AppBar(
           title: Text(
             'Carrier Telematics & Platform Settings',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: titleColor),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: appbarBg,
           elevation: 0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: Container(
-              color: Colors.white,
+              color: tabBg,
               child: TabBar(
                 controller: _tabController,
                 labelColor: const Color(0xFFFF9F1C),
@@ -159,18 +165,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
 
     if (isExpert) {
       return Scaffold(
-        backgroundColor: SettingsPage.background,
+        backgroundColor: pageBg,
         appBar: AppBar(
           title: Text(
             'Agri-Expert Professional & Practice Settings',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: titleColor),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: appbarBg,
           elevation: 0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: Container(
-              color: Colors.white,
+              color: tabBg,
               child: TabBar(
                 controller: _tabController,
                 labelColor: const Color(0xFF10B981),
@@ -196,13 +202,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
 
     if (!isAdmin) {
       return Scaffold(
-        backgroundColor: SettingsPage.background,
+        backgroundColor: pageBg,
         appBar: AppBar(
           title: Text(
             'Account & Platform Settings',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: titleColor),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: appbarBg,
           elevation: 0,
         ),
         body: _GeneralSettingsTab(),
@@ -210,18 +216,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
     }
 
     return Scaffold(
-      backgroundColor: SettingsPage.background,
+      backgroundColor: pageBg,
       appBar: AppBar(
         title: Text(
           'Access & Administration Console',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: titleColor),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: appbarBg,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
-            color: Colors.white,
+            color: tabBg,
             child: TabBar(
               controller: _tabController,
               labelColor: SettingsPage.green,
