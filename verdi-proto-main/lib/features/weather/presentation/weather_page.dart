@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' hide ChangeNotifierProvider;
 
 import '../../../core/services/verdi_api_service.dart';
+import '../../../state/app_state.dart';
 import '../data/weather_model.dart';
 import 'weather_provider.dart';
 
-class WeatherPage extends StatefulWidget {
+class WeatherPage extends ConsumerStatefulWidget {
   const WeatherPage({super.key});
 
   @override
-  State<WeatherPage> createState() => _WeatherPageState();
+  ConsumerState<WeatherPage> createState() => _WeatherPageState();
 }
 
-class _WeatherPageState extends State<WeatherPage> {
+class _WeatherPageState extends ConsumerState<WeatherPage> {
   String _selectedLocation = 'Harare, Zimbabwe';
   String _selectedRadarMode = 'Precipitation Radar';
   bool _isAiQuerying = false;
   String? _customAiReply;
-  bool _isTransporterView = true;
+  bool _isTransporterView = false;
   String _selectedCorridor = 'A4: Harare ──▶ Chiredzi (420 km)';
 
   static const green = Color(0xFF16A34A);
@@ -259,6 +261,9 @@ class _WeatherPageState extends State<WeatherPage> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<WeatherProvider>();
+    final appRole = ref.watch(appStateProvider).role;
+    final isTransporterRole = appRole == UserRole.transporter || appRole == UserRole.admin;
+    final effectiveTransporterView = isTransporterRole ? _isTransporterView : false;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -308,78 +313,79 @@ class _WeatherPageState extends State<WeatherPage> {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Transporter vs Farm Mode Switcher Bar
-                                Container(
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () => setState(() => _isTransporterView = true),
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 10),
-                                            decoration: BoxDecoration(
-                                              color: _isTransporterView ? const Color(0xFFF97316) : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(Icons.local_shipping_rounded, size: 18, color: _isTransporterView ? Colors.white : dark),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  'Transporter Highway Corridors',
-                                                  style: GoogleFonts.inter(
-                                                    fontSize: 12.5,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: _isTransporterView ? Colors.white : dark,
+                                // Transporter vs Farm Mode Switcher Bar (Only visible for Carrier/Admin roles)
+                                if (isTransporterRole)
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: InkWell(
+                                            onTap: () => setState(() => _isTransporterView = true),
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(vertical: 10),
+                                              decoration: BoxDecoration(
+                                                color: _isTransporterView ? const Color(0xFFF97316) : Colors.transparent,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(Icons.local_shipping_rounded, size: 18, color: _isTransporterView ? Colors.white : dark),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    'Transporter Highway Corridors',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 12.5,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: _isTransporterView ? Colors.white : dark,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      Expanded(
-                                        child: InkWell(
-                                          onTap: () => setState(() => _isTransporterView = false),
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 10),
-                                            decoration: BoxDecoration(
-                                              color: !_isTransporterView ? green : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(Icons.agriculture_rounded, size: 18, color: !_isTransporterView ? Colors.white : dark),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  'Farm Agronomy & Crops',
-                                                  style: GoogleFonts.inter(
-                                                    fontSize: 12.5,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: !_isTransporterView ? Colors.white : dark,
+                                        Expanded(
+                                          child: InkWell(
+                                            onTap: () => setState(() => _isTransporterView = false),
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(vertical: 10),
+                                              decoration: BoxDecoration(
+                                                color: !_isTransporterView ? green : Colors.transparent,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(Icons.agriculture_rounded, size: 18, color: !_isTransporterView ? Colors.white : dark),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    'Farm Agronomy & Crops',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 12.5,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: !_isTransporterView ? Colors.white : dark,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
 
-                                if (_isTransporterView) ...[
+                                if (effectiveTransporterView) ...[
                                   // Transporter Corridor Picker
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
