@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../data/agri_expert_models.dart';
 import '../state/agri_expert_state.dart';
+import '../../../state/app_state.dart';
+import '../../../state/chat_state.dart';
 
 class ExpertDirectoryPage extends ConsumerStatefulWidget {
   const ExpertDirectoryPage({super.key});
@@ -260,8 +262,20 @@ class _ExpertDirectoryPageState extends ConsumerState<ExpertDirectoryPage> {
                       summaryNotes: 'Booked service: ${item.title}',
                     );
                     ref.read(agriExpertProvider.notifier).addConsultation(session);
+
+                    // Start direct chat thread with the owner of the post
+                    ref.read(chatProvider.notifier).startOrGetThread(
+                      '${item.expertName} (Agri-Expert)',
+                      'Service: ${item.title}',
+                      'Hello ${item.expertName}, I have booked your service: "${item.title}" (${item.priceUsd > 0 ? '\$${item.priceUsd.toStringAsFixed(0)} ${item.pricingUnit}' : 'FREE Extension'}). I look forward to communicating with you.',
+                      'Expert Advisory',
+                    );
+
+                    // Navigate directly to My Chats module (Nav Index 2)
+                    ref.read(appStateProvider.notifier).setNavIndex(2);
+
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Booked ${item.title} with ${item.expertName}! Consult scheduled.')),
+                      SnackBar(content: Text('Booked ${item.title} with ${item.expertName}! Opening direct chat...')),
                     );
                   },
                   style: ElevatedButton.styleFrom(

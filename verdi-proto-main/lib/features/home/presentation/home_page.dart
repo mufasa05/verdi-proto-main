@@ -18,6 +18,7 @@ import 'widgets/ask_verdi_fab.dart';
 import '../../agri_expert/data/agri_expert_models.dart';
 import '../../agri_expert/state/agri_expert_state.dart';
 import '../../agri_expert/presentation/expert_directory_page.dart';
+import '../../../state/chat_state.dart';
 
 /// Clean Command Center Home Page.
 /// Reduces clutter by 60% with a strict 3-Section layout:
@@ -467,8 +468,20 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 summaryNotes: 'Booked advertised service: ${l.title}',
                               );
                               ref.read(agriExpertProvider.notifier).addConsultation(session);
+                              
+                              // Start direct chat thread with the owner of the post
+                              ref.read(chatProvider.notifier).startOrGetThread(
+                                '${l.expertName} (Agri-Expert)',
+                                'Service: ${l.title}',
+                                'Hello ${l.expertName}, I have booked your advertised service: "${l.title}" (${l.priceUsd > 0 ? '\$${l.priceUsd.toStringAsFixed(0)} ${l.pricingUnit}' : 'FREE Extension'}). I look forward to our consultation session.',
+                                'Expert Advisory',
+                              );
+                              
+                              // Navigate directly to My Chats module (Nav Index 2)
+                              ref.read(appStateProvider.notifier).setNavIndex(2);
+
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Booked ${l.title}! Session scheduled.')),
+                                SnackBar(content: Text('Booked ${l.title}! Opening direct chat with ${l.expertName}...')),
                               );
                             },
                             style: ElevatedButton.styleFrom(

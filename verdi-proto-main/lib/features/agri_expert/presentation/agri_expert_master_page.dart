@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
+import '../../../state/chat_state.dart';
 import '../data/agri_expert_models.dart';
 import '../state/agri_expert_state.dart';
 
@@ -748,12 +749,46 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                                     child: Text(l.deliveryMode, style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w600)),
                                   ),
                                   const Spacer(),
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.star, color: Colors.amber, size: 15),
-                                      const SizedBox(width: 3),
-                                      Text('${l.rating} (${l.reviewsCount})', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                                    ],
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      final session = ConsultationSession(
+                                        id: 'CONS-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                                        farmerName: 'Kudakwashe Moyo',
+                                        farmName: 'Mazowe Citrus Plot',
+                                        districtLocation: l.locationDistrict,
+                                        cropOrLivestock: 'Commercial Crops',
+                                        type: ConsultationType.physicalFarmVisit,
+                                        scheduledDate: 'Tomorrow',
+                                        scheduledTimeSlot: '10:00 - 11:30',
+                                        feeUsd: l.priceUsd,
+                                        status: ConsultationStatus.scheduled,
+                                        summaryNotes: 'Booked advert: ${l.title}',
+                                      );
+                                      ref.read(agriExpertProvider.notifier).addConsultation(session);
+
+                                      // Open direct chat thread with post owner
+                                      ref.read(chatProvider.notifier).startOrGetThread(
+                                        '${l.expertName} (Agri-Expert)',
+                                        'Service: ${l.title}',
+                                        'Hello ${l.expertName}, I have booked your service: "${l.title}". I would like to consult on my farm.',
+                                        'Expert Advisory',
+                                      );
+
+                                      // Navigate to My Chats
+                                      ref.read(appStateProvider.notifier).setNavIndex(2);
+
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Booked ${l.title}! Opening direct chat with ${l.expertName}...')),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.chat_bubble_outline, size: 14),
+                                    label: const Text('Book & Chat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF16A34A),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
                                   ),
                                 ],
                               ),
