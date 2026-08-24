@@ -197,22 +197,37 @@ class _FinancePageState extends ConsumerState<FinancePage> {
         child: Column(
           children: [
             // ─────────────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
             // Institutional Banking & Admin Live Ticker Pulse
             // ─────────────────────────────────────────────────────────────────
             Container(
               width: double.infinity,
-              color: dark,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                border: Border(bottom: BorderSide(color: Color(0xFF334155), width: 0.8)),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF22C55E),
+                        color: const Color(0xFF22C55E),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF22C55E).withOpacity(0.6),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -221,12 +236,12 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                       style: GoogleFonts.inter(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w900,
-                        color: const Color(0xFF22C55E),
-                        letterSpacing: 1.0,
+                        color: const Color(0xFF38BDF8),
+                        letterSpacing: 1.1,
                       ),
                     ),
                     Text(
-                      'Total Assets Under Management (AUM): \$14.28M USD • Liquidity Ratio: 42.8% • Reserve Bank Clearing: ONLINE • Loan Default Risk: 0.42% • EUDR Green Bond Rating: AAA',
+                      'Total Assets Under Management (AUM): \$14.28M USD • Liquidity Ratio: 42.8% • Reserve Bank Clearing: ONLINE (12ms) • Loan Default Risk: 0.05% • EUDR Green Bond Rating: AAA',
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         color: Colors.white70,
@@ -501,14 +516,30 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                 ),
               ),
               const SizedBox(height: 14),
+              // Multi-Tier Treasury Proportion Visual Bar
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 8,
+                  child: Row(
+                    children: [
+                      Expanded(flex: 17, child: Container(color: const Color(0xFF22C55E))), // Smallholders
+                      Expanded(flex: 34, child: Container(color: const Color(0xFF38BDF8))), // Aggregators
+                      Expanded(flex: 36, child: Container(color: const Color(0xFF818CF8))), // Off-takers
+                      Expanded(flex: 13, child: Container(color: const Color(0xFFFBBF24))), // Input Suppliers
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
               Wrap(
                 spacing: 10,
                 runSpacing: 8,
                 children: [
-                  _treasuryHeroBadge('Smallholder Pool: \$2.42M', Icons.nature_people_outlined),
-                  _treasuryHeroBadge('Aggregator Vault: \$4.85M', Icons.store_outlined),
-                  _treasuryHeroBadge('Off-taker Escrow: \$12.50M', Icons.account_balance_outlined),
-                  _treasuryHeroBadge('Input Suppliers: \$1.80M', Icons.shopping_bag_outlined),
+                  _treasuryHeroBadge('Smallholder Pool: \$2.42M (17%)', Icons.nature_people_outlined),
+                  _treasuryHeroBadge('Aggregator Vault: \$4.85M (34%)', Icons.store_outlined),
+                  _treasuryHeroBadge('Off-taker Escrow: \$12.50M (36%)', Icons.account_balance_outlined),
+                  _treasuryHeroBadge('Input Suppliers: \$1.80M (13%)', Icons.shopping_bag_outlined),
                 ],
               ),
             ],
@@ -710,6 +741,20 @@ class _FinancePageState extends ConsumerState<FinancePage> {
               // Multi-Party Fee Split Visualizer
               Text('AUTOMATED MULTI-PARTY PAYOUT SPLIT (ON FULFILLMENT):', style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: muted, letterSpacing: 0.8)),
               const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  height: 6,
+                  child: Row(
+                    children: [
+                      Expanded(flex: 85, child: Container(color: green)),
+                      Expanded(flex: 10, child: Container(color: const Color(0xFF2563EB))),
+                      Expanded(flex: 5, child: Container(color: dark)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(child: _payoutSplitChip('🌾 85% Farmer (Kudakwashe Moyo)', '\$12,325.00 USD', green)),
@@ -1177,7 +1222,25 @@ class _FinancePageState extends ConsumerState<FinancePage> {
             border: Border.all(color: Colors.black12),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text('SYNDICATE CAPITAL RISK SHARING PROPORTIONS:', style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w900, color: muted, letterSpacing: 0.8)),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  height: 6,
+                  child: Row(
+                    children: [
+                      Expanded(flex: 40, child: Container(color: green)),
+                      Expanded(flex: 35, child: Container(color: const Color(0xFF38BDF8))),
+                      Expanded(flex: 15, child: Container(color: const Color(0xFF2563EB))),
+                      Expanded(flex: 10, child: Container(color: gold)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               _syndicateRow('AFC Agribank', 40.0, '\$5,712,000 USD', 'Maize & Wheat Grains', 'Lead Arranger', green),
               const Divider(height: 1),
               _syndicateRow('CBZ Bank', 35.0, '\$4,998,000 USD', 'Sugar Beans & Soybeans', 'Co-Underwriter', green),
