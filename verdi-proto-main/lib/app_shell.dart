@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'
     hide ChangeNotifierProvider;
@@ -84,6 +85,9 @@ class AppShell extends ConsumerWidget {
       const AiCopilotPage(), // index 28: Sovereign AI Agronomist Copilot
     ];
 
+    final isTransporter = state.role == UserRole.transporter;
+    final effectiveNavIndex = (isTransporter && state.navIndex == 0) ? 5 : state.navIndex;
+
     return ChangeNotifierProvider<WeatherProvider>(
       create: (_) {
         final provider = WeatherProvider(repository: MockWeatherRepository());
@@ -113,7 +117,7 @@ class AppShell extends ConsumerWidget {
                     sidebar,
                     const VerticalDivider(width: 1, color: Colors.black12),
                     Expanded(
-                      child: IndexedStack(index: state.navIndex, children: pages),
+                      child: IndexedStack(index: effectiveNavIndex, children: pages),
                     ),
                   ],
                 ),
@@ -301,6 +305,10 @@ class Sidebar extends ConsumerWidget {
     final userName = user?.fullName ?? 'Operator';
     final userEmail = user?.email ?? 'operator@verdi.co';
 
+    if (role == UserRole.transporter) {
+      return _buildTransporterSidebar(context, ref, appState, authState);
+    }
+
     // Filter items based on stakeholder role visibility rules:
     final filteredItems = _sidebarItems.where((item) {
       if (role == UserRole.admin) return true;
@@ -323,9 +331,6 @@ class Sidebar extends ConsumerWidget {
               item.index == 17 ||
               item.index == 20 ||
               item.index == 24;
-
-        case UserRole.transporter:
-          return item.index == 4 || item.index == 5 || item.index == 15;
 
         case UserRole.buyer:
           if (isEndUserCustomer) {
@@ -761,6 +766,537 @@ class Sidebar extends ConsumerWidget {
                 ),
               )
             : null,
+      ),
+    );
+  }
+
+  Widget _buildTransporterSidebar(
+    BuildContext context,
+    WidgetRef ref,
+    AppState appState,
+    AuthState authState,
+  ) {
+    final user = authState.user;
+    final userName = user?.fullName ?? 'Carrier Fleet Operator';
+    final effectiveIndex = (selectedIndex == 0) ? 5 : selectedIndex;
+
+    const bgDark = Color(0xFF060B14);
+    const cardDark = Color(0xFF0D1626);
+    const cardBorder = Color(0xFF1E293B);
+    const amber = Color(0xFFFF9F1C);
+    const cyan = Color(0xFF00F0FF);
+    const textMuted = Color(0xFF94A3B8);
+
+    final transporterItems = [
+      const _SidebarMenuItem(index: 5, label: 'Carrier Console', icon: LucideIcons.truck),
+      const _SidebarMenuItem(index: 4, label: 'Waybills & Dispatches', icon: LucideIcons.fileText),
+      const _SidebarMenuItem(index: 6, label: 'Fuel & Toll Settlements', icon: LucideIcons.creditCard),
+      const _SidebarMenuItem(index: 7, label: 'Fleet Telemetry Alerts', icon: LucideIcons.bell),
+    ];
+
+    return Container(
+      width: 265,
+      decoration: const BoxDecoration(
+        color: bgDark,
+        border: Border(right: BorderSide(color: cardBorder, width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Transporter Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: amber.withOpacity(0.18),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: amber.withOpacity(0.4)),
+                      ),
+                      child: const Icon(LucideIcons.truck, color: amber, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userName,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle),
+                              ),
+                              const SizedBox(width: 5),
+                              const Text(
+                                'SADC CARRIER FLEET',
+                                style: TextStyle(color: Color(0xFF10B981), fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Mode Status Card
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: cardDark,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: ref.watch(isDemoModeProvider) ? amber.withOpacity(0.3) : Colors.blue.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        ref.watch(isDemoModeProvider) ? Icons.science_outlined : Icons.cloud_done_outlined,
+                        size: 16,
+                        color: ref.watch(isDemoModeProvider) ? amber : Colors.blue.shade400,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ref.watch(isDemoModeProvider) ? 'Mode: Offline Demo' : 'Mode: Live Real Network',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: ref.watch(isDemoModeProvider) ? amber : Colors.blue.shade300,
+                              ),
+                            ),
+                            Text(
+                              ref.watch(isDemoModeProvider) ? 'Telemetry Sandbox' : 'Connected to Fleet GPS',
+                              style: const TextStyle(fontSize: 9, color: textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: cardBorder),
+          const SizedBox(height: 12),
+
+          // Primary Navigation Menu
+          Expanded(
+            child: ListView(
+              physics: const ClampingScrollPhysics(),
+              padding: EdgeInsets.zero,
+              children: [
+                for (final item in transporterItems) ...[
+                  _buildTransporterMenuItem(
+                    context,
+                    index: item.index,
+                    label: item.label,
+                    icon: item.icon,
+                    isSelected: effectiveIndex == item.index,
+                    badge: item.index == 7 ? notificationBadge : item.badge,
+                  ),
+                ],
+                const SizedBox(height: 14),
+
+                // Special Glassmorphism "More Options" Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      onTap: () => _showTransporterMoreOptionsModal(context),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF0D1626).withOpacity(0.9),
+                              const Color(0xFF1E293B).withOpacity(0.7),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: cyan.withOpacity(0.35),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: cyan.withOpacity(0.12),
+                              blurRadius: 12,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: cyan.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(LucideIcons.layoutGrid, color: cyan, size: 16),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'More Options',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.5,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Cargo, Trace & Settings',
+                                    style: TextStyle(
+                                      color: textMuted,
+                                      fontSize: 9.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, size: 12, color: cyan),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1, color: cardBorder),
+
+          // Transporter Footer
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // In-Transit Status Pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: cardDark,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(LucideIcons.satellite, size: 14, color: cyan),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Carrier GPS Telemetry Active',
+                          style: TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Sign Out
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      ref.read(authStateProvider.notifier).signOut();
+                    },
+                    icon: const Icon(Icons.logout, size: 15),
+                    label: const Text('Sign Out', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFEF4444),
+                      side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.4)),
+                      backgroundColor: const Color(0xFFEF4444).withOpacity(0.08),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransporterMenuItem(
+    BuildContext context, {
+    required int index,
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    String? badge,
+  }) {
+    const amber = Color(0xFFFF9F1C);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(
+        color: isSelected ? amber.withOpacity(0.16) : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: isSelected ? Border.all(color: amber.withOpacity(0.4)) : null,
+      ),
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+        onTap: () => onSelect(index),
+        leading: Icon(
+          icon,
+          color: isSelected ? amber : const Color(0xFF94A3B8),
+          size: 18,
+        ),
+        title: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected ? amber : Colors.white,
+          ),
+        ),
+        trailing: badge != null
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: amber,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  badge,
+                  style: const TextStyle(
+                    color: Color(0xFF060B14),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              )
+            : null,
+      ),
+    );
+  }
+
+  void _showTransporterMoreOptionsModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 520),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF060B14).withOpacity(0.94),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF00F0FF).withOpacity(0.3), width: 1.5),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 30, spreadRadius: 5),
+                BoxShadow(color: const Color(0xFF00F0FF).withOpacity(0.15), blurRadius: 20),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00F0FF).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(LucideIcons.layoutGrid, color: Color(0xFF00F0FF), size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Transporter Command Desk', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                            const Text('Extended carrier modules & utility tools', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF94A3B8)),
+                      onPressed: () => Navigator.pop(dialogCtx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Divider(color: Color(0xFF1E293B), height: 1),
+                const SizedBox(height: 16),
+
+                _buildTransporterModalOption(
+                  icon: LucideIcons.store,
+                  iconColor: const Color(0xFFFF9F1C),
+                  title: 'Freight & Commodity Marketplace',
+                  subtitle: 'Source backhaul cargo loads, farmgate harvest lots & grain tenders',
+                  badge: 'CARGO SOURCE',
+                  badgeColor: const Color(0xFFFF9F1C),
+                  onTap: () {
+                    Navigator.pop(dialogCtx);
+                    onSelect(1); // Marketplace
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                _buildTransporterModalOption(
+                  icon: LucideIcons.link,
+                  iconColor: const Color(0xFF00F0FF),
+                  title: 'Cargo Traceability & Chain of Custody',
+                  subtitle: 'Audit temperature logs, digital seals, e-POD & bill of lading proofs',
+                  badge: 'COLD-CHAIN',
+                  badgeColor: const Color(0xFF00F0FF),
+                  onTap: () {
+                    Navigator.pop(dialogCtx);
+                    onSelect(15); // Traceability
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                _buildTransporterModalOption(
+                  icon: LucideIcons.messageCircle,
+                  iconColor: const Color(0xFF10B981),
+                  title: 'Carrier Support & Dispatch Comms',
+                  subtitle: 'Direct real-time driver coordination, farmer comms & dispatch channels',
+                  badge: '3 LIVE',
+                  badgeColor: const Color(0xFF10B981),
+                  onTap: () {
+                    Navigator.pop(dialogCtx);
+                    onSelect(2); // Chats
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                _buildTransporterModalOption(
+                  icon: LucideIcons.settings,
+                  iconColor: const Color(0xFF8B5CF6),
+                  title: 'Carrier Profile, Truck KYC & Fleet Settings',
+                  subtitle: 'Manage SADC cross-border permits, driver licenses & GPS telematics tokens',
+                  badge: 'FLEET KYC',
+                  badgeColor: const Color(0xFF8B5CF6),
+                  onTap: () {
+                    Navigator.pop(dialogCtx);
+                    onSelect(21); // Settings
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransporterModalOption({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String badge,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D1626),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: badgeColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: badgeColor.withOpacity(0.4)),
+                          ),
+                          child: Text(badge, style: TextStyle(color: badgeColor, fontSize: 9, fontWeight: FontWeight.w900)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF94A3B8)),
+            ],
+          ),
+        ),
       ),
     );
   }

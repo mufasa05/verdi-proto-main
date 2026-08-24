@@ -28,8 +28,8 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
   static const purple = Color(0xFF8B5CF6);
   static const textMuted = Color(0xFF94A3B8);
 
-  bool _hasSeenSplash = false;
-  bool _hasCompletedOnboarding = false;
+  bool _hasSeenSplash = true;
+  bool _hasCompletedOnboarding = true;
 
   @override
   void initState() {
