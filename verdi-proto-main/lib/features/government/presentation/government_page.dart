@@ -793,6 +793,22 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage> with TickerProv
                           Text(o['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                           const SizedBox(width: 8),
                           _StatusChip(label: o['status'], color: isActive ? GovernmentPage.green : GovernmentPage.orange),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD97706),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.verified, color: Colors.white, size: 11),
+                                SizedBox(width: 3),
+                                Text('Verified by State', style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
                         ]),
                         const SizedBox(height: 4),
                         Text('ID: ${o['id']}  •  ${o['phone']}', style: const TextStyle(fontSize: 11, color: GovernmentPage.muted)),

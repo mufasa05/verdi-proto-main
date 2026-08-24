@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../state/app_state.dart';
 import '../state/auth_state.dart';
 import '../../../widgets/verdi_logo.dart';
+import '../../agri_expert/data/agri_expert_models.dart';
+import '../../agri_expert/state/agri_expert_state.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -70,6 +72,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool _isSignUp = false;
   UserRole _selectedRole = UserRole.farmer;
 
+  // Agri-Expert specific onboarding state
+  ExpertPersona _selectedExpertPersona = ExpertPersona.independentConsultant;
+  final _practiceOrOrgNameCtrl = TextEditingController();
+  final _licenseOrStaffIdCtrl = TextEditingController();
+  final _districtOrStationCtrl = TextEditingController();
+  final _hourlyRateCtrl = TextEditingController();
+  final _visitRateCtrl = TextEditingController();
+  final _retainerRateCtrl = TextEditingController();
+  final _expertBioCtrl = TextEditingController();
+  final _specializationsCtrl = TextEditingController();
+
   final List<String> _countries = [
     'Zimbabwe',
     'South Africa',
@@ -88,6 +101,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _passwordController.dispose();
     _companyController.dispose();
     _inviteCodeController.dispose();
+    _practiceOrOrgNameCtrl.dispose();
+    _licenseOrStaffIdCtrl.dispose();
+    _districtOrStationCtrl.dispose();
+    _hourlyRateCtrl.dispose();
+    _visitRateCtrl.dispose();
+    _retainerRateCtrl.dispose();
+    _expertBioCtrl.dispose();
+    _specializationsCtrl.dispose();
     super.dispose();
   }
 
@@ -547,6 +568,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         return _buildCredentialsStep(authState);
       case 2:
         return _buildStakeholderSelectorStep();
+      case 21:
+        return _buildExpertPersonaSelectionStep();
+      case 22:
+        return _buildExpertCredentialsAndBioStep();
       case 3:
         return _buildCompanyTenantStep();
       case 4:
@@ -972,9 +997,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  _currentStep = 4;
-                });
+                if (_selectedRole == UserRole.expert) {
+                  setState(() {
+                    _currentStep = 21;
+                  });
+                } else {
+                  setState(() {
+                    _currentStep = 4;
+                  });
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF16A34A),
@@ -982,12 +1013,440 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Next: Preview Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                _selectedRole == UserRole.expert ? 'Next: Select Expert Persona' : 'Next: Preview Workspace',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
       );
     }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STEP 2A: AGRI-EXPERT PERSONA SELECTION
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildExpertPersonaSelectionStep() {
+    return _buildGlassCard(
+      key: const ValueKey('expert_persona_step'),
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() => _currentStep = 2),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Agri-Expert Persona',
+                      style: GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const Text(
+                      'Select your primary operating classification',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Immutable Lock Warning Banner
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFDE68A)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Icon(Icons.lock_clock_outlined, color: Color(0xFFD97706), size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Important: Your persona classification is permanent and immutable once selected. You cannot switch freely in-app without submitting a formal verification inquiry.',
+                    style: TextStyle(fontSize: 11.5, color: Color(0xFF92400E), height: 1.4, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          ...ExpertPersona.values.map((persona) {
+            final isSelected = _selectedExpertPersona == persona;
+            String subtitle = '';
+            List<String> tags = [];
+
+            switch (persona) {
+              case ExpertPersona.independentConsultant:
+                subtitle = 'Private agronomy consultant, independent soil lab, or freelance crop specialist. Bill clients, set custom advisory rates, and publish whitelabel reports.';
+                tags = ['Private Billing', 'Client CRM', 'Whitelabel Export', 'Open Marketplace'];
+                break;
+              case ExpertPersona.governmentExtension:
+                subtitle = 'Ministry of Agriculture / Agritex extension officer. Manage geofenced rural territories, offline surveys, and state emergency SMS broadcasts.';
+                tags = ['State Verified', 'Agritex Sync', 'Offline Forms', 'Emergency SMS'];
+                break;
+              case ExpertPersona.companyAgronomist:
+                subtitle = 'Internal agronomist for contract farming / agribusiness (SeedCo, Delta, Olivine). Air-gapped data firewall, outgrower dispatch SLAs, and input warehouse syncing.';
+                tags = ['Air-Gapped Firewall', 'Outgrower SLAs', 'Corporate SKU Match'];
+                break;
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: InkWell(
+                onTap: () => setState(() => _selectedExpertPersona = persona),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSelected ? persona.color.withOpacity(0.06) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? persona.color : Colors.grey.shade200,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: persona.color.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(persona.icon, color: persona.color, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    persona.label,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(Icons.check_circle, color: persona.color, size: 20),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitle,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.35),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              children: tags.map((t) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(t, style: TextStyle(fontSize: 10, color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+                              )).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _currentStep = 22;
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _selectedExpertPersona.color,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Next: Professional Credentials & Bio', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STEP 2B: TAILORED CREDENTIALS & BIO FORM
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildExpertCredentialsAndBioStep() {
+    final persona = _selectedExpertPersona;
+
+    return _buildGlassCard(
+      key: const ValueKey('expert_credentials_step'),
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() => _currentStep = 21),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${persona.label} Profile',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Provide your professional credentials and practice details',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 380),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Form fields customized by persona
+                  if (persona == ExpertPersona.independentConsultant) ...[
+                    TextFormField(
+                      controller: _practiceOrOrgNameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Practice / Lab Name (Optional)',
+                        hintText: 'e.g. Sovereign Agronomy & Soil Solutions',
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.business_center_outlined, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _licenseOrStaffIdCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'ZAPB Professional License No.',
+                        hintText: 'e.g. ZAPB-LIC-2024-089',
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.verified_user_outlined, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _hourlyRateCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Hourly Rate (USD)',
+                              hintText: 'e.g. 45.00',
+                              hintStyle: TextStyle(color: Colors.black26),
+                              prefixText: '\$ ',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _visitRateCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Farm Visit (USD)',
+                              hintText: 'e.g. 120.00',
+                              hintStyle: TextStyle(color: Colors.black26),
+                              prefixText: '\$ ',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else if (persona == ExpertPersona.governmentExtension) ...[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.verified, color: Color(0xFF2563EB), size: 18),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'State Accreditation: All registered Agritex Extension Officers receive the official "Verified by State" trust badge.',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF1E40AF), fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _licenseOrStaffIdCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Agritex Officer Service ID',
+                        hintText: 'e.g. AGX-ZW-2026-9041',
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _districtOrStationCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Assigned District & Ward Territory',
+                        hintText: 'e.g. Mazowe District (Ward 4 & 5)',
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.map_outlined, size: 20),
+                      ),
+                    ),
+                  ] else ...[
+                    // Corporate Agronomist
+                    TextFormField(
+                      controller: _practiceOrOrgNameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Agribusiness / Corporate Employer',
+                        hintText: 'e.g. SeedCo, Delta Outgrower Scheme, Tanganda',
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.domain_outlined, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _licenseOrStaffIdCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Corporate Employee / Staff ID',
+                        hintText: 'e.g. SC-AGR-4491',
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _districtOrStationCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Assigned Scheme Block / Depot',
+                        hintText: 'e.g. Banket Malt Barley Contract Scheme',
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.warehouse_outlined, size: 20),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _specializationsCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Specialization Domains',
+                      hintText: 'e.g. Soil Chemistry, Pest Management, Drip Irrigation',
+                      hintStyle: TextStyle(color: Colors.black26),
+                      prefixIcon: Icon(Icons.psychology_outlined, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _expertBioCtrl,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Professional Bio & Experience Summary',
+                      hintText: 'Outline your agricultural advisory background and credentials...',
+                      hintStyle: TextStyle(color: Colors.black26),
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () async {
+              // Commit persona to state
+              ref.read(appStateProvider.notifier).setExpertPersona(persona);
+
+              // Update custom profile values if provided
+              final customBio = _expertBioCtrl.text.trim();
+              final customLicense = _licenseOrStaffIdCtrl.text.trim();
+              final customAffiliation = _practiceOrOrgNameCtrl.text.trim();
+              final customDistrict = _districtOrStationCtrl.text.trim();
+              final customHourly = double.tryParse(_hourlyRateCtrl.text.trim()) ?? 45.0;
+              final customVisit = double.tryParse(_visitRateCtrl.text.trim()) ?? 120.0;
+
+              final curProfile = ref.read(agriExpertProvider).profile;
+              ref.read(agriExpertProvider.notifier).updateProfile(
+                    curProfile.copyWith(
+                      activePersona: persona,
+                      bio: customBio.isNotEmpty ? customBio : curProfile.bio,
+                      companyAffiliation: customAffiliation.isNotEmpty ? customAffiliation : curProfile.companyAffiliation,
+                      operatingDistrict: customDistrict.isNotEmpty ? customDistrict : curProfile.operatingDistrict,
+                      hourlyRateUsd: customHourly,
+                      farmVisitRateUsd: customVisit,
+                      isVerifiedByState: persona == ExpertPersona.governmentExtension,
+                      agritexOfficerId: customLicense.isNotEmpty ? customLicense : curProfile.agritexOfficerId,
+                    ),
+                  );
+
+              setState(() {
+                _currentStep = 4; // Preview workspace step
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF16A34A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Save & Preview Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // STEP 3: COMPANY TENANT SETUP

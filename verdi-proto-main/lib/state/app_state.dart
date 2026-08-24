@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../features/agri_expert/data/agri_expert_models.dart';
 
 /// All stakeholder types in the VERDI agricultural value chain.
 enum UserRole {
@@ -188,6 +189,7 @@ enum BuyerSubRole {
 class AppState {
   final UserRole role;
   final BuyerSubRole buyerSubRole;
+  final ExpertPersona expertPersona;
   final int navIndex;
   final AppCurrency currency;
   final bool isDemoMode;
@@ -196,6 +198,7 @@ class AppState {
   const AppState({
     required this.role,
     this.buyerSubRole = BuyerSubRole.retailerWholesaler,
+    this.expertPersona = ExpertPersona.independentConsultant,
     required this.navIndex,
     this.currency = AppCurrency.zig,
     this.isDemoMode = false,
@@ -205,6 +208,7 @@ class AppState {
   AppState copyWith({
     UserRole? role,
     BuyerSubRole? buyerSubRole,
+    ExpertPersona? expertPersona,
     int? navIndex,
     AppCurrency? currency,
     bool? isDemoMode,
@@ -213,6 +217,7 @@ class AppState {
     return AppState(
       role: role ?? this.role,
       buyerSubRole: buyerSubRole ?? this.buyerSubRole,
+      expertPersona: expertPersona ?? this.expertPersona,
       navIndex: navIndex ?? this.navIndex,
       currency: currency ?? this.currency,
       isDemoMode: isDemoMode ?? this.isDemoMode,
@@ -223,6 +228,7 @@ class AppState {
   static const initial = AppState(
     role: UserRole.farmer,
     buyerSubRole: BuyerSubRole.retailerWholesaler,
+    expertPersona: ExpertPersona.independentConsultant,
     navIndex: 0,
     currency: AppCurrency.zig,
     isDemoMode: false,
@@ -234,6 +240,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
   static const _prefDemoModeKey = 'verdi.app.is_demo_mode';
   static const _prefCurrencyKey = 'verdi.app.selected_currency';
   static const _prefBuyerSubRoleKey = 'verdi.app.buyer_sub_role';
+  static const _prefExpertPersonaKey = 'verdi.app.expert_persona';
   static const _prefThemeModeKey = 'verdi.app.theme_mode';
 
   AppStateNotifier() : super(AppState.initial) {
@@ -247,6 +254,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       final isDemo = hasDemoPref ? (prefs.getBool(_prefDemoModeKey) ?? false) : false;
       final currencyCode = prefs.getString(_prefCurrencyKey);
       final buyerSubRoleName = prefs.getString(_prefBuyerSubRoleKey);
+      final expertPersonaName = prefs.getString(_prefExpertPersonaKey);
       final savedThemeMode = prefs.getString(_prefThemeModeKey);
 
       AppCurrency selectedCurrency = AppCurrency.zig;
@@ -265,6 +273,14 @@ class AppStateNotifier extends StateNotifier<AppState> {
         );
       }
 
+      ExpertPersona selectedExpertPersona = ExpertPersona.independentConsultant;
+      if (expertPersonaName != null) {
+        selectedExpertPersona = ExpertPersona.values.firstWhere(
+          (p) => p.name == expertPersonaName,
+          orElse: () => ExpertPersona.independentConsultant,
+        );
+      }
+
       ThemeMode selectedThemeMode = ThemeMode.system;
       if (savedThemeMode != null) {
         if (savedThemeMode == 'light') selectedThemeMode = ThemeMode.light;
@@ -276,6 +292,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
         isDemoMode: isDemo,
         currency: selectedCurrency,
         buyerSubRole: selectedBuyerSubRole,
+        expertPersona: selectedExpertPersona,
         themeMode: selectedThemeMode,
       );
     } catch (_) {}
@@ -285,8 +302,15 @@ class AppStateNotifier extends StateNotifier<AppState> {
     int initialNav = 0;
     if (role == UserRole.transporter) {
       initialNav = 5; // Launch directly into Verdi Logistics OS
+    } else if (role == UserRole.expert) {
+      initialNav = 29; // Launch directly into Agri-Expert Console
     }
     state = state.copyWith(role: role, navIndex: initialNav);
+  }
+
+  void setExpertPersona(ExpertPersona persona) {
+    state = state.copyWith(expertPersona: persona);
+    SharedPreferences.getInstance().then((p) => p.setString(_prefExpertPersonaKey, persona.name)).catchError((_) => false);
   }
 
   void setBuyerSubRole(BuyerSubRole subRole) {

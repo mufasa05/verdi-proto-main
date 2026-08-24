@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../state/app_state.dart';
 import '../data/agri_expert_models.dart';
 import '../state/agri_expert_state.dart';
 
@@ -13,16 +14,6 @@ class AgriExpertMasterPage extends ConsumerStatefulWidget {
 
 class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  static const bgDark = Color(0xFF060B14);
-  static const cardDark = Color(0xFF0D1626);
-  static const cardBorder = Color(0xFF1E293B);
-  static const emerald = Color(0xFF10B981);
-  static const cyan = Color(0xFF00F0FF);
-  static const amber = Color(0xFFFF9F1C);
-  static const blue = Color(0xFF3B82F6);
-  static const purple = Color(0xFF8B5CF6);
-  static const textMuted = Color(0xFF94A3B8);
 
   @override
   void initState() {
@@ -38,97 +29,142 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(agriExpertProvider);
-    final notifier = ref.read(agriExpertProvider.notifier);
-    final profile = state.profile;
-    final activePersona = state.activePersona;
+    final appState = ref.watch(appStateProvider);
+    final persona = appState.expertPersona;
+    final expertState = ref.watch(agriExpertProvider);
+    final profile = expertState.profile.copyWith(activePersona: persona);
 
     return Scaffold(
-      backgroundColor: bgDark,
-      body: SafeArea(
-        child: Column(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverToBoxAdapter(
+              child: _buildExpertHeader(context, profile, persona),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _SliverAppBarDelegate(
+                TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  labelColor: persona.color,
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: persona.color,
+                  indicatorWeight: 3,
+                  labelStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13),
+                  unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+                  tabs: [
+                    Tab(
+                      icon: const Icon(Icons.dashboard_outlined, size: 18),
+                      text: _getPersonaDeskTitle(persona),
+                    ),
+                    const Tab(
+                      icon: Icon(Icons.campaign_outlined, size: 18),
+                      text: 'Advisory Market & Ads',
+                    ),
+                    const Tab(
+                      icon: Icon(Icons.videocam_outlined, size: 18),
+                      text: 'Consultations & GPS Visits',
+                    ),
+                    const Tab(
+                      icon: Icon(Icons.biotech_outlined, size: 18),
+                      text: 'Diagnostics & GIS Rx Pad',
+                    ),
+                    const Tab(
+                      icon: Icon(Icons.forum_outlined, size: 18),
+                      text: 'Community Hub & Q&A',
+                    ),
+                    const Tab(
+                      icon: Icon(Icons.account_balance_wallet_outlined, size: 18),
+                      text: 'Wallet & Invoicing',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
           children: [
-            // 1. Executive Top Header with Multi-Persona Switcher
-            _buildExecutiveHeader(profile, activePersona, notifier),
-
-            // 2. Custom Modern Tab Navigation Bar
-            Container(
-              decoration: const BoxDecoration(
-                color: cardDark,
-                border: Border(bottom: BorderSide(color: cardBorder)),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                indicatorColor: activePersona.color,
-                indicatorWeight: 3,
-                labelColor: Colors.white,
-                unselectedLabelColor: textMuted,
-                labelStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13),
-                unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 13),
-                tabs: [
-                  const Tab(icon: Icon(Icons.badge_outlined, size: 18), text: 'Profile & Discovery'),
-                  Tab(
-                    icon: const Icon(Icons.video_camera_front_outlined, size: 18),
-                    text: 'Consultations (${state.consultations.where((c) => c.status == ConsultationStatus.scheduled).length})',
-                  ),
-                  const Tab(icon: Icon(Icons.biotech_outlined, size: 18), text: 'Diagnostic & Rx Pad'),
-                  const Tab(icon: Icon(Icons.menu_book_outlined, size: 18), text: 'Knowledge & Q&A'),
-                  Tab(
-                    icon: Icon(activePersona.icon, size: 18),
-                    text: '${activePersona.label} Desk',
-                  ),
-                  const Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 18), text: 'Wallet & Monetization'),
-                ],
-              ),
-            ),
-
-            // 3. Tab Views
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildProfileDiscoveryTab(state, notifier),
-                  _buildConsultationsTab(state, notifier),
-                  _buildDiagnosticRxTab(state, notifier),
-                  _buildKnowledgeBaseTab(state, notifier),
-                  _buildPersonaOperationsDeskTab(state, notifier),
-                  _buildWalletMonetizationTab(state, notifier),
-                ],
-              ),
-            ),
+            _buildDivergentPersonaDesk(context, profile, persona, expertState),
+            _buildAdvisoryMarketingDesk(context, expertState),
+            _buildConsultationsTab(context, expertState),
+            _buildDiagnosticAndRxTab(context, expertState),
+            _buildCommunityAndKnowledgeTab(context, expertState),
+            _buildWalletAndMonetizationTab(context, expertState),
           ],
         ),
       ),
     );
   }
 
+  String _getPersonaDeskTitle(ExpertPersona persona) {
+    switch (persona) {
+      case ExpertPersona.independentConsultant:
+        return 'Private Practice CRM';
+      case ExpertPersona.governmentExtension:
+        return 'Agritex Extension Hub';
+      case ExpertPersona.companyAgronomist:
+        return 'Corporate Scheme Desk';
+    }
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
-  // 1. EXECUTIVE HEADER & MULTI-PERSONA SWITCHER BAR
+  // IMMUTABLE EXPERT HEADER WITH STATE ACCREDITATION
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildExecutiveHeader(AgriExpertProfile profile, ExpertPersona activePersona, AgriExpertNotifier notifier) {
+  Widget _buildExpertHeader(BuildContext context, AgriExpertProfile profile, ExpertPersona persona) {
+    final isStateVerified = persona == ExpertPersona.governmentExtension || profile.isVerifiedByState;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: cardDark,
-        border: const Border(bottom: BorderSide(color: cardBorder)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF0F172A),
+            persona.color.withOpacity(0.85),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Expert Avatar
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: activePersona.color.withOpacity(0.18),
-                child: Icon(Icons.science, color: activePersona.color, size: 28),
+              // Avatar with persona badge
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Colors.white.withOpacity(0.15),
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.white,
+                      child: Icon(persona.icon, size: 34, color: persona.color),
+                    ),
+                  ),
+                  if (isStateVerified)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD97706),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.verified, color: Colors.white, size: 16),
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 18),
 
-              // Expert Title & Identity
+              // Expert Details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,549 +174,175 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                         Flexible(
                           child: Text(
                             profile.fullName,
-                            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: activePersona.color.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: activePersona.color),
+                        if (isStateVerified)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD97706),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.shield, color: Colors.white, size: 12),
+                                SizedBox(width: 4),
+                                Text(
+                                  'VERIFIED BY STATE',
+                                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+                                ),
+                              ],
+                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.verified, size: 12, color: activePersona.color),
-                              const SizedBox(width: 4),
-                              Text(activePersona.badgeTitle, style: TextStyle(color: activePersona.color, fontSize: 9.5, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${profile.yearsOfExperience} Yrs Exp • ⭐ ${profile.rating} (${profile.reviewsCount} Reviews) • ${profile.operatingDistrict}',
-                      style: const TextStyle(fontSize: 11.5, color: textMuted),
+                      '${persona.badgeTitle} • ${profile.companyAffiliation}',
+                      style: GoogleFonts.inter(
+                        color: Colors.white70,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ],
-                ),
-              ),
-
-              // Wallet & Satisfaction Metric Pills
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: bgDark,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: emerald.withOpacity(0.4)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text('ADVISORY ESCROW WALLET', style: TextStyle(fontSize: 8.5, color: textMuted, fontWeight: FontWeight.bold)),
-                    Text(
-                      'US\$ ${profile.walletBalanceUsd.toStringAsFixed(2)}',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: emerald, fontSize: 13.5),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Multi-Persona Mode Selector Pill Bar
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: bgDark,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: cardBorder),
-            ),
-            child: Row(
-              children: ExpertPersona.values.map((persona) {
-                final isSelected = activePersona == persona;
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => notifier.switchPersona(persona),
-                    borderRadius: BorderRadius.circular(10),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? persona.color.withOpacity(0.18) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: isSelected ? persona.color : Colors.transparent,
-                          width: 1.2,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, color: Colors.white60, size: 14),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            profile.operatingDistrict,
+                            style: const TextStyle(color: Colors.white60, fontSize: 11.5),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            persona.icon,
-                            size: 15,
-                            color: isSelected ? persona.color : textMuted,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            persona.label,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                              color: isSelected ? Colors.white : textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Locked Persona Badge & Inquiry Action
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white30),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.lock, color: Colors.white70, size: 12),
+                        const SizedBox(width: 6),
+                        Text(
+                          persona.label,
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // TAB 1: PROFILE & EXPERT DIRECTORY DISCOVERY
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildProfileDiscoveryTab(AgriExpertState state, AgriExpertNotifier notifier) {
-    final p = state.profile;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Bio & Credentials Card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Professional Summary & Bio', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(color: emerald.withOpacity(0.12), borderRadius: BorderRadius.circular(8), border: Border.all(color: emerald)),
-                      child: const Text('PUBLIC DIRECTORY ACTIVE', style: TextStyle(color: emerald, fontSize: 10, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  InkWell(
+                    onTap: () => _showPersonaInquiryDialog(context, persona),
+                    child: const Text(
+                      'Request Change Inquiry',
+                      style: TextStyle(color: Colors.white70, fontSize: 10.5, decoration: TextDecoration.underline),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(p.bio, style: const TextStyle(fontSize: 12.5, color: Color(0xFFCBD5E1), height: 1.4)),
-                const SizedBox(height: 16),
-
-                // Specialization Tags
-                const Text('Core Specialization Domains', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textMuted)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: p.specializations.map((s) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: cyan.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: cyan.withOpacity(0.3)),
-                      ),
-                      child: Text(s, style: const TextStyle(color: cyan, fontSize: 11, fontWeight: FontWeight.bold)),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // Verified Degrees & Licenses
-          Text('Verified Credentials & Professional Licenses', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 10),
-
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: p.credentials.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, idx) {
-              final c = p.credentials[idx];
-              return Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: amber.withOpacity(0.15),
-                      radius: 18,
-                      child: const Icon(Icons.school_outlined, color: amber, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(c.title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
-                          Text('${c.institution} • Awarded ${c.yearAwarded}', style: const TextStyle(fontSize: 11, color: textMuted)),
-                          Text('License ID: ${c.credentialId}', style: const TextStyle(fontSize: 10.5, color: emerald, fontFamily: 'monospace')),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.verified, color: emerald, size: 20),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 20),
-
-          // Advisory Service Rate Cards
-          Text('Advisory Service Pricing & Booking Rates', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 10),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildRateCard('Remote Video / Voice', 'US\$ ${p.hourlyRateUsd.toStringAsFixed(0)} / hr', 'Instant in-app tele-agronomy', Icons.videocam_outlined, cyan),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildRateCard('On-Site GPS Farm Visit', 'US\$ ${p.farmVisitRateUsd.toStringAsFixed(0)} / visit', 'Full field inspection + soil probe', Icons.location_on_outlined, amber),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildRateCard('Seasonal Retainer', 'US\$ ${p.monthlyRetainerRateUsd.toStringAsFixed(0)} / mo', 'Unlimited chat + 2 visits/mo', Icons.all_inclusive_outlined, emerald),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRateCard(String title, String price, String subtitle, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withOpacity(0.3))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(height: 10),
-          Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textMuted)),
-          const SizedBox(height: 4),
-          Text(price, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: TextStyle(fontSize: 10.5, color: textMuted.withOpacity(0.8))),
-        ],
-      ),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // TAB 2: CONSULTATIONS & FIELD VISITS
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildConsultationsTab(AgriExpertState state, AgriExpertNotifier notifier) {
-    final list = state.consultations;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Scheduled Consultations & Field Visits', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const Text('Active remote tele-agronomy sessions and physical farm inspection schedule.', style: TextStyle(fontSize: 11.5, color: textMuted)),
+                  ),
                 ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _showBookConsultationDialog(context, notifier),
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Schedule Consult', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(backgroundColor: emerald, foregroundColor: bgDark),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, idx) {
-              final c = list[idx];
-              final isCompleted = c.status == ConsultationStatus.completed;
-
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: cardDark,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: c.status.color.withOpacity(0.4)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: c.type == ConsultationType.videoCall ? cyan.withOpacity(0.15) : amber.withOpacity(0.15),
-                          radius: 18,
-                          child: Icon(c.type.icon, color: c.type == ConsultationType.videoCall ? cyan : amber, size: 18),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('${c.farmerName} • ${c.farmName}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                              Text('${c.cropOrLivestock} • ${c.districtLocation}', style: const TextStyle(fontSize: 11.5, color: textMuted)),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: c.status.color.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: c.status.color.withOpacity(0.4)),
-                          ),
-                          child: Text(c.status.label, style: TextStyle(color: c.status.color, fontSize: 10.5, fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text('Notes: ${c.summaryNotes}', style: const TextStyle(fontSize: 12, color: Color(0xFFCBD5E1), fontStyle: FontStyle.italic)),
-                    const SizedBox(height: 12),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.schedule, size: 14, color: cyan),
-                            const SizedBox(width: 6),
-                            Text('${c.scheduledDate} (${c.scheduledTimeSlot}) • Fee: US\$ ${c.feeUsd.toStringAsFixed(2)}', style: const TextStyle(fontSize: 11.5, color: cyan, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        if (!isCompleted)
-                          Row(
-                            children: [
-                              if (c.type == ConsultationType.videoCall)
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Connecting to encrypted video call room with ${c.farmerName}... 🎥'), backgroundColor: blue),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.videocam, size: 14),
-                                  label: const Text('Launch Video', style: TextStyle(fontSize: 11)),
-                                  style: OutlinedButton.styleFrom(foregroundColor: cyan, side: const BorderSide(color: cyan)),
-                                ),
-                              const SizedBox(width: 8),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  notifier.completeConsultation(c.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Consultation completed! US\$ ${c.feeUsd.toStringAsFixed(2)} added to advisory wallet.'), backgroundColor: emerald),
-                                  );
-                                },
-                                icon: const Icon(Icons.check, size: 14),
-                                label: const Text('Complete & Sign', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                style: ElevatedButton.styleFrom(backgroundColor: emerald, foregroundColor: bgDark),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // TAB 3: DIAGNOSTIC & DIGITAL PRESCRIPTION PAD
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildDiagnosticRxTab(AgriExpertState state, AgriExpertNotifier notifier) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Diagnostic Anomaly Reviews
+          // KPI Stats row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Pest & Soil Anomaly Reviews', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: purple.withOpacity(0.15), borderRadius: BorderRadius.circular(8), border: Border.all(color: purple)),
-                child: const Text('AI MULTISPECTRAL ENGINE ACTIVE', style: TextStyle(color: purple, fontSize: 10, fontWeight: FontWeight.bold)),
-              ),
+              _buildHeaderStat('Consults Conducted', '${profile.completedConsultations}', Icons.chat),
+              _buildHeaderStat('Satisfaction Score', '${profile.clientSatisfactionScore}%', Icons.star),
+              _buildHeaderStat('Experience', '${profile.yearsOfExperience} Yrs', Icons.military_tech),
+              if (persona == ExpertPersona.independentConsultant)
+                _buildHeaderStat('Hourly Advisory', '\$${profile.hourlyRateUsd.toStringAsFixed(0)}/hr', Icons.attach_money),
+              if (persona == ExpertPersona.governmentExtension)
+                _buildHeaderStat('Assigned Wards', 'Wards 4, 5, 7', Icons.map),
+              if (persona == ExpertPersona.companyAgronomist)
+                _buildHeaderStat('Outgrower Blocks', 'Delta Block #12', Icons.corporate_fare),
             ],
           ),
-          const SizedBox(height: 12),
-
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.diagnosticCases.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, idx) {
-              final d = state.diagnosticCases[idx];
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: amber.withOpacity(0.15),
-                          radius: 18,
-                          child: const Icon(Icons.bug_report_outlined, color: amber, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('${d.crop} • ${d.farmName}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                              Text('Farmer: ${d.farmerName} • Reported ${d.timestamp}', style: const TextStyle(fontSize: 11, color: textMuted)),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: amber.withOpacity(0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: amber)),
-                          child: Text('${(d.aiConfidenceScore * 100).toStringAsFixed(0)}% AI CONFIDENCE', style: const TextStyle(color: amber, fontSize: 10, fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text('Detected Anomaly: ${d.detectedAnomaly}', style: const TextStyle(color: Color(0xFFF8FAFC), fontSize: 12.5, fontWeight: FontWeight.bold)),
-                    Text('Symptoms: ${d.symptomDescription}', style: const TextStyle(color: textMuted, fontSize: 11.5)),
-                    const SizedBox(height: 10),
-
-                    // Soil Nutrient Indicator
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(8), border: Border.all(color: cardBorder)),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text('Soil pH: ${d.soilPh}', style: const TextStyle(color: cyan, fontSize: 11, fontWeight: FontWeight.bold)),
-                          Text('N: ${d.nitrogenPpm} ppm', style: const TextStyle(color: emerald, fontSize: 11)),
-                          Text('P: ${d.phosphorusPpm} ppm', style: const TextStyle(color: amber, fontSize: 11)),
-                          Text('K: ${d.potassiumPpm} ppm', style: const TextStyle(color: purple, fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Prescription pad generation button
-                    ElevatedButton.icon(
-                      onPressed: () => _showDigitalPrescriptionModal(context, d, notifier),
-                      icon: const Icon(Icons.edit_note, size: 16),
-                      label: const Text('Open Digital Prescription Pad', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(backgroundColor: cyan, foregroundColor: bgDark),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-
-          // Active Digital Prescriptions List
-          Text('Issued Digital Agronomy Prescriptions (${state.prescriptions.length})', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 12),
-
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.prescriptions.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, idx) {
-              final rx = state.prescriptions[idx];
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: emerald.withOpacity(0.3))),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Rx #: ${rx.prescriptionNumber}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: emerald)),
-                        Text(rx.createdAt, style: const TextStyle(color: textMuted, fontSize: 11)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text('${rx.farmName} (${rx.farmerName}) • Target: ${rx.crop}', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text('Condition: ${rx.diagnosedCondition}', style: const TextStyle(fontSize: 11.5, color: textMuted)),
-                    const SizedBox(height: 10),
-
-                    // Inputs list
-                    Column(
-                      children: rx.items.map((it) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(8), border: Border.all(color: cardBorder)),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.check_circle_outline, size: 14, color: emerald),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text('${it.inputName} (${it.dosagePerHectare}) - ${it.applicationMethod}', style: const TextStyle(fontSize: 11.5, color: Colors.white)),
-                              ),
-                              Text(it.phiSafetyDays, style: const TextStyle(fontSize: 10.5, color: amber, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(rx.eudrComplianceNotice, style: const TextStyle(fontSize: 10.5, color: cyan, fontStyle: FontStyle.italic)),
-                  ],
-                ),
-              );
-            },
-          ),
         ],
       ),
     );
   }
 
+  Widget _buildHeaderStat(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: Colors.white70, size: 13),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
-  // TAB 4: KNOWLEDGE BASE & CONTENT HUB
+  // DIVERGENT PERSONA DESK
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildKnowledgeBaseTab(AgriExpertState state, AgriExpertNotifier notifier) {
+  Widget _buildDivergentPersonaDesk(BuildContext context, AgriExpertProfile profile, ExpertPersona persona, AgriExpertState state) {
+    switch (persona) {
+      case ExpertPersona.independentConsultant:
+        return _buildIndependentConsultantDesk(context, state);
+      case ExpertPersona.governmentExtension:
+        return _buildGovernmentExtensionDesk(context, state);
+      case ExpertPersona.companyAgronomist:
+        return _buildCorporateAgronomistDesk(context, state);
+    }
+  }
+
+  // 👤 1. Independent Consultant Desk
+  Widget _buildIndependentConsultantDesk(BuildContext context, AgriExpertState state) {
+    final clients = state.consultantClients;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -690,397 +352,722 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Farming Guides & Agronomic Publications', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const Text('Publish articles, spray calendars, and EUDR compliance guides for smallholders.', style: TextStyle(fontSize: 11.5, color: textMuted)),
+                  Text(
+                    'Private Advisory CRM & Retainer Management',
+                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                  ),
+                  const Text('Manage commercial farm retainers, automated VAT billing, and whitelabel reports', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                 ],
               ),
               ElevatedButton.icon(
-                onPressed: () => _showPublishArticleModal(context, notifier),
-                icon: const Icon(Icons.post_add, size: 16),
-                label: const Text('Publish Guide', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(backgroundColor: amber, foregroundColor: bgDark),
+                onPressed: () => _showAddClientDialog(context),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Add Client'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.articles.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, idx) {
-              final art = state.articles[idx];
-              return Container(
+          if (clients.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.business_center_outlined,
+              title: 'No Private Retainer Clients Yet',
+              description: 'When commercial estates book your agronomic retainers or precision advisory packages, their billing and SLA status will appear here.',
+            )
+          else
+            ...clients.map((c) => Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+              color: Colors.white,
+              child: Padding(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.12), shape: BoxShape.circle),
+                          child: const Icon(Icons.agriculture, color: Color(0xFF059669), size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(c.clientName, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                              Text('${c.estateName} • ${c.hectarage.toStringAsFixed(0)} Ha (${c.primaryCrops})', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFA7F3D0))),
+                          child: Text('\$${c.monthlyBillingUsd.toStringAsFixed(0)} / mo', style: const TextStyle(color: Color(0xFF065F46), fontWeight: FontWeight.bold, fontSize: 13)),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: blue.withOpacity(0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: blue.withOpacity(0.3))),
-                          child: Text(art.category, style: const TextStyle(color: blue, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            const Icon(Icons.shield_outlined, size: 15, color: Color(0xFF059669)),
+                            const SizedBox(width: 4),
+                            Text(c.slaStatus, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF059669))),
+                          ],
                         ),
-                        Text('${art.readTimeMinutes} min read • Published ${art.publishedDate}', style: const TextStyle(fontSize: 11, color: textMuted)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(art.title, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-                    const SizedBox(height: 4),
-                    Text(art.excerpt, style: const TextStyle(fontSize: 12, color: textMuted, height: 1.3)),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.download, size: 14, color: emerald),
-                        const SizedBox(width: 4),
-                        Text('${art.downloadsCount} Farmer Downloads', style: const TextStyle(fontSize: 11, color: emerald, fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 14),
-                        const Icon(Icons.thumb_up_alt_outlined, size: 14, color: amber),
-                        const SizedBox(width: 4),
-                        Text('${art.likesCount} Upvotes', style: const TextStyle(fontSize: 11, color: amber)),
+                        Text('Last Physical Visit: ${c.lastVisitDate}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
                       ],
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-
-          // Community Farmer Q&A Forum
-          Text('Farmer Community Q&A Board', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 12),
-
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.communityQnAs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, idx) {
-              final q = state.communityQnAs[idx];
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.help_outline, color: amber, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text('${q.questionTitle} (${q.cropTag})', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white)),
-                        ),
-                        Text('Asked by ${q.farmerName}', style: const TextStyle(fontSize: 11, color: textMuted)),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(q.questionDetail, style: const TextStyle(fontSize: 12, color: textMuted)),
-                    const SizedBox(height: 10),
-
-                    // Expert Verified Answer Box
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(10), border: Border.all(color: emerald.withOpacity(0.3))),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.verified, color: emerald, size: 14),
-                              const SizedBox(width: 6),
-                              Text('Verified Advice by ${q.expertName}', style: const TextStyle(fontSize: 11, color: emerald, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(q.expertAnswer, style: const TextStyle(fontSize: 12, color: Color(0xFFF1F5F9), height: 1.35)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+              ),
+            )),
         ],
       ),
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // TAB 5: DYNAMIC PERSONA OPERATIONS DESK
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildPersonaOperationsDeskTab(AgriExpertState state, AgriExpertNotifier notifier) {
-    switch (state.activePersona) {
-      case ExpertPersona.independentConsultant:
-        return _buildIndependentConsultantDesk(state, notifier);
-      case ExpertPersona.governmentExtension:
-        return _buildGovernmentExtensionDesk(state, notifier);
-      case ExpertPersona.companyAgronomist:
-        return _buildCorporateAgronomistDesk(state, notifier);
-    }
-  }
+  // 🏛️ 2. Government Extension Worker Desk
+  Widget _buildGovernmentExtensionDesk(BuildContext context, AgriExpertState state) {
+    final records = state.offlineRecords;
+    final alerts = state.extensionAlerts;
 
-  // 👤 1. Independent Consultant Desk
-  Widget _buildIndependentConsultantDesk(AgriExpertState state, AgriExpertNotifier notifier) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // State Verified Government Hub Banner
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: emerald.withOpacity(0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: emerald.withOpacity(0.3))),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)]),
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Row(
               children: [
-                const Icon(Icons.business_center, color: emerald, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(
+                const Icon(Icons.account_balance, color: Colors.white, size: 32),
+                const SizedBox(width: 16),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Independent Consultant Business Suite', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
-                      Text('Manage private client CRM lists, automated VAT invoices, custom pricing tiers, and branded whitelabel soil/crop reports.', style: TextStyle(color: textMuted, fontSize: 11.5)),
+                    children: const [
+                      Text('Ministry of Lands, Agriculture, Fisheries & Rural Development', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
+                      SizedBox(height: 2),
+                      Text('Agritex Rural Extension & Geospatial M&E System', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Exporting whitelabeled agronomy PDF report with your private logo... 📄'), backgroundColor: emerald),
-                    );
+                    // Deep link to government overview
+                    ref.read(appStateProvider.notifier).setRole(UserRole.government);
                   },
-                  icon: const Icon(Icons.picture_as_pdf, size: 14),
-                  label: const Text('Export Branded PDF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: emerald, foregroundColor: bgDark),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Private Client CRM Table
-          Text('Private Client CRM & Retainers (${state.consultantClients.length})', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 10),
-
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.consultantClients.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, idx) {
-              final cli = state.consultantClients[idx];
-              return Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-                child: Row(
-                  children: [
-                    CircleAvatar(backgroundColor: emerald.withOpacity(0.15), radius: 18, child: const Icon(Icons.person_pin, color: emerald, size: 20)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${cli.clientName} • ${cli.estateName}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white)),
-                          Text('${cli.hectarage} Ha • Crops: ${cli.primaryCrops}', style: const TextStyle(fontSize: 11, color: textMuted)),
-                          Text('SLA: ${cli.slaStatus}', style: const TextStyle(fontSize: 10.5, color: cyan)),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('US\$ ${cli.monthlyBillingUsd.toStringAsFixed(0)}/mo', style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: emerald, fontSize: 14)),
-                        Text(cli.pricingTier, style: const TextStyle(fontSize: 10, color: textMuted)),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 🏛️ 2. Government Extension Desk
-  Widget _buildGovernmentExtensionDesk(AgriExpertState state, AgriExpertNotifier notifier) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: blue.withOpacity(0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: blue.withOpacity(0.3))),
-            child: Row(
-              children: [
-                const Icon(Icons.account_balance, color: blue, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Government Agritex Extension Operations Desk', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
-                      Text('Geofenced territory assignment, offline field data capture forms for remote rural wards, and emergency mass broadcast alerts.', style: TextStyle(color: textMuted, fontSize: 11.5)),
-                    ],
+                  icon: const Icon(Icons.open_in_new, size: 14),
+                  label: const Text('Open Ministry Hub'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF1E3A8A),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _showMassBroadcastDialog(context, notifier),
-                  icon: const Icon(Icons.broadcast_on_personal, size: 14),
-                  label: const Text('Mass Alert', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: blue, foregroundColor: Colors.white),
-                ),
               ],
             ),
           ),
           const SizedBox(height: 20),
 
-          // Offline Rural Field Capture Section
+          // Offline inspection buffer
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Offline Rural Field Data Buffer (${state.offlineRecords.length})', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-              OutlinedButton.icon(
-                onPressed: () {
-                  notifier.syncAllOfflineRecords();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Syncing all offline rural field inspection forms to National Agritex cloud... ☁️'), backgroundColor: blue),
-                  );
-                },
-                icon: const Icon(Icons.sync, size: 14),
-                label: const Text('Sync All to Cloud', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                style: OutlinedButton.styleFrom(foregroundColor: blue, side: const BorderSide(color: blue)),
+              Text('Rural Offline Field Survey Buffer', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+              ElevatedButton.icon(
+                onPressed: state.isOfflineSyncing ? null : () => ref.read(agriExpertProvider.notifier).syncAllOfflineRecords(),
+                icon: state.isOfflineSyncing
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.cloud_sync_outlined, size: 16),
+                label: Text(state.isOfflineSyncing ? 'Syncing...' : 'Sync to National Cloud'),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), foregroundColor: Colors.white),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.offlineRecords.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, idx) {
-              final r = state.offlineRecords[idx];
-              return Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: r.isSyncedToCloud ? emerald.withOpacity(0.15) : amber.withOpacity(0.15),
-                      radius: 16,
-                      child: Icon(r.isSyncedToCloud ? Icons.cloud_done : Icons.cloud_off, color: r.isSyncedToCloud ? emerald : amber, size: 18),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${r.farmerName} • ID: ${r.farmerNationalId}', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
-                          Text('${r.wardNumber} • Crop: ${r.cropType}', style: const TextStyle(fontSize: 11, color: textMuted)),
-                          Text('Moisture: ${r.soilMoistureBand} • Pest: ${r.observedPest}', style: const TextStyle(fontSize: 10.5, color: cyan)),
-                        ],
-                      ),
-                    ),
-                    Text(r.isSyncedToCloud ? 'SYNCED' : 'CACHED OFFLINE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: r.isSyncedToCloud ? emerald : amber)),
-                  ],
+          if (records.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.wifi_off_outlined,
+              title: 'No Offline Field Surveys Stored',
+              description: 'Conduct field inspections in low-connectivity areas. Records will automatically cache locally and sync to the Agritex central registry.',
+            )
+          else
+            ...records.map((r) => Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: r.isSyncedToCloud ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
+                  child: Icon(r.isSyncedToCloud ? Icons.cloud_done : Icons.cloud_off, color: r.isSyncedToCloud ? const Color(0xFF059669) : const Color(0xFFD97706), size: 20),
                 ),
-              );
-            },
+                title: Text('${r.farmerName} • ${r.cropType}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: Text('National ID: ${r.farmerNationalId} • ${r.wardNumber}\nObservation: ${r.observedPest}', style: const TextStyle(fontSize: 11.5)),
+                trailing: Text(r.recordedAt, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              ),
+            )),
+
+          const SizedBox(height: 20),
+
+          // Emergency Broadcast Dispatcher
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Emergency Mass SMS & Voice Broadcaster', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+              ElevatedButton.icon(
+                onPressed: () => _showBroadcastDialog(context),
+                icon: const Icon(Icons.cell_tower, size: 16),
+                label: const Text('New Broadcast'),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+
+          if (alerts.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.campaign_outlined,
+              title: 'No Emergency Alerts Dispatched',
+              description: 'Broadcast instant pest outbreak warnings and frost alerts to thousands of registered smallholders via SMS and native voice-notes.',
+            )
+          else
+            ...alerts.map((a) => Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ListTile(
+                leading: const CircleAvatar(backgroundColor: Color(0xFFFEE2E2), child: Icon(Icons.warning_amber, color: Color(0xFFDC2626))),
+                title: Text(a.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                subtitle: Text('${a.targetWardDistrict} • Recipients: ${a.recipientFarmersCount} Farmers • Channel: ${a.channel}', style: const TextStyle(fontSize: 11.5)),
+                trailing: Text(a.sentAt, style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B))),
+              ),
+            )),
         ],
       ),
     );
   }
 
   // 🏢 3. Corporate Agronomist Desk
-  Widget _buildCorporateAgronomistDesk(AgriExpertState state, AgriExpertNotifier notifier) {
+  Widget _buildCorporateAgronomistDesk(BuildContext context, AgriExpertState state) {
+    final tasks = state.corporateTasks;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Air-Gapped Firewall Header
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: purple.withOpacity(0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: purple.withOpacity(0.3))),
-            child: const Row(
-              children: [
-                Icon(Icons.shield_outlined, color: purple, size: 28),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF5FF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE9D5FF)),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.shield, color: Color(0xFF7C3AED), size: 22),
                 SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Corporate Outgrower Enterprise Firewall', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
-                      Text('Air-gapped proprietary outgrower yield analytics and warehouse inventory SKU synchronization for commercial contract schemes.', style: TextStyle(color: textMuted, fontSize: 11.5)),
-                    ],
+                  child: Text(
+                    'Corporate Data Firewall Active: Outgrower contract data and proprietary fertilizer blends are isolated from public/independent consultant visibility.',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF5B21B6), fontWeight: FontWeight.w600),
                   ),
                 ),
-                Text('FIREWALL ENFORCED', style: TextStyle(color: purple, fontSize: 10, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
           const SizedBox(height: 20),
 
-          Text('Priority Outgrower Task Dispatches (${state.corporateTasks.length})', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 10),
+          Text('Priority Outgrower Task Dispatches (2h Emergency SLA)', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
 
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.corporateTasks.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, idx) {
-              final t = state.corporateTasks[idx];
-              return Container(
+          if (tasks.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.assignment_outlined,
+              title: 'No Active Corporate Dispatches',
+              description: 'Urgent pest anomalies reported by contracted outgrower scheme farmers will route to this dashboard for rapid field dispatch.',
+            )
+          else
+            ...tasks.map((t) => Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              child: Padding(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(t.outgrowerBlock, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: purple)),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: amber.withOpacity(0.15), borderRadius: BorderRadius.circular(6), border: Border.all(color: amber)),
-                          child: Text(t.urgency, style: const TextStyle(color: amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(6)),
+                          child: Text(t.urgency, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 11, fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(t.outgrowerBlock, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(6)),
+                          child: Text(t.status, style: const TextStyle(color: Color(0xFF7C3AED), fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text('Contract Grower: ${t.farmerName} • Target: ${t.targetCrop}', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text('Reported: ${t.issueReported}', style: const TextStyle(fontSize: 11.5, color: textMuted)),
                     const SizedBox(height: 10),
-
-                    // Warehouse Input SKU Recommendation Box
+                    Text('Contract Farmer: ${t.farmerName} • Crop: ${t.targetCrop}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text('Issue: ${t.issueReported}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    const SizedBox(height: 10),
                     Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: bgDark, borderRadius: BorderRadius.circular(8), border: Border.all(color: cyan.withOpacity(0.3))),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8)),
                       child: Row(
                         children: [
-                          const Icon(Icons.inventory_2_outlined, size: 16, color: cyan),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.inventory_2_outlined, size: 16, color: Color(0xFF7C3AED)),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text('Central Warehouse Match: ${t.inStockWarehouseSku}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB 2: ADVISORY SERVICE MARKETING & ADVERTS
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildAdvisoryMarketingDesk(BuildContext context, AgriExpertState state) {
+    final listings = state.serviceListings;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Advisory Service Listings & Farmer Advertising', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800)),
+                  const Text('Market your specialized services directly to commercial and smallholder farmers', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: () => _showCreateServiceListingDialog(context),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Create Advert'),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          if (listings.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.campaign_outlined,
+              title: 'No Advertised Services Published',
+              description: 'Publish your soil testing, EUDR compliance, or drone survey packages to showcase on the Farmer Home screen and marketplace directory.',
+            )
+          else
+            ...listings.map((l) => Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFF16A34A).withOpacity(0.12), shape: BoxShape.circle),
+                          child: const Icon(Icons.verified, color: Color(0xFF16A34A), size: 22),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(l.title, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold)),
+                                  ),
+                                  Text(
+                                    l.priceUsd > 0 ? '\$${l.priceUsd.toStringAsFixed(0)} ${l.pricingUnit}' : 'Free Extension Service',
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF16A34A)),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(l.description, style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B), height: 1.35)),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(6)),
+                                    child: Text(l.category, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(6)),
+                                    child: Text(l.deliveryMode, style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w600)),
+                                  ),
+                                  const Spacer(),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.star, color: Colors.amber, size: 15),
+                                      const SizedBox(width: 3),
+                                      Text('${l.rating} (${l.reviewsCount})', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB 3: CONSULTATIONS & GPS VISITS
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildConsultationsTab(BuildContext context, AgriExpertState state) {
+    final consults = state.consultations;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Active & Scheduled Consultations', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800)),
+              ElevatedButton.icon(
+                onPressed: () => _showAddConsultationDialog(context),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Schedule Consult'),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          if (consults.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.videocam_outlined,
+              title: 'No Consultations Scheduled',
+              description: 'When farmers request remote video tele-agronomy sessions or physical farm visits, they will show up in your calendar here.',
+            )
+          else
+            ...consults.map((c) => Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: const Color(0xFF3B82F6).withOpacity(0.12),
+                          child: Icon(c.type.icon, color: const Color(0xFF2563EB), size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(c.farmerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Text('${c.farmName} • ${c.districtLocation}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: c.status.color.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+                          child: Text(c.status.label, style: TextStyle(color: c.status.color, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Target: ${c.cropOrLivestock}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                        Text('${c.scheduledDate} (${c.scheduledTimeSlot})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Notes: ${c.summaryNotes}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    if (c.status == ConsultationStatus.scheduled) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              ref.read(agriExpertProvider.notifier).completeConsultation(c.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Consultation completed! Fee credited to wallet.')),
+                              );
+                            },
+                            icon: const Icon(Icons.check_circle_outline, size: 16),
+                            label: const Text('Complete & Sign'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            )),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB 4: DIAGNOSTICS & GIS RX PAD
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildDiagnosticAndRxTab(BuildContext context, AgriExpertState state) {
+    final cases = state.diagnosticCases;
+    final prescriptions = state.prescriptions;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Diagnostic Cases & Geospatial Pinpointer', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800)),
+              ElevatedButton.icon(
+                onPressed: () => _showIssuePrescriptionDialog(context),
+                icon: const Icon(Icons.edit_note, size: 16),
+                label: const Text('Issue Digital Rx'),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          if (cases.isEmpty && prescriptions.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.biotech_outlined,
+              title: 'No Diagnostic Cases Analyzed',
+              description: 'Upload leaf scan photos or review crop pathology alerts. You can pinpoint anomalies directly on the GIS geospatial map and issue digital prescriptions.',
+            )
+          else ...[
+            ...cases.map((d) => Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const CircleAvatar(backgroundColor: Color(0xFFFEE2E2), child: Icon(Icons.bug_report, color: Color(0xFFDC2626))),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(d.detectedAnomaly, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Text('${d.farmerName} • ${d.farmName} (${d.district})', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: const Color(0xFFDC2626).withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                          child: Text('${(d.aiConfidenceScore * 100).toStringAsFixed(0)}% Match', style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold, fontSize: 11)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text('Symptoms: ${d.symptomDescription}', style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155))),
+                    const SizedBox(height: 10),
+                    // Geospatial GPS coordinates bar
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFBBF7D0))),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.pin_drop, color: Color(0xFF16A34A), size: 16),
+                          const SizedBox(width: 6),
                           Expanded(
-                            child: Text('Warehouse In-Stock SKU: ${t.inStockWarehouseSku}', style: const TextStyle(fontSize: 11, color: cyan)),
+                            child: Text(
+                              'Geospatial Anomaly GPS: ${d.gpsLat.toStringAsFixed(4)}, ${d.gpsLng.toStringAsFixed(4)} (${d.district})',
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF166534)),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              ref.read(appStateProvider.notifier).setNavIndex(7); // Jump to Geospatial map
+                            },
+                            child: const Text('View on GIS Map →', style: TextStyle(color: Color(0xFF16A34A), fontSize: 11.5, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-              );
-            },
+              ),
+            )),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB 5: COMMUNITY HUB & Q&A
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildCommunityAndKnowledgeTab(BuildContext context, AgriExpertState state) {
+    final posts = state.communityPosts;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Cross-Stakeholder Agri Community', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800)),
+                  const Text('Post agronomic field updates, answer farmer questions, and publish bulletins', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: () => _showCreateCommunityPostDialog(context),
+                icon: const Icon(Icons.post_add, size: 16),
+                label: const Text('Post Update'),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+              ),
+            ],
           ),
+          const SizedBox(height: 16),
+
+          if (posts.isEmpty)
+            _buildEmptyStateCard(
+              icon: Icons.forum_outlined,
+              title: 'No Community Bulletins Yet',
+              description: 'Publish your first agronomy field update to advise farmers on crop scouting, fertilizer timing, and pest management.',
+            )
+          else
+            ...posts.map((p) => Card(
+              margin: const EdgeInsets.only(bottom: 14),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: const Color(0xFF16A34A).withOpacity(0.12),
+                          child: const Icon(Icons.person, color: Color(0xFF16A34A)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(p.authorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  const SizedBox(width: 6),
+                                  if (p.isVerifiedByState)
+                                    const Icon(Icons.verified, color: Color(0xFFD97706), size: 15),
+                                ],
+                              ),
+                              Text('${p.authorRoleTitle} • ${p.districtLocation} • ${p.timestamp}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(6)),
+                          child: Text(p.cropCategory, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(p.title, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Text(p.content, style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.4)),
+                    const Divider(height: 24),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.thumb_up_alt_outlined, size: 18, color: Color(0xFF16A34A)),
+                          onPressed: () => ref.read(agriExpertProvider.notifier).upvoteCommunityPost(p.id),
+                        ),
+                        Text('${p.upvotes} Upvotes', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+                        const Spacer(),
+                        Text('${p.comments.length} Comments', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )),
         ],
       ),
     );
@@ -1089,377 +1076,513 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
   // ───────────────────────────────────────────────────────────────────────────
   // TAB 6: WALLET & MONETIZATION
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildWalletMonetizationTab(AgriExpertState state, AgriExpertNotifier notifier) {
-    final p = state.profile;
+  Widget _buildWalletAndMonetizationTab(BuildContext context, AgriExpertState state) {
+    final profile = state.profile;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Wallet Balance Header Card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [emerald.withOpacity(0.18), bgDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: emerald.withOpacity(0.4)),
+              gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E293B)]),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('TOTAL ADVISORY REVENUE & ESCROW BALANCE', style: TextStyle(fontSize: 10.5, color: textMuted, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text('US\$ ${p.walletBalanceUsd.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
-                const SizedBox(height: 14),
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Instant Payout Request sent to EcoCash USD (+263 77 412 9081)... 💰'), backgroundColor: emerald),
-                        );
-                      },
-                      icon: const Icon(Icons.payments, size: 16),
-                      label: const Text('Withdraw Payout', style: TextStyle(fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(backgroundColor: emerald, foregroundColor: bgDark),
-                    ),
+                    const Text('Available Advisory Escrow Balance', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    const SizedBox(height: 6),
+                    Text('\$${profile.walletBalanceUsd.toStringAsFixed(2)}', style: GoogleFonts.inter(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800)),
                   ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Instant Cashout requested to EcoCash / USD Nostro!')),
+                    );
+                  },
+                  icon: const Icon(Icons.account_balance_wallet, size: 16),
+                  label: const Text('Instant Cashout'),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
-
-          // Performance Stats
-          Text('Key Performance Metrics', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 10),
-
-          Row(
-            children: [
-              Expanded(child: _buildMetricTile('Completed Consults', '${p.completedConsultations}', Icons.task_alt, cyan)),
-              const SizedBox(width: 12),
-              Expanded(child: _buildMetricTile('Client Satisfaction', '${p.clientSatisfactionScore}%', Icons.sentiment_very_satisfied, emerald)),
-              const SizedBox(width: 12),
-              Expanded(child: _buildMetricTile('Avg Response Time', '< 15 mins', Icons.timer, amber)),
-            ],
+          Text('Advisory Pricing Rates', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.timer_outlined, color: Color(0xFF16A34A)),
+                  title: const Text('Hourly Remote Consultation'),
+                  trailing: Text('\$${profile.hourlyRateUsd.toStringAsFixed(2)} / hr', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.location_on_outlined, color: Color(0xFF3B82F6)),
+                  title: const Text('Physical Farm Inspection Visit'),
+                  trailing: Text('\$${profile.farmVisitRateUsd.toStringAsFixed(2)} / visit', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.calendar_month_outlined, color: Color(0xFF8B5CF6)),
+                  title: const Text('Monthly Precision Agronomy Retainer'),
+                  trailing: Text('\$${profile.monthlyRetainerRateUsd.toStringAsFixed(2)} / mo', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMetricTile(String label, String val, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 8),
-          Text(val, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 10.5, color: textMuted)),
-        ],
-      ),
-    );
-  }
-
   // ───────────────────────────────────────────────────────────────────────────
-  // MODALS & DIALOGS
+  // DIALOGS & ACTION MODALS
   // ───────────────────────────────────────────────────────────────────────────
-  void _showBookConsultationDialog(BuildContext context, AgriExpertNotifier notifier) {
-    final farmerCtrl = TextEditingController();
-    final farmCtrl = TextEditingController();
-    final districtCtrl = TextEditingController();
-    final cropCtrl = TextEditingController();
-    ConsultationType selType = ConsultationType.videoCall;
+  void _showPersonaInquiryDialog(BuildContext context, ExpertPersona currentPersona) {
+    final reasonCtrl = TextEditingController();
+    final refCtrl = TextEditingController();
+    ExpertPersona requested = ExpertPersona.governmentExtension;
 
     showDialog(
       context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setStateModal) {
-            return AlertDialog(
-              backgroundColor: cardDark,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: cardBorder)),
-              title: const Text('Schedule Advisory Consultation', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: farmerCtrl,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Farmer Name', hintText: 'e.g. Tariro Hove', labelStyle: TextStyle(color: textMuted)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: farmCtrl,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Farm / Scheme Name', hintText: 'e.g. Mazowe Valley Hub', labelStyle: TextStyle(color: textMuted)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: districtCtrl,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'District / Location', hintText: 'e.g. Mazowe Ward 4', labelStyle: TextStyle(color: textMuted)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: cropCtrl,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(labelText: 'Target Crop / Animal', hintText: 'e.g. Hybrid Maize (SC719)', labelStyle: TextStyle(color: textMuted)),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: textMuted))),
-                ElevatedButton(
-                  onPressed: () {
-                    final newSession = ConsultationSession(
-                      id: 'CONS-${DateTime.now().millisecondsSinceEpoch % 1000}',
-                      farmerName: farmerCtrl.text.trim().isEmpty ? 'Farmer Partner' : farmerCtrl.text.trim(),
-                      farmName: farmCtrl.text.trim().isEmpty ? 'Regional Scheme' : farmCtrl.text.trim(),
-                      districtLocation: districtCtrl.text.trim().isEmpty ? 'Mashonaland' : districtCtrl.text.trim(),
-                      cropOrLivestock: cropCtrl.text.trim().isEmpty ? 'Maize' : cropCtrl.text.trim(),
-                      type: selType,
-                      scheduledDate: 'Today',
-                      scheduledTimeSlot: '16:00 - 16:45',
-                      feeUsd: 45.0,
-                    );
-                    notifier.addConsultation(newSession);
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Consultation scheduled successfully! 📅'), backgroundColor: emerald),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: emerald, foregroundColor: bgDark),
-                  child: const Text('Confirm Schedule', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showDigitalPrescriptionModal(BuildContext context, DiagnosticCase diag, AgriExpertNotifier notifier) {
-    final inputNameCtrl = TextEditingController(text: 'Coragen 200 SC');
-    final dosageCtrl = TextEditingController(text: '150 ml / ha in 200L water');
-    final phiCtrl = TextEditingController(text: '14 Days PHI');
-    final methodCtrl = TextEditingController(text: 'Targeted Whorl Knapsack Direct Spray');
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: cardDark,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: cardBorder)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
           title: Row(
-            children: [
-              const Icon(Icons.edit_document, color: cyan),
-              const SizedBox(width: 8),
-              Text('Digital Prescription Pad (#RX-${DateTime.now().millisecondsSinceEpoch % 10000})', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+            children: const [
+              Icon(Icons.assignment_ind_outlined, color: Color(0xFFD97706)),
+              SizedBox(width: 8),
+              Text('Persona Change Inquiry', style: TextStyle(fontSize: 17)),
             ],
           ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Current Persona: ${currentPersona.label}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 12),
+              const Text('Requested Classification:', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<ExpertPersona>(
+                value: requested,
+                items: ExpertPersona.values.where((p) => p != currentPersona).map((p) {
+                  return DropdownMenuItem(value: p, child: Text(p.label));
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) setDialogState(() => requested = val);
+                },
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: refCtrl,
+                decoration: const InputDecoration(labelText: 'Accreditation / Agritex ID Ref', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: reasonCtrl,
+                maxLines: 2,
+                decoration: const InputDecoration(labelText: 'Justification / Reason for Transfer', border: OutlineInputBorder()),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final inquiry = PersonaChangeInquiry(
+                  id: 'INQ-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                  expertId: 'EXP-01',
+                  expertName: 'Dr. Nyasha Sibanda',
+                  currentPersona: currentPersona,
+                  requestedPersona: requested,
+                  justification: reasonCtrl.text.trim(),
+                  accreditationRef: refCtrl.text.trim(),
+                  submittedAt: 'Just now',
+                );
+                ref.read(agriExpertProvider.notifier).submitPersonaChangeInquiry(inquiry);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Inquiry submitted! Our verification board will review your credentials within 24-48 hours.')),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white),
+              child: const Text('Submit Inquiry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCreateServiceListingDialog(BuildContext context) {
+    final titleCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final priceCtrl = TextEditingController();
+    String category = 'Soil Science & Fertility';
+    String mode = 'On-Site Field Visit';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Publish Advisory Service Listing'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Prescribing for: ${diag.farmName} (${diag.farmerName})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                Text('Diagnosis: ${diag.detectedAnomaly}', style: const TextStyle(color: textMuted, fontSize: 11.5)),
-                const SizedBox(height: 14),
                 TextField(
-                  controller: inputNameCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Recommended Crop Input / Chemical', labelStyle: TextStyle(color: textMuted)),
+                  controller: titleCtrl,
+                  decoration: const InputDecoration(labelText: 'Service Title', hintText: 'e.g. Complete Soil Assay & Lime Blending'),
                 ),
                 const SizedBox(height: 10),
                 TextField(
-                  controller: dosageCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Dosage per Hectare', labelStyle: TextStyle(color: textMuted)),
+                  controller: descCtrl,
+                  maxLines: 2,
+                  decoration: const InputDecoration(labelText: 'Description', hintText: 'Outline what the farmer receives...'),
                 ),
                 const SizedBox(height: 10),
                 TextField(
-                  controller: methodCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Application Method', labelStyle: TextStyle(color: textMuted)),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: phiCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Pre-Harvest Interval (PHI)', labelStyle: TextStyle(color: textMuted)),
+                  controller: priceCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Price in USD (0 for Free Extension)', prefixText: '\$ '),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: textMuted))),
-            ElevatedButton.icon(
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
               onPressed: () {
-                final rx = DigitalPrescription(
-                  id: 'RX-${DateTime.now().millisecondsSinceEpoch % 10000}',
-                  prescriptionNumber: 'RX-ZIM-2026-${DateTime.now().millisecondsSinceEpoch % 10000}',
-                  farmName: diag.farmName,
-                  farmerName: diag.farmerName,
-                  crop: diag.crop,
-                  diagnosedCondition: diag.detectedAnomaly,
-                  items: [
-                    PrescriptionInputItem(
-                      inputName: inputNameCtrl.text.trim().isEmpty ? 'Coragen 200 SC' : inputNameCtrl.text.trim(),
-                      category: 'Bio-Selective Protection',
-                      dosagePerHectare: dosageCtrl.text.trim().isEmpty ? '150 ml/ha' : dosageCtrl.text.trim(),
-                      applicationMethod: methodCtrl.text.trim().isEmpty ? 'Direct Whorl Spray' : methodCtrl.text.trim(),
-                      phiSafetyDays: phiCtrl.text.trim().isEmpty ? '14 Days PHI' : phiCtrl.text.trim(),
-                      safetyWarning: 'Wear protective gear during application.',
-                    ),
-                  ],
-                  issuingExpert: 'Dr. Nyasha Sibanda',
-                  createdAt: '2026-08-24',
+                final price = double.tryParse(priceCtrl.text.trim()) ?? 0.0;
+                final listing = AdvisoryServiceListing(
+                  id: 'SRV-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                  expertId: 'EXP-01',
+                  expertName: 'Dr. Nyasha Sibanda',
+                  expertPersona: ref.read(appStateProvider).expertPersona,
+                  title: titleCtrl.text.trim().isNotEmpty ? titleCtrl.text.trim() : 'Custom Agronomy Service',
+                  description: descCtrl.text.trim().isNotEmpty ? descCtrl.text.trim() : 'Specialized precision farming advisory.',
+                  category: category,
+                  priceUsd: price,
+                  pricingUnit: price == 0 ? 'Free Service' : '/ visit',
+                  deliveryMode: mode,
+                  locationDistrict: 'Mashonaland & Harare',
+                  createdAt: 'Today',
                 );
-                notifier.issuePrescription(rx);
+                ref.read(agriExpertProvider.notifier).addServiceListing(listing);
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('e-Prescription #${rx.prescriptionNumber} signed and transmitted to farmer! 📋'), backgroundColor: emerald),
+                  const SnackBar(content: Text('Advisory advert published to Farmer Marketplace! 📢')),
                 );
               },
-              icon: const Icon(Icons.send, size: 14),
-              label: const Text('Sign & Transmit Rx', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(backgroundColor: cyan, foregroundColor: bgDark),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+              child: const Text('Publish Advert'),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
-  void _showPublishArticleModal(BuildContext context, AgriExpertNotifier notifier) {
+  void _showCreateCommunityPostDialog(BuildContext context) {
     final titleCtrl = TextEditingController();
-    final excerptCtrl = TextEditingController();
     final contentCtrl = TextEditingController();
+    String crop = 'Maize & Cereals';
 
     showDialog(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: cardDark,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: cardBorder)),
-          title: const Text('Publish Farming Guide / Knowledge Article', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Guide Title', hintText: 'e.g. Managing Fall Armyworm in Sandy Loam', labelStyle: TextStyle(color: textMuted)),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: excerptCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Short Excerpt / Summary', labelStyle: TextStyle(color: textMuted)),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: contentCtrl,
-                  maxLines: 4,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Full Guide Content & Recommendations', labelStyle: TextStyle(color: textMuted)),
-                ),
-              ],
+      builder: (ctx) => AlertDialog(
+        title: const Text('Post Community Field Bulletin'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleCtrl,
+              decoration: const InputDecoration(labelText: 'Bulletin Title', hintText: 'e.g. Fall Armyworm Alert'),
             ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: textMuted))),
-            ElevatedButton.icon(
-              onPressed: () {
-                final art = KnowledgeArticle(
-                  id: 'ART-${DateTime.now().millisecondsSinceEpoch % 1000}',
-                  title: titleCtrl.text.trim().isEmpty ? 'Agronomy Best Practices Guide' : titleCtrl.text.trim(),
-                  category: 'Crop Nutrition & Protection',
-                  excerpt: excerptCtrl.text.trim().isEmpty ? 'Essential field guidance for smallholder farmers.' : excerptCtrl.text.trim(),
-                  fullContent: contentCtrl.text.trim().isEmpty ? 'Follow certified agronomic procedures.' : contentCtrl.text.trim(),
-                  author: 'Dr. Nyasha Sibanda',
-                  publishedDate: 'Today',
-                );
-                notifier.publishArticle(art);
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Knowledge article published to farmer resource center! 📚'), backgroundColor: amber),
-                );
-              },
-              icon: const Icon(Icons.publish, size: 14),
-              label: const Text('Publish Guide', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(backgroundColor: amber, foregroundColor: bgDark),
+            const SizedBox(height: 10),
+            TextField(
+              controller: contentCtrl,
+              maxLines: 3,
+              decoration: const InputDecoration(labelText: 'Agronomic Guidance & Advisory', hintText: 'Detail steps farmers should take...'),
             ),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final post = CommunityPost(
+                id: 'POST-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                authorName: 'Dr. Nyasha Sibanda',
+                authorRoleTitle: 'Agronomy Specialist',
+                cropCategory: crop,
+                districtLocation: 'Mashonaland',
+                title: titleCtrl.text.trim().isNotEmpty ? titleCtrl.text.trim() : 'Field Advisory Update',
+                content: contentCtrl.text.trim().isNotEmpty ? contentCtrl.text.trim() : 'Routine crop scouting advisory.',
+                timestamp: 'Just now',
+              );
+              ref.read(agriExpertProvider.notifier).addCommunityPost(post);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Update posted to Community Hub! 🌾')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+            child: const Text('Post Bulletin'),
+          ),
+        ],
+      ),
     );
   }
 
-  void _showMassBroadcastDialog(BuildContext context, AgriExpertNotifier notifier) {
+  void _showBroadcastDialog(BuildContext context) {
     final titleCtrl = TextEditingController();
-    final districtCtrl = TextEditingController(text: 'Mazowe District (Wards 4, 5, 7)');
+    final wardCtrl = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: cardDark,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: cardBorder)),
-          title: const Text('Broadcast Emergency SMS & Voice Alert', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Alert Message / Notice', hintText: 'e.g. Fall Armyworm Scout Alert', labelStyle: TextStyle(color: textMuted)),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: districtCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Target Geofenced Ward / District', labelStyle: TextStyle(color: textMuted)),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: textMuted))),
-            ElevatedButton.icon(
-              onPressed: () {
-                final alr = ExtensionBroadcastAlert(
-                  id: 'ALR-${DateTime.now().millisecondsSinceEpoch % 1000}',
-                  title: titleCtrl.text.trim().isEmpty ? 'Pest Outbreak Alert' : titleCtrl.text.trim(),
-                  targetWardDistrict: districtCtrl.text.trim(),
-                  recipientFarmersCount: 1840,
-                  alertType: 'Emergency Extension Alert',
-                  channel: 'SMS Broadcast & Voice Note',
-                  sentAt: 'Just Now',
-                );
-                notifier.broadcastGovernmentAlert(alr);
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Mass SMS & Voice alert broadcasted to 1,840 farmers in district! 📢'), backgroundColor: blue),
-                );
-              },
-              icon: const Icon(Icons.send, size: 14),
-              label: const Text('Transmit Broadcast', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(backgroundColor: blue, foregroundColor: Colors.white),
-            ),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Dispatch Emergency Mass Alert'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Alert Heading')),
+            const SizedBox(height: 10),
+            TextField(controller: wardCtrl, decoration: const InputDecoration(labelText: 'Target Wards (e.g. Ward 4 & 5)')),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final alert = ExtensionBroadcastAlert(
+                id: 'ALR-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                title: titleCtrl.text.trim().isNotEmpty ? titleCtrl.text.trim() : 'Emergency Advisory',
+                targetWardDistrict: wardCtrl.text.trim().isNotEmpty ? wardCtrl.text.trim() : 'Mazowe Ward 4',
+                recipientFarmersCount: 850,
+                alertType: 'Pest Outbreak Alert',
+                channel: 'SMS & Voice-Note',
+                sentAt: 'Just now',
+              );
+              ref.read(agriExpertProvider.notifier).broadcastGovernmentAlert(alert);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Emergency SMS Broadcast sent to 850 farmers! 📡')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white),
+            child: const Text('Dispatch SMS Broadcast'),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _showAddClientDialog(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final estateCtrl = TextEditingController();
+    final haCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Onboard Retainer Client'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Farmer / Estate Name')),
+            const SizedBox(height: 10),
+            TextField(controller: estateCtrl, decoration: const InputDecoration(labelText: 'Location / Estate')),
+            const SizedBox(height: 10),
+            TextField(controller: haCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Hectarage (Ha)')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final client = ConsultantClient(
+                id: 'CLI-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                clientName: nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : 'New Client Estate',
+                estateName: estateCtrl.text.trim().isNotEmpty ? estateCtrl.text.trim() : 'Mazowe Valley',
+                hectarage: double.tryParse(haCtrl.text.trim()) ?? 50.0,
+                primaryCrops: 'Maize & Soybeans',
+                pricingTier: 'Standard Retainer',
+                monthlyBillingUsd: 350.0,
+                slaStatus: '24/7 Priority Emergency SLA',
+                lastVisitDate: 'Today',
+              );
+              ref.read(agriExpertProvider.notifier).addConsultantClient(client);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Retainer client onboarded successfully!')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
+            child: const Text('Onboard Client'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddConsultationDialog(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final farmCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Schedule New Consultation'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Farmer Name')),
+            const SizedBox(height: 10),
+            TextField(controller: farmCtrl, decoration: const InputDecoration(labelText: 'Farm Location')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final session = ConsultationSession(
+                id: 'CONS-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                farmerName: nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : 'Farmer T. Hove',
+                farmName: farmCtrl.text.trim().isNotEmpty ? farmCtrl.text.trim() : 'Mazowe Farm',
+                districtLocation: 'Mazowe District',
+                cropOrLivestock: 'Maize & Horticulture',
+                type: ConsultationType.videoCall,
+                scheduledDate: 'Today',
+                scheduledTimeSlot: '15:00 - 15:45',
+                feeUsd: 45.0,
+                status: ConsultationStatus.scheduled,
+                summaryNotes: 'Scheduled remote diagnostic assessment.',
+              );
+              ref.read(agriExpertProvider.notifier).addConsultation(session);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Consultation booked in calendar!')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+            child: const Text('Schedule'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showIssuePrescriptionDialog(BuildContext context) {
+    final farmerCtrl = TextEditingController();
+    final cropCtrl = TextEditingController();
+    final condCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Issue Digital Agronomy Prescription'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: farmerCtrl, decoration: const InputDecoration(labelText: 'Farmer Name')),
+            const SizedBox(height: 10),
+            TextField(controller: cropCtrl, decoration: const InputDecoration(labelText: 'Target Crop')),
+            const SizedBox(height: 10),
+            TextField(controller: condCtrl, decoration: const InputDecoration(labelText: 'Diagnosed Anomaly / Condition')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final rx = DigitalPrescription(
+                id: 'RX-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                prescriptionNumber: 'RX-ZW-2026-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                farmName: 'Mazowe Field Plot',
+                farmerName: farmerCtrl.text.trim().isNotEmpty ? farmerCtrl.text.trim() : 'Farai Mutasa',
+                crop: cropCtrl.text.trim().isNotEmpty ? cropCtrl.text.trim() : 'Maize',
+                diagnosedCondition: condCtrl.text.trim().isNotEmpty ? condCtrl.text.trim() : 'Fall Armyworm',
+                items: const [
+                  PrescriptionInputItem(
+                    inputName: 'Coragen 200 SC',
+                    category: 'Bio-Selective Insecticide',
+                    dosagePerHectare: '150 ml / ha',
+                    applicationMethod: 'Targeted Whorl Knapsack Spray',
+                    phiSafetyDays: '14 Days',
+                    safetyWarning: 'Wear PPE.',
+                  ),
+                ],
+                issuingExpert: 'Dr. Nyasha Sibanda',
+                createdAt: '2026-08-24',
+              );
+              ref.read(agriExpertProvider.notifier).issuePrescription(rx);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Digital Rx signed and synced to GIS! 📜')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white),
+            child: const Text('Sign & Issue'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard({required IconData icon, required String title, required String description}) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
+              child: Icon(icon, size: 36, color: Colors.grey.shade400),
+            ),
+            const SizedBox(height: 14),
+            Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF334155))),
+            const SizedBox(height: 6),
+            Text(description, style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B), height: 1.4), textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+  _SliverAppBarDelegate(this.tabBar);
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Colors.white,
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../auth/state/auth_state.dart';
 import '../../../state/app_state.dart';
+import '../../agri_expert/data/agri_expert_models.dart';
+import '../../agri_expert/state/agri_expert_state.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -42,6 +44,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
     final isTransporter = role == UserRole.transporter;
     final isBuyerB2B = role == UserRole.buyer;
     final isEndUser = role == UserRole.consumer;
+    final isExpert = role == UserRole.expert;
 
     if (isBuyerB2B) {
       return Scaffold(
@@ -148,6 +151,43 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
           controller: _tabController,
           children: [
             const _CarrierSettingsTab(),
+            _GeneralSettingsTab(),
+          ],
+        ),
+      );
+    }
+
+    if (isExpert) {
+      return Scaffold(
+        backgroundColor: SettingsPage.background,
+        appBar: AppBar(
+          title: Text(
+            'Agri-Expert Professional & Practice Settings',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: SettingsPage.dark),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                labelColor: const Color(0xFF10B981),
+                unselectedLabelColor: SettingsPage.muted,
+                indicatorColor: const Color(0xFF10B981),
+                tabs: const [
+                  Tab(text: 'Professional Credentials & Inquiries'),
+                  Tab(text: 'General Preferences'),
+                ],
+              ),
+            ),
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            const _AgriExpertSettingsTab(),
             _GeneralSettingsTab(),
           ],
         ),
@@ -2045,6 +2085,228 @@ class _ConsumerSettingsTabState extends ConsumerState<_ConsumerSettingsTab> {
       onChanged: (val) {
         if (val != null) setState(() => _selectedPaymentMethod = val);
       },
+    );
+  }
+}
+
+class _AgriExpertSettingsTab extends ConsumerStatefulWidget {
+  const _AgriExpertSettingsTab();
+
+  @override
+  ConsumerState<_AgriExpertSettingsTab> createState() => _AgriExpertSettingsTabState();
+}
+
+class _AgriExpertSettingsTabState extends ConsumerState<_AgriExpertSettingsTab> {
+  final _hourlyCtrl = TextEditingController();
+  final _visitCtrl = TextEditingController();
+  final _retainerCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final profile = ref.read(agriExpertProvider).profile;
+    _hourlyCtrl.text = profile.hourlyRateUsd.toStringAsFixed(0);
+    _visitCtrl.text = profile.farmVisitRateUsd.toStringAsFixed(0);
+    _retainerCtrl.text = profile.monthlyRetainerRateUsd.toStringAsFixed(0);
+  }
+
+  @override
+  void dispose() {
+    _hourlyCtrl.dispose();
+    _visitCtrl.dispose();
+    _retainerCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = ref.watch(appStateProvider);
+    final persona = appState.expertPersona;
+    final expertState = ref.watch(agriExpertProvider);
+    final profile = expertState.profile;
+    final isStateVerified = persona == ExpertPersona.governmentExtension || profile.isVerifiedByState;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Active Persona & Inquiries
+          Card(
+            color: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.shade200)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: persona.color.withOpacity(0.12),
+                        child: Icon(persona.icon, color: persona.color, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(persona.label, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                                const SizedBox(width: 8),
+                                if (isStateVerified)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(color: const Color(0xFFD97706), borderRadius: BorderRadius.circular(4)),
+                                    child: const Text('VERIFIED BY STATE', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold)),
+                                  ),
+                              ],
+                            ),
+                            Text('Classification status: Immutable Registered Role', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _showInquiryModal(context, persona),
+                        icon: const Icon(Icons.swap_horiz, size: 16),
+                        label: const Text('Change Inquiry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFD97706),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 2. Practice Rates
+          Card(
+            color: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.shade200)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Advisory Service Rates (USD)', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  const Text('Set your public rates displayed to farmers on the marketplace.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _hourlyCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Hourly Rate', prefixText: '\$ ', border: OutlineInputBorder()),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _visitCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Farm Visit Rate', prefixText: '\$ ', border: OutlineInputBorder()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _retainerCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Monthly Precision Retainer', prefixText: '\$ ', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      final h = double.tryParse(_hourlyCtrl.text.trim()) ?? profile.hourlyRateUsd;
+                      final v = double.tryParse(_visitCtrl.text.trim()) ?? profile.farmVisitRateUsd;
+                      final r = double.tryParse(_retainerCtrl.text.trim()) ?? profile.monthlyRetainerRateUsd;
+                      ref.read(agriExpertProvider.notifier).updateRates(hourlyRate: h, farmVisitRate: v, monthlyRetainer: r);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Advisory rates updated successfully!')),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Save Advisory Rates', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInquiryModal(BuildContext context, ExpertPersona current) {
+    final reasonCtrl = TextEditingController();
+    ExpertPersona req = ExpertPersona.governmentExtension;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Submit Persona Change Inquiry'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<ExpertPersona>(
+                value: req,
+                items: ExpertPersona.values.where((p) => p != current).map((p) => DropdownMenuItem(value: p, child: Text(p.label))).toList(),
+                onChanged: (v) => setS(() => req = v ?? req),
+                decoration: const InputDecoration(labelText: 'Requested Persona', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: reasonCtrl,
+                maxLines: 2,
+                decoration: const InputDecoration(labelText: 'Justification for Verification Board', border: OutlineInputBorder()),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final inquiry = PersonaChangeInquiry(
+                  id: 'INQ-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                  expertId: 'EXP-01',
+                  expertName: 'Dr. Nyasha Sibanda',
+                  currentPersona: current,
+                  requestedPersona: req,
+                  justification: reasonCtrl.text.trim(),
+                  accreditationRef: 'ZAPB-INQ-2026',
+                  submittedAt: 'Just now',
+                );
+                ref.read(agriExpertProvider.notifier).submitPersonaChangeInquiry(inquiry);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Inquiry submitted to National Verification Board.')),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white),
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

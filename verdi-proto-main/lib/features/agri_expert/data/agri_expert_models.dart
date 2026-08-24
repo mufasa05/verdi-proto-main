@@ -11,7 +11,7 @@ enum ExpertPersona {
       case ExpertPersona.independentConsultant:
         return 'Independent Consultant';
       case ExpertPersona.governmentExtension:
-        return 'Government Extension';
+        return 'Government Extension Worker';
       case ExpertPersona.companyAgronomist:
         return 'Corporate Agronomist';
     }
@@ -22,7 +22,7 @@ enum ExpertPersona {
       case ExpertPersona.independentConsultant:
         return 'PRIVATE ADVISORY';
       case ExpertPersona.governmentExtension:
-        return 'MINISTRY EXTENSION (AGRITEX)';
+        return 'AGRITEX (MINISTRY OF AGRI)';
       case ExpertPersona.companyAgronomist:
         return 'CORPORATE AGRI-ENTERPRISE';
     }
@@ -88,6 +88,8 @@ class AgriExpertProfile {
   final String operatingDistrict;
   final String companyAffiliation;
   final bool isVerifiedBadge;
+  final bool isVerifiedByState; // 🏛️ Official Government accreditation seal
+  final String agritexOfficerId;
   final ExpertPersona activePersona;
   final double walletBalanceUsd;
   final int completedConsultations;
@@ -112,6 +114,8 @@ class AgriExpertProfile {
     this.operatingDistrict = 'Mashonaland West (Mazowe & Chinhoyi)',
     this.companyAffiliation = 'Sovereign Agronomy Group & SeedCo Alliance',
     this.isVerifiedBadge = true,
+    this.isVerifiedByState = true,
+    this.agritexOfficerId = 'AGX-ZW-9942',
     this.activePersona = ExpertPersona.independentConsultant,
     this.walletBalanceUsd = 2840.00,
     this.completedConsultations = 142,
@@ -137,6 +141,8 @@ class AgriExpertProfile {
     String? operatingDistrict,
     String? companyAffiliation,
     bool? isVerifiedBadge,
+    bool? isVerifiedByState,
+    String? agritexOfficerId,
     ExpertPersona? activePersona,
     double? walletBalanceUsd,
     int? completedConsultations,
@@ -161,12 +167,127 @@ class AgriExpertProfile {
       operatingDistrict: operatingDistrict ?? this.operatingDistrict,
       companyAffiliation: companyAffiliation ?? this.companyAffiliation,
       isVerifiedBadge: isVerifiedBadge ?? this.isVerifiedBadge,
+      isVerifiedByState: isVerifiedByState ?? this.isVerifiedByState,
+      agritexOfficerId: agritexOfficerId ?? this.agritexOfficerId,
       activePersona: activePersona ?? this.activePersona,
       walletBalanceUsd: walletBalanceUsd ?? this.walletBalanceUsd,
       completedConsultations: completedConsultations ?? this.completedConsultations,
       clientSatisfactionScore: clientSatisfactionScore ?? this.clientSatisfactionScore,
     );
   }
+}
+
+/// Advertised Advisory Service Listing (Marketed to farmers on Home & Directory)
+class AdvisoryServiceListing {
+  final String id;
+  final String expertId;
+  final String expertName;
+  final ExpertPersona expertPersona;
+  final String title;
+  final String description;
+  final String category; // Soil Science, Pest Control, Crop Nutrition, EUDR Inspection, Irrigation
+  final double priceUsd;
+  final String pricingUnit; // e.g. '/ sample', '/ hectare', '/ visit', '/ hour'
+  final String deliveryMode; // Remote Tele-Agronomy, On-Site Field Visit
+  final String locationDistrict;
+  final double rating;
+  final int reviewsCount;
+  final bool isVerifiedByState;
+  final String createdAt;
+
+  const AdvisoryServiceListing({
+    required this.id,
+    required this.expertId,
+    required this.expertName,
+    required this.expertPersona,
+    required this.title,
+    required this.description,
+    required this.category,
+    required this.priceUsd,
+    required this.pricingUnit,
+    required this.deliveryMode,
+    required this.locationDistrict,
+    this.rating = 4.96,
+    this.reviewsCount = 42,
+    this.isVerifiedByState = true,
+    required this.createdAt,
+  });
+}
+
+/// Community Forum Post & Update
+class CommunityComment {
+  final String id;
+  final String authorName;
+  final String authorRoleTag;
+  final bool isVerifiedExpert;
+  final String content;
+  final String timestamp;
+
+  const CommunityComment({
+    required this.id,
+    required this.authorName,
+    required this.authorRoleTag,
+    this.isVerifiedExpert = false,
+    required this.content,
+    required this.timestamp,
+  });
+}
+
+class CommunityPost {
+  final String id;
+  final String authorName;
+  final String authorRoleTitle;
+  final bool isExpert;
+  final bool isVerifiedByState;
+  final String cropCategory;
+  final String districtLocation;
+  final String title;
+  final String content;
+  final String? photoUrl;
+  final int upvotes;
+  final String timestamp;
+  final List<CommunityComment> comments;
+
+  const CommunityPost({
+    required this.id,
+    required this.authorName,
+    required this.authorRoleTitle,
+    this.isExpert = true,
+    this.isVerifiedByState = true,
+    required this.cropCategory,
+    required this.districtLocation,
+    required this.title,
+    required this.content,
+    this.photoUrl,
+    this.upvotes = 38,
+    required this.timestamp,
+    this.comments = const [],
+  });
+}
+
+/// Formal Persona/Role Change Inquiry
+class PersonaChangeInquiry {
+  final String id;
+  final String expertId;
+  final String expertName;
+  final ExpertPersona currentPersona;
+  final ExpertPersona requestedPersona;
+  final String justification;
+  final String accreditationRef;
+  final String status; // Pending Verification, Approved, Under Review
+  final String submittedAt;
+
+  const PersonaChangeInquiry({
+    required this.id,
+    required this.expertId,
+    required this.expertName,
+    required this.currentPersona,
+    required this.requestedPersona,
+    required this.justification,
+    required this.accreditationRef,
+    this.status = 'Pending Verification',
+    required this.submittedAt,
+  });
 }
 
 /// Consultation Booking and Field Visit
@@ -273,11 +394,11 @@ class ConsultationSession {
 /// Digital Prescription Input Item
 class PrescriptionInputItem {
   final String inputName;
-  final String category; // e.g. Bio-Pesticide, Soluble Fertilizer, Fungicide, Soil Conditioner
+  final String category;
   final String dosagePerHectare;
-  final String applicationMethod; // Foliar Spray, Fertigation, Basal Soil Broadcast
-  final String phiSafetyDays; // Pre-Harvest Interval (e.g. 7 Days PHI)
-  final String? warehouseSku; // Available in company warehouse if corporate model
+  final String applicationMethod;
+  final String phiSafetyDays;
+  final String? warehouseSku;
   final String safetyWarning;
 
   const PrescriptionInputItem({
@@ -306,6 +427,8 @@ class DigitalPrescription {
   final String issuingExpert;
   final String createdAt;
   final bool isExportWhitelabelReady;
+  final double? gpsLat;
+  final double? gpsLng;
 
   const DigitalPrescription({
     required this.id,
@@ -321,10 +444,12 @@ class DigitalPrescription {
     required this.issuingExpert,
     required this.createdAt,
     this.isExportWhitelabelReady = true,
+    this.gpsLat,
+    this.gpsLng,
   });
 }
 
-/// Diagnostic Anomaly Case
+/// Diagnostic Anomaly Case linked to Geospatial
 class DiagnosticCase {
   final String id;
   final String farmerName;
@@ -341,6 +466,9 @@ class DiagnosticCase {
   final String status; // Pending Review, Diagnosed, Prescription Issued
   final String timestamp;
   final DigitalPrescription? linkedPrescription;
+  final double gpsLat;
+  final double gpsLng;
+  final String district;
 
   const DiagnosticCase({
     required this.id,
@@ -358,6 +486,9 @@ class DiagnosticCase {
     this.status = 'Diagnosed',
     required this.timestamp,
     this.linkedPrescription,
+    this.gpsLat = -17.5120,
+    this.gpsLng = 31.0210,
+    this.district = 'Mazowe Ward 4',
   });
 }
 

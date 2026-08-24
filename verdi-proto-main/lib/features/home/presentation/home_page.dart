@@ -15,6 +15,9 @@ import '../../logistics/presentation/transporter_telemetry_page.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_insight_strip.dart';
 import 'widgets/ask_verdi_fab.dart';
+import '../../agri_expert/data/agri_expert_models.dart';
+import '../../agri_expert/state/agri_expert_state.dart';
+import '../../agri_expert/presentation/expert_directory_page.dart';
 
 /// Clean Command Center Home Page.
 /// Reduces clutter by 60% with a strict 3-Section layout:
@@ -36,7 +39,8 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   bool _isMarketPulseExpanded = false;
   bool _isRecentActivityExpanded = false;
-  bool _isLogisticsExpanded = false;
+  bool _isLogisticsExpanded = true;
+  String _expertLocationFilter = 'All Locations';
 
   String _greeting() {
     final hour = DateTime.now().hour;
@@ -180,6 +184,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                     const SizedBox(height: 24),
                   ],
 
+                  // Farmer-Specific Advertised Expert Services Section
+                  if (role == UserRole.farmer) ...[
+                    _buildAdvertisedExpertServicesSection(ref),
+                    const SizedBox(height: 24),
+                  ],
+
                   // ───────────────────────────────────────────────────────────
                   // SECTION 3: COLLAPSIBLE ACCORDIONS
                   // ───────────────────────────────────────────────────────────
@@ -282,6 +292,201 @@ class _HomePageState extends ConsumerState<HomePage> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildAdvertisedExpertServicesSection(WidgetRef ref) {
+    final expertState = ref.watch(agriExpertProvider);
+    final allListings = expertState.serviceListings;
+
+    final filteredListings = allListings.where((l) {
+      if (_expertLocationFilter == 'All Locations') return true;
+      return l.locationDistrict.toLowerCase().contains(_expertLocationFilter.toLowerCase()) ||
+          l.locationDistrict == 'All Zimbabwe & SADC';
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: _buildSectionTitle(
+                'ADVERTISED AGRI-EXPERT SERVICES',
+                'Verified agronomists, soil labs & extension clinics nearby',
+                Icons.campaign_rounded,
+                const Color(0xFF16A34A),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ExpertDirectoryPage()),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text('View All Experts', style: TextStyle(color: Color(0xFF16A34A), fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    SizedBox(width: 4),
+                    Icon(Icons.arrow_forward_ios, size: 11, color: Color(0xFF16A34A)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Location Filter Chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              ...['All Locations', 'Mazowe', 'Harare', 'Chinhoyi'].map((loc) {
+                final isSelected = _expertLocationFilter == loc;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(loc, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white : const Color(0xFF334155))),
+                    selected: isSelected,
+                    selectedColor: const Color(0xFF16A34A),
+                    backgroundColor: Colors.white,
+                    side: BorderSide(color: isSelected ? const Color(0xFF16A34A) : Colors.grey.shade300),
+                    onSelected: (_) => setState(() => _expertLocationFilter = loc),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        if (filteredListings.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.black12),
+            ),
+            child: const Center(
+              child: Text(
+                'No advertised expert services in this selected location yet.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: 175,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: filteredListings.length,
+              itemBuilder: (ctx, i) {
+                final l = filteredListings[i];
+                return Container(
+                  width: 290,
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: l.expertPersona.color.withOpacity(0.12),
+                            child: Icon(l.expertPersona.icon, color: l.expertPersona.color, size: 15),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l.expertName,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (l.isVerifiedByState)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(color: const Color(0xFFD97706), borderRadius: BorderRadius.circular(4)),
+                              child: const Text('STATE VERIFIED', style: TextStyle(color: Colors.white, fontSize: 7.5, fontWeight: FontWeight.w800)),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l.title,
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l.description,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), height: 1.3),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l.priceUsd > 0 ? '\$${l.priceUsd.toStringAsFixed(0)} ${l.pricingUnit}' : 'FREE Extension',
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Color(0xFF16A34A)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              final session = ConsultationSession(
+                                id: 'CONS-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                                farmerName: 'Farmer K. Moyo',
+                                farmName: 'Mazowe Citrus Plot',
+                                districtLocation: l.locationDistrict,
+                                cropOrLivestock: 'Maize & Crops',
+                                type: ConsultationType.physicalFarmVisit,
+                                scheduledDate: 'Tomorrow',
+                                scheduledTimeSlot: '10:00 - 11:30',
+                                feeUsd: l.priceUsd,
+                                status: ConsultationStatus.scheduled,
+                                summaryNotes: 'Booked advertised service: ${l.title}',
+                              );
+                              ref.read(agriExpertProvider.notifier).addConsultation(session);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Booked ${l.title}! Session scheduled.')),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF16A34A),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text('Book', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
       ],
     );
   }

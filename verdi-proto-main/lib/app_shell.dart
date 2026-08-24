@@ -38,6 +38,7 @@ import 'features/news/presentation/news_page.dart';
 import 'features/processing/presentation/value_adder_processing_page.dart';
 import 'features/assistant/presentation/widgets/global_voice_agent_overlay.dart';
 import 'features/agri_expert/presentation/agri_expert_master_page.dart';
+import 'features/community/presentation/agri_community_page.dart';
 import 'core/enums/verdi_screen.dart';
 import 'state/app_state.dart';
 import 'features/auth/state/auth_state.dart';
@@ -84,6 +85,7 @@ class AppShell extends ConsumerWidget {
       const AdminSystemHealthPage(), // index 27: System Health & Infrastructure Telemetry
       const AiCopilotPage(), // index 28: Sovereign AI Agronomist Copilot
       const AgriExpertMasterPage(), // index 29: Agri-Expert Master Console
+      const AgriCommunityPage(), // index 30: Agri-Community Hub
     ];
 
     final isTransporter = state.role == UserRole.transporter;
@@ -299,6 +301,7 @@ class Sidebar extends ConsumerWidget {
     _SidebarMenuItem(index: 26, label: 'User Activities & Logs', icon: LucideIcons.history),
     _SidebarMenuItem(index: 27, label: 'System Health & Services', icon: LucideIcons.activity),
     _SidebarMenuItem(index: 29, label: 'Agri-Expert Console', icon: LucideIcons.stethoscope),
+    _SidebarMenuItem(index: 30, label: 'Community Hub', icon: LucideIcons.users),
   ];
 
   @override
@@ -334,7 +337,8 @@ class Sidebar extends ConsumerWidget {
               item.index == 14 ||
               item.index == 17 ||
               item.index == 20 ||
-              item.index == 24;
+              item.index == 24 ||
+              item.index == 30;
 
         case UserRole.expert:
           return item.index == 29 ||
@@ -343,7 +347,8 @@ class Sidebar extends ConsumerWidget {
               item.index == 14 ||
               item.index == 17 ||
               item.index == 20 ||
-              item.index == 24;
+              item.index == 24 ||
+              item.index == 30;
 
         case UserRole.buyer:
           // Commercial Buyer (B2B): Analytics (3), Orders (4), Payments (6), Traceability (15), Trade (19)
