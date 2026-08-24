@@ -358,7 +358,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         } else {
                           ref.read(authStateProvider.notifier).enterOfflineDemoMode(
                             email: '${role.name}@demo.verdi.co',
-                            fullName: 'Demo ${role.label}',
+                            fullName: 'Demo User',
                             role: role,
                           );
                         }
@@ -420,7 +420,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 Navigator.pop(ctx);
                 ref.read(authStateProvider.notifier).enterOfflineDemoMode(
                   email: 'dr.nyasha.expert@demo.verdi.co',
-                  fullName: 'Dr. Nyasha Sibanda',
+                  fullName: 'Demo User',
                   role: UserRole.expert,
                   expertPersona: p,
                 );
@@ -744,27 +744,49 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _currentStep = 1;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF16A34A),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 4,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Text('Get Started', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 18),
-              ],
-            ),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _currentStep = 1;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 4,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text('Get Started', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, size: 18),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  ref.read(appStateProvider.notifier).setDemoMode(true);
+                  _showDemoRolePickerDialog();
+                },
+                icon: const Icon(Icons.flash_on, color: Colors.white, size: 18),
+                label: const Text('Offline Demo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF59E0B),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 4,
+                ),
+              ),
+            ],
           ),
         ],
       ),

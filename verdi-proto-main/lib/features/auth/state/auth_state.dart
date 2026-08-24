@@ -174,7 +174,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     final mockUser = AppUser(
       id: 'usr_demo_${role.name}_${DateTime.now().millisecond}',
-      fullName: fullName.isEmpty ? 'Demo ${role.label}' : fullName,
+      fullName: fullName.isEmpty ? 'Demo User' : fullName,
       email: email.trim().isEmpty ? '${role.name}@demo.verdi.co' : email.trim(),
       role: role,
     );
