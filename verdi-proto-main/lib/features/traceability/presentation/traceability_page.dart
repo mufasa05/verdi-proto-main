@@ -20,8 +20,8 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
   bool _isScanning = false;
   final Map<String, List<_ScanLog>> _localScans = {}; // batchId -> scans
 
-  List<_TraceEvent> _eventsFor(String batchId, bool isTransporter) {
-    if (isTransporter) {
+  List<_TraceEvent> _eventsFor(String batchId, UserRole role) {
+    if (role == UserRole.transporter) {
       return [
         _TraceEvent(eventType: 'Freight Loading', eventTime: '2026-08-14 08:30', actorName: 'Harare Packhouse', location: 'Bay 4', notes: 'Consignment palletized, weighed, and loaded onto Truck TRK-9442.'),
         _TraceEvent(eventType: 'Seal Affixed', eventTime: '2026-08-14 09:10', actorName: 'Quality Inspector', location: 'Gate Out', notes: 'Phyto-security tamper seal #ZIM-9921 applied.'),
@@ -29,6 +29,14 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
         _TraceEvent(eventType: 'Cold-Chain Check', eventTime: '2026-08-14 11:45', actorName: 'Automated Telemetry', location: 'Chivhu Waypoint', notes: 'Reefer temp maintained at 4.2°C (Optimal).'),
         _TraceEvent(eventType: 'Weighbridge Pass', eventTime: '2026-08-14 13:20', actorName: 'Gweru Scale Station', location: 'Scale #2', notes: 'Gross axle weight compliant (11.8 Tonnes).'),
         _TraceEvent(eventType: 'Depot Handover', eventTime: '2026-08-14 15:00', actorName: 'Consignee Receiver', location: 'Bulawayo Depot', notes: 'Offload seal verified intact and received.'),
+      ];
+    } else if (role == UserRole.buyer) {
+      return [
+        _TraceEvent(eventType: 'EUDR Geo-Polygon Mapping', eventTime: '2026-08-01 08:00', actorName: 'Verdi Satellite Audits', location: 'Mazowe Block 4', notes: 'Farm boundary polygon #ZIM-MZ-941 certified Zero Deforestation compliant under EU Regulation 2023/1115.'),
+        _TraceEvent(eventType: 'B2B Wholesale Contract Lock', eventTime: '2026-08-10 10:15', actorName: 'FreshMart Procurement', location: 'Harare HQ', notes: 'US\$ 14,500 locked in Verdi Escrow under Order #ORD-1001.'),
+        _TraceEvent(eventType: 'Chemical Residue & Heavy Metal Test', eventTime: '2026-08-12 14:00', actorName: 'AgriLab Standards Lab', location: 'Lab Station #1', notes: '0.00 ppm organophosphates detected. Passed Grade-A export safety thresholds.'),
+        _TraceEvent(eventType: 'B2B Palletizing & Cold Storage', eventTime: '2026-08-13 16:30', actorName: 'Packhouse Cold Storage', location: 'Chiller Bay 2', notes: '2,500 kg pre-chilled to 4.0°C and secured in barcode-tagged Euro-pallets.'),
+        _TraceEvent(eventType: 'Phytosanitary Export Release', eventTime: '2026-08-14 09:00', actorName: 'Ministry of Agriculture Inspector', location: 'Dispatch Gate', notes: 'Certificate #PHYTO-2026-8841 issued for B2B buyer delivery.'),
       ];
     }
     return [
@@ -40,13 +48,20 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
     ];
   }
 
-  List<_BatchDocument> _docsFor(String batchId, bool isTransporter) {
-    if (isTransporter) {
+  List<_BatchDocument> _docsFor(String batchId, UserRole role) {
+    if (role == UserRole.transporter) {
       return [
         _BatchDocument(docType: 'Bill of Lading (BoL)', fileName: '$batchId-BoL-manifest.pdf'),
         _BatchDocument(docType: 'Phytosanitary Clearance', fileName: '$batchId-phyto-transit.pdf'),
         _BatchDocument(docType: 'Cold-Chain Reefer Log', fileName: '$batchId-reefer-telemetry.pdf'),
         _BatchDocument(docType: 'Weighbridge Scale Slip', fileName: '$batchId-weighbridge-pass.pdf'),
+      ];
+    } else if (role == UserRole.buyer) {
+      return [
+        _BatchDocument(docType: 'EUDR Zero-Deforestation Cert', fileName: '$batchId-eudr-compliance.pdf'),
+        _BatchDocument(docType: 'Pesticide Residue Lab Report', fileName: '$batchId-lab-assay.pdf'),
+        _BatchDocument(docType: 'B2B Wholesale Commercial Invoice', fileName: '$batchId-b2b-invoice.pdf'),
+        _BatchDocument(docType: 'Phytosanitary Export Permit', fileName: '$batchId-phyto-export.pdf'),
       ];
     }
     return [
@@ -56,13 +71,20 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
     ];
   }
 
-  List<_ScanLog> _scansFor(String batchId, bool isTransporter) {
+  List<_ScanLog> _scansFor(String batchId, UserRole role) {
     final custom = _localScans[batchId] ?? [];
-    if (isTransporter) {
+    if (role == UserRole.transporter) {
       return [
         _ScanLog(scannedAt: '2026-08-14 08:45', scannerRole: 'Consignor Depot Gate', result: 'Seal Verified & Loaded'),
         _ScanLog(scannedAt: '2026-08-14 11:50', scannerRole: 'Corridor Checkpoint Officer', result: 'Highway Transit Passed'),
         _ScanLog(scannedAt: '2026-08-14 14:55', scannerRole: 'Bulawayo Receiver Agent', result: 'Offload Cleared'),
+        ...custom,
+      ];
+    } else if (role == UserRole.buyer) {
+      return [
+        _ScanLog(scannedAt: '2026-08-12 14:10', scannerRole: 'AgriLab Compliance Auditor', result: 'Pesticide Free (0.00 ppm) Passed'),
+        _ScanLog(scannedAt: '2026-08-13 16:35', scannerRole: 'B2B Cold Storage Manager', result: 'Grade-A Pallet Sealed'),
+        _ScanLog(scannedAt: '2026-08-14 09:05', scannerRole: 'FreshMart Procurement Officer', result: 'QR Origin Hash Verified'),
         ...custom,
       ];
     }
@@ -142,9 +164,9 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
         ? batches.firstWhere((b) => b.id == _selectedBatchId)
         : null;
 
-    final events = batch != null ? _eventsFor(batch.id, isTransporter) : <_TraceEvent>[];
-    final docs = batch != null ? _docsFor(batch.id, isTransporter) : <_BatchDocument>[];
-    final scans = batch != null ? _scansFor(batch.id, isTransporter) : <_ScanLog>[];
+    final events = batch != null ? _eventsFor(batch.id, role) : <_TraceEvent>[];
+    final docs = batch != null ? _docsFor(batch.id, role) : <_BatchDocument>[];
+    final scans = batch != null ? _scansFor(batch.id, role) : <_ScanLog>[];
 
     final isBuyer = role == UserRole.buyer;
     final titleText = isTransporter

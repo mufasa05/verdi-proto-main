@@ -329,7 +329,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5),
                 ),
                 const SizedBox(height: 14),
-                ...UserRole.values.map((role) {
+                ...UserRole.values.where((r) => r != UserRole.admin).map((role) {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(

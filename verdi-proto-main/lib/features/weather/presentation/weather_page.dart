@@ -514,7 +514,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                                 ],
 
                                 // Interactive Weather Radar Simulation Widget
-                                _WeatherRadarCard(
+                                _RadarCard(
                                   selectedMode: _selectedRadarMode,
                                   onModeChanged: (mode) => setState(() => _selectedRadarMode = mode),
                                   weather: activeWeather,
@@ -894,16 +894,53 @@ class _AiAgronomicInsight {
   });
 }
 
-class _WeatherRadarCard extends StatelessWidget {
+class _RadarCard extends StatefulWidget {
+  final WeatherData weather;
   final String selectedMode;
   final ValueChanged<String> onModeChanged;
-  final WeatherData weather;
 
-  const _WeatherRadarCard({
+  const _RadarCard({
+    super.key,
+    required this.weather,
     required this.selectedMode,
     required this.onModeChanged,
-    required this.weather,
   });
+
+  @override
+  State<_RadarCard> createState() => _RadarCardState();
+}
+
+class _RadarCardState extends State<_RadarCard> with SingleTickerProviderStateMixin {
+  late AnimationController _sweepController;
+  bool _isPlaying = true;
+  int _timelineIndex = 4;
+  final List<String> _timeline = ['-60m', '-45m', '-30m', '-15m', 'LIVE'];
+
+  @override
+  void initState() {
+    super.initState();
+    _sweepController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _sweepController.dispose();
+    super.dispose();
+  }
+
+  void _togglePlay() {
+    setState(() {
+      _isPlaying = !_isPlaying;
+      if (_isPlaying) {
+        _sweepController.repeat();
+      } else {
+        _sweepController.stop();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -915,7 +952,7 @@ class _WeatherRadarCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -924,23 +961,33 @@ class _WeatherRadarCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header & Mode Selector
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Icon(Icons.radar_rounded, color: Color(0xFF16A34A), size: 20),
+                const Icon(Icons.radar_rounded, color: Color(0xFF16A34A), size: 22),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    'Live Satellite Weather Radar',
-                    style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Live Doppler & Satellite Radar',
+                        style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Real-Time High-Resolution Telemetry (${widget.weather.location})',
+                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                      ),
+                    ],
                   ),
                 ),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: modes.map((m) {
-                      final selected = m == selectedMode;
+                      final selected = m == widget.selectedMode;
                       return Padding(
                         padding: const EdgeInsets.only(left: 6),
                         child: ChoiceChip(
@@ -952,7 +999,7 @@ class _WeatherRadarCard extends StatelessWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
-                          onSelected: (_) => onModeChanged(m),
+                          onSelected: (_) => widget.onModeChanged(m),
                         ),
                       );
                     }).toList(),
@@ -961,35 +1008,46 @@ class _WeatherRadarCard extends StatelessWidget {
               ],
             ),
           ),
+
+          // Radar Display Canvas & Controls
           Container(
-            height: 220,
+            height: 240,
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF0B132B),
+              border: Border.all(color: const Color(0xFF1E293B)),
             ),
             child: Stack(
               children: [
+                // Animated Doppler Radar Canvas
                 Positioned.fill(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Opacity(
-                      opacity: 0.4,
-                      child: Image.network(
-                        'https://images.unsplash.com/photo-1590055531615-f16d36ffe8ec?auto=format&fit=crop&w=1200&q=80',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(color: Colors.black38),
-                      ),
+                    child: AnimatedBuilder(
+                      animation: _sweepController,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: _DopplerRadarPainter(
+                            sweepAngle: _sweepController.value * 2 * 3.14159,
+                            mode: widget.selectedMode,
+                            locationName: widget.weather.location,
+                            rainChance: widget.weather.rainChance,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
+
+                // Radar Live Badge
                 Positioned(
                   top: 12,
                   left: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.75),
+                      color: Colors.black.withOpacity(0.75),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: const Color(0xFF16A34A)),
                     ),
@@ -998,29 +1056,89 @@ class _WeatherRadarCard extends StatelessWidget {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(color: Color(0xFF16A34A), shape: BoxShape.circle),
+                          decoration: BoxDecoration(
+                            color: _isPlaying ? const Color(0xFF16A34A) : Colors.amber,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Radar Feed Active (${weather.location})',
-                          style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          _isPlaying ? 'RADAR SWEEP ACTIVE' : 'RADAR PAUSED',
+                          style: GoogleFonts.inter(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
                 ),
+
+                // dBZ Reflectivity Scale Legend
                 Positioned(
-                  bottom: 12,
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.75),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('dBZ: ', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                        _dBzBox('Light', const Color(0xFF4ADE80)),
+                        _dBzBox('Mod', const Color(0xFFFACC15)),
+                        _dBzBox('Heavy', const Color(0xFFEF4444)),
+                        _dBzBox('Hail', const Color(0xFFA855F7)),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Bottom Timeline Scrubber Bar & Playback Controls
+                Positioned(
+                  bottom: 10,
+                  left: 12,
                   right: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.black.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
                     ),
-                    child: Text(
-                      'Wind: ${weather.windSpeed} km/h • Humidity: ${weather.humidity}%',
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 11),
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: _togglePlay,
+                          child: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled, color: const Color(0xFF16A34A), size: 26),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: List.generate(_timeline.length, (idx) {
+                              final active = idx == _timelineIndex;
+                              return InkWell(
+                                onTap: () => setState(() => _timelineIndex = idx),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: active ? const Color(0xFF16A34A) : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    _timeline[idx],
+                                    style: TextStyle(
+                                      color: active ? Colors.white : Colors.white60,
+                                      fontSize: 10.5,
+                                      fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1032,6 +1150,122 @@ class _WeatherRadarCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _dBzBox(String label, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Row(
+        children: [
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: 2),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 9.5)),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOM DOPPLER RADAR PAINTER
+// ─────────────────────────────────────────────────────────────────────────────
+class _DopplerRadarPainter extends CustomPainter {
+  final double sweepAngle;
+  final String mode;
+  final String locationName;
+  final int rainChance;
+
+  _DopplerRadarPainter({
+    required this.sweepAngle,
+    required this.mode,
+    required this.locationName,
+    required this.rainChance,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.height * 0.45;
+
+    // Grid circles
+    final gridPaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    for (int r = 1; r <= 3; r++) {
+      canvas.drawCircle(center, maxRadius * (r / 3), gridPaint);
+    }
+
+    // Crosshairs
+    canvas.drawLine(Offset(center.dx - maxRadius, center.dy), Offset(center.dx + maxRadius, center.dy), gridPaint);
+    canvas.drawLine(Offset(center.dx, center.dy - maxRadius), Offset(center.dx, center.dy + maxRadius), gridPaint);
+
+    // Weather reflectivity rain bands
+    final rainPaint = Paint()..style = PaintingStyle.fill;
+
+    if (mode == 'Wind Vectors') {
+      // Draw wind vector stream lines
+      final windPaint = Paint()
+        ..color = const Color(0xFF38BDF8).withOpacity(0.5)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
+      for (double y = 20; y < size.height - 20; y += 25) {
+        final path = Path();
+        path.moveTo(10, y);
+        path.cubicTo(size.width * 0.3, y - 15, size.width * 0.6, y + 15, size.width - 10, y);
+        canvas.drawPath(path, windPaint);
+      }
+    } else {
+      // Precipitation Doppler Bands
+      final lightRain = Paint()..color = const Color(0xFF4ADE80).withOpacity(0.35);
+      final modRain = Paint()..color = const Color(0xFFFACC15).withOpacity(0.45);
+      final heavyRain = Paint()..color = const Color(0xFFEF4444).withOpacity(0.55);
+
+      canvas.drawCircle(Offset(center.dx - 40, center.dy - 20), 45, lightRain);
+      if (rainChance > 30) {
+        canvas.drawCircle(Offset(center.dx - 35, center.dy - 15), 28, modRain);
+      }
+      if (rainChance > 60) {
+        canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 16, heavyRain);
+      }
+    }
+
+    // Radar Sweep Sector Arc
+    final sweepPaint = Paint()
+      ..shader = SweepGradient(
+        colors: [
+          const Color(0xFF16A34A).withOpacity(0.0),
+          const Color(0xFF16A34A).withOpacity(0.4),
+        ],
+        stops: const [0.85, 1.0],
+        transform: GradientRotation(sweepAngle),
+      ).createShader(Rect.fromCircle(center: center, radius: maxRadius));
+
+    canvas.drawCircle(center, maxRadius, sweepPaint);
+
+    // Radar Sweep Line
+    final linePaint = Paint()
+      ..color = const Color(0xFF22C55E)
+      ..strokeWidth = 2.0;
+    final endX = center.dx + maxRadius * double.parse((1.0 * (sweepAngle).clamp(-100, 100)).toString()) * 0; // line direction
+    final lineEnd = Offset(
+      center.dx + maxRadius * (double.parse((sweepAngle).toString()) * 0 + 1) * 0,
+      center.dy,
+    );
+    canvas.drawLine(center, Offset(center.dx + maxRadius * (sweepAngle > 0 ? 0.8 : 0.8), center.dy - maxRadius * 0.6), linePaint);
+
+    // Center Station Marker
+    final stationPaint = Paint()..color = const Color(0xFF22C55E);
+    canvas.drawCircle(center, 5, stationPaint);
+    final stationBorder = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawCircle(center, 5, stationBorder);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DopplerRadarPainter oldDelegate) => true;
 }
 
 class _WeatherAlertCard extends StatelessWidget {

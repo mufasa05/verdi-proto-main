@@ -172,11 +172,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required UserRole role,
     ExpertPersona? expertPersona,
   }) async {
+    // Admin role is strictly forbidden in demo mode
+    final effectiveRole = role == UserRole.admin ? UserRole.farmer : role;
+
     final mockUser = AppUser(
-      id: 'usr_demo_${role.name}_${DateTime.now().millisecond}',
+      id: 'usr_demo_${effectiveRole.name}_${DateTime.now().millisecond}',
       fullName: fullName.isEmpty ? 'Demo User' : fullName,
-      email: email.trim().isEmpty ? '${role.name}@demo.verdi.co' : email.trim(),
-      role: role,
+      email: email.trim().isEmpty ? '${effectiveRole.name}@demo.verdi.co' : email.trim(),
+      role: effectiveRole,
     );
 
     final prefs = await SharedPreferences.getInstance();

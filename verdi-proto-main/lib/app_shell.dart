@@ -324,11 +324,12 @@ class Sidebar extends ConsumerWidget {
     final filteredItems = _sidebarItems.where((item) {
       if (role == UserRole.admin) return true;
 
-      // Shared/Universal modules: Home, Marketplace, My Chats, Settings
+      // Shared/Universal modules: Home, Marketplace, My Chats, Settings, Community Hub
       if (item.index == 0 ||
           item.index == 1 ||
           item.index == 2 ||
-          item.index == 21) {
+          item.index == 21 ||
+          item.index == 30) {
         return true;
       }
 
@@ -337,11 +338,9 @@ class Sidebar extends ConsumerWidget {
           return item.index == 7 ||
               item.index == 11 ||
               item.index == 13 ||
-              item.index == 14 ||
               item.index == 17 ||
               item.index == 20 ||
-              item.index == 24 ||
-              item.index == 30;
+              item.index == 24;
 
         case UserRole.expert:
           return item.index == 29 ||
@@ -350,8 +349,7 @@ class Sidebar extends ConsumerWidget {
               item.index == 14 ||
               item.index == 17 ||
               item.index == 20 ||
-              item.index == 24 ||
-              item.index == 30;
+              item.index == 24;
 
         case UserRole.buyer:
           // Commercial Buyer (B2B): Analytics (3), Orders (4), Payments (6), Traceability (15), Trade (19)
