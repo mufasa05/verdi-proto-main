@@ -392,7 +392,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
     final dataset = _getDataset();
     final appState = ref.watch(appStateProvider);
     final realRole = appState.role;
-    final buyerSubRole = appState.buyerSubRole;
     final isSuperAdmin = realRole == UserRole.admin;
     final effectiveRole = isSuperAdmin ? (_perspectiveOverride ?? UserRole.admin) : realRole;
 

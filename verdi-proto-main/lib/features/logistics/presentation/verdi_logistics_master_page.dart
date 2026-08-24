@@ -1274,11 +1274,9 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
                       model: model,
                     );
                     final curProfile = ref.read(agriLogisticsProvider).carrierProfile;
-                    if (curProfile != null) {
-                      ref.read(agriLogisticsProvider.notifier).updateCarrierProfile(
-                            curProfile.copyWith(vehicle: newVehicle),
-                          );
-                    }
+                    ref.read(agriLogisticsProvider.notifier).updateCarrierProfile(
+                          curProfile.copyWith(vehicle: newVehicle),
+                        );
 
                     Navigator.pop(dialogCtx);
                     ScaffoldMessenger.of(context).showSnackBar(

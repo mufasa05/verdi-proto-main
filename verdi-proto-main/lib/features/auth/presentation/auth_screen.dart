@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../state/app_state.dart';
 import '../state/auth_state.dart';
 import '../../../widgets/verdi_logo.dart';
-import 'widgets/buyer_sub_role_dialog.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});

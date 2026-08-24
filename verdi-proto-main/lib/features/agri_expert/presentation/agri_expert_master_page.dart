@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../state/app_state.dart';
 import '../data/agri_expert_models.dart';
 import '../state/agri_expert_state.dart';
 

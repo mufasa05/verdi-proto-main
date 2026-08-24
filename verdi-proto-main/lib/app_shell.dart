@@ -37,7 +37,6 @@ import 'features/weather/presentation/weather_provider.dart';
 import 'features/news/presentation/news_page.dart';
 import 'features/processing/presentation/value_adder_processing_page.dart';
 import 'features/assistant/presentation/widgets/global_voice_agent_overlay.dart';
-import 'features/auth/presentation/widgets/buyer_sub_role_dialog.dart';
 import 'features/agri_expert/presentation/agri_expert_master_page.dart';
 import 'core/enums/verdi_screen.dart';
 import 'state/app_state.dart';
@@ -306,8 +305,6 @@ class Sidebar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
     final role = appState.role;
-    final buyerSubRole = appState.buyerSubRole;
-    final isEndUserCustomer = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
     final authState = ref.watch(authStateProvider);
     final user = authState.user;
     final userName = user?.fullName ?? 'Operator';
@@ -364,10 +361,6 @@ class Sidebar extends ConsumerWidget {
 
         case UserRole.valueAdder:
           return item.index == 3 || item.index == 4 || item.index == 6 || item.index == 16 || item.index == 25;
-
-        case UserRole.consumer:
-          // Consumer: Orders (4), Payments (6) [Analytics (3) removed]
-          return item.index == 4 || item.index == 6;
 
         default:
           return false;
@@ -466,45 +459,6 @@ class Sidebar extends ConsumerWidget {
                     ],
                   ),
                 ),
-                if (role == UserRole.buyer) ...[
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: () async {
-                      final currentSub = ref.read(appStateProvider).buyerSubRole;
-                      final chosen = await BuyerSubRoleDialog.show(context, current: currentSub);
-                      if (chosen != null) {
-                        ref.read(appStateProvider.notifier).setBuyerSubRole(chosen);
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isEndUserCustomer ? Icons.shopping_basket_outlined : Icons.storefront_outlined,
-                            size: 15,
-                            color: const Color(0xFF3B82F6),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              isEndUserCustomer ? 'Profile: End-User (Switch)' : 'Profile: B2B Wholesaler (Switch)',
-                              style: const TextStyle(color: Color(0xFF2563EB), fontSize: 11, fontWeight: FontWeight.bold),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Icon(Icons.arrow_drop_down, size: 16, color: Color(0xFF3B82F6)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

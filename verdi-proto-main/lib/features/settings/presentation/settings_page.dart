@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../auth/state/auth_state.dart';
 import '../../../state/app_state.dart';
-import '../../auth/presentation/widgets/buyer_sub_role_dialog.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -39,7 +38,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
   Widget build(BuildContext context) {
     final state = ref.watch(appStateProvider);
     final role = state.role;
-    final buyerSubRole = state.buyerSubRole;
     final isAdmin = role == UserRole.admin;
     final isTransporter = role == UserRole.transporter;
     final isBuyerB2B = role == UserRole.buyer;
@@ -1532,7 +1530,6 @@ class _CommercialBuyerSettingsTabState extends ConsumerState<_CommercialBuyerSet
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
     final authState = ref.watch(authStateProvider);
     final user = authState.user;
