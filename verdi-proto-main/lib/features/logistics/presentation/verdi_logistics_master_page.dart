@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../state/app_state.dart';
+import '../../../state/platform_data_state.dart';
 import '../data/agri_logistics_models.dart';
 import '../state/agri_logistics_state.dart';
 import 'transporter_onboarding_page.dart';
@@ -206,6 +207,20 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
 
               // Duty Status Dropdown
               _buildDutyStatusDropdown(profile),
+              const SizedBox(width: 8),
+
+              // Register New Truck Action Button
+              ElevatedButton.icon(
+                onPressed: () => _showRegisterTruckModal(context),
+                icon: const Icon(Icons.add, size: 14),
+                label: const Text('Register Truck', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: amber,
+                  foregroundColor: bgDark,
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
             ],
           ),
         ],
@@ -721,57 +736,7 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
   // TAB 5: IN-CAB TELEMETRY & ELD RADAR
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildInCabTelemetryTab(AgriLogisticsState state) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Live In-Cab ELD Telemetry Stream', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text('Sync: ${state.lastTelemetrySyncTime}', style: const TextStyle(fontSize: 11, color: cyan, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Simulated Map HUD Radar
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF060B14),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: cyan.withOpacity(0.3)),
-                  ),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.navigation_rounded, color: cyan, size: 36),
-                            const SizedBox(height: 6),
-                            Text('A5 SADC Transit Corridor • GPS Coordinate [-18.1856, 31.5519]', style: GoogleFonts.inter(fontSize: 11.5, color: textMuted)),
-                            Text('Live Vehicle Speed: ${state.liveSpeedKmh.toStringAsFixed(1)} km/h • Reefer: +${state.liveReeferTemp.toStringAsFixed(1)} °C', style: const TextStyle(fontSize: 11, color: amber, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return _LiveCorridorGpsMapWidget(state: state);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -780,11 +745,11 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
   Widget _buildEpodEscrowDeskTab(AgriLogisticsState state) {
     final activeWaybill = state.activeWaybills.isNotEmpty ? state.activeWaybills.first : null;
 
-    final weightCtrl = TextEditingController(text: '8495.0');
-    final gradeCtrl = TextEditingController(text: 'Grade A Export');
-    final moistureCtrl = TextEditingController(text: '12.4');
-    final spoilageCtrl = TextEditingController(text: '5.0');
-    final inspectorCtrl = TextEditingController(text: 'Blessing Musona (Chief Dock Inspector)');
+    final weightCtrl = TextEditingController();
+    final gradeCtrl = TextEditingController();
+    final moistureCtrl = TextEditingController();
+    final spoilageCtrl = TextEditingController();
+    final inspectorCtrl = TextEditingController();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -833,23 +798,23 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
 
                   Row(
                     children: [
-                      Expanded(child: _field('Received Weight (kg)', weightCtrl)),
+                      Expanded(child: _field('Received Weight (kg)', weightCtrl, hint: 'e.g. 8495.0')),
                       const SizedBox(width: 12),
-                      Expanded(child: _field('Received Moisture (%)', moistureCtrl)),
+                      Expanded(child: _field('Received Moisture (%)', moistureCtrl, hint: 'e.g. 12.4')),
                     ],
                   ),
                   const SizedBox(height: 12),
 
                   Row(
                     children: [
-                      Expanded(child: _field('Received Quality Grade', gradeCtrl)),
+                      Expanded(child: _field('Received Quality Grade', gradeCtrl, hint: 'e.g. Grade A Export')),
                       const SizedBox(width: 12),
-                      Expanded(child: _field('Spoilage Loss (kg)', spoilageCtrl)),
+                      Expanded(child: _field('Spoilage Loss (kg)', spoilageCtrl, hint: 'e.g. 5.0')),
                     ],
                   ),
                   const SizedBox(height: 12),
 
-                  _field('Receiving Inspector Name', inspectorCtrl),
+                  _field('Receiving Inspector Name', inspectorCtrl, hint: 'e.g. Blessing Musona (Chief Dock Inspector)'),
                   const SizedBox(height: 16),
 
                   // Electronic Signature Capture Simulation
@@ -880,11 +845,11 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
                       onPressed: () async {
                         await ref.read(agriLogisticsProvider.notifier).submitDischargeInspectionAndSettle(
                               waybill: activeWaybill,
-                              receivedWeightKg: double.tryParse(weightCtrl.text) ?? 8495.0,
-                              receivedGrade: gradeCtrl.text,
-                              receivedMoisturePercentage: double.tryParse(moistureCtrl.text) ?? 12.4,
-                              spoilageLossKg: double.tryParse(spoilageCtrl.text) ?? 5.0,
-                              inspectorName: inspectorCtrl.text,
+                              receivedWeightKg: double.tryParse(weightCtrl.text.trim()) ?? activeWaybill.totalQuantityKg,
+                              receivedGrade: gradeCtrl.text.trim().isEmpty ? 'Grade A Export' : gradeCtrl.text.trim(),
+                              receivedMoisturePercentage: double.tryParse(moistureCtrl.text.trim()) ?? 12.4,
+                              spoilageLossKg: double.tryParse(spoilageCtrl.text.trim()) ?? 0.0,
+                              inspectorName: inspectorCtrl.text.trim().isEmpty ? 'Certified Dock Inspector' : inspectorCtrl.text.trim(),
                               signatureData: 'SIG_${DateTime.now().millisecondsSinceEpoch}',
                             );
 
@@ -911,16 +876,20 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
     );
   }
 
-  Widget _field(String label, TextEditingController ctrl) {
+  Widget _field(String label, TextEditingController ctrl, {String? hint}) {
     return TextField(
       controller: ctrl,
       style: const TextStyle(color: Colors.white, fontSize: 13),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+        hintText: hint,
+        hintStyle: TextStyle(color: textMuted.withOpacity(0.35), fontSize: 12),
         filled: true,
         fillColor: const Color(0xFF060B14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: amber)),
       ),
     );
   }
@@ -1111,4 +1080,653 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
       ],
     );
   }
+
+  void _showRegisterTruckModal(BuildContext context) {
+    final plateCtrl = TextEditingController();
+    final modelCtrl = TextEditingController();
+    final capacityCtrl = TextEditingController();
+    final driverCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final permitCtrl = TextEditingController();
+    final trackerCtrl = TextEditingController();
+    VehicleType selectedType = VehicleType.reeferContainer;
+    bool hasColdChain = true;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              backgroundColor: cardDark,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: cardBorder),
+              ),
+              title: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: amber.withOpacity(0.15),
+                    child: const Icon(Icons.local_shipping_rounded, color: amber, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Register New Fleet Asset',
+                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const Text(
+                          'Enroll vehicle into live carrier dispatch & GPS radar grid',
+                          style: TextStyle(fontSize: 11, color: textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 520,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Vehicle Classification
+                      const Text('Vehicle Classification', style: TextStyle(color: textMuted, fontSize: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<VehicleType>(
+                        value: selectedType,
+                        dropdownColor: cardDark,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        items: VehicleType.values.map((v) => DropdownMenuItem(value: v, child: Text(v.label))).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(() {
+                              selectedType = val;
+                              if (val == VehicleType.reeferContainer) hasColdChain = true;
+                            });
+                          }
+                        },
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFF060B14),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: cardBorder)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field('Registration Plate', plateCtrl, hint: 'e.g. AFG-8921'),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _field('Payload Capacity (kg)', capacityCtrl, hint: 'e.g. 30000'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      _field('Vehicle Make & Model', modelCtrl, hint: 'e.g. Volvo FH16 540 Globetrotter'),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field('Assigned Driver Name', driverCtrl, hint: 'e.g. Tendai Chikore'),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _field('Driver Phone', phoneCtrl, hint: 'e.g. +263 77 412 8890'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field('SADC Transit Permit #', permitCtrl, hint: 'e.g. SADC-ZIM-2026-992'),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _field('IoT GPS Tracker IMEI', trackerCtrl, hint: 'e.g. IOT-GPS-8842'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Cold-Chain Switch
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF060B14),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: hasColdChain ? cyan.withOpacity(0.4) : cardBorder),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.ac_unit, color: hasColdChain ? cyan : textMuted, size: 18),
+                                const SizedBox(width: 8),
+                                const Text('Cold-Chain Telemetry Enabled', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                            Switch(
+                              value: hasColdChain,
+                              activeColor: cyan,
+                              onChanged: (v) => setModalState(() => hasColdChain = v),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('Cancel', style: TextStyle(color: textMuted)),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final plate = plateCtrl.text.trim().isEmpty ? 'AFG-8921' : plateCtrl.text.trim();
+                    final model = modelCtrl.text.trim().isEmpty ? 'Volvo FH16 540' : modelCtrl.text.trim();
+                    final driver = driverCtrl.text.trim().isEmpty ? 'Assigned Fleet Driver' : driverCtrl.text.trim();
+                    final cap = double.tryParse(capacityCtrl.text.trim()) ?? 30000.0;
+                    final permit = permitCtrl.text.trim().isEmpty ? 'SADC-ZIM-2026-992' : permitCtrl.text.trim();
+
+                    // Register to trucksListProvider
+                    final newTruck = TruckItem(
+                      id: 'truck-${DateTime.now().millisecondsSinceEpoch % 10000}',
+                      driver: driver,
+                      vehicle: '${selectedType.label} (${(cap / 1000).toStringAsFixed(1)}T)',
+                      plateNumber: plate,
+                      regNumber: permit,
+                      color: 'Fleet White',
+                      model: model,
+                      from: 'Live Dispatch Corridor',
+                      eta: 'Available Now',
+                      costPerKm: 0.35,
+                      rating: 5.0,
+                      status: 'Ready for dispatch',
+                    );
+                    ref.read(trucksListProvider.notifier).addTruck(newTruck);
+
+                    // Update carrier vehicle profile
+                    final newVehicle = AgriVehicle(
+                      id: 'VEH-${DateTime.now().millisecondsSinceEpoch % 1000}',
+                      ownerId: 'CAR-01',
+                      registrationNumber: plate,
+                      type: selectedType,
+                      tierCapability: LogisticsTier.longDistance,
+                      maxWeightCapacityKg: cap,
+                      hasColdChain: hasColdChain,
+                      model: model,
+                    );
+                    final curProfile = ref.read(agriLogisticsProvider).carrierProfile;
+                    if (curProfile != null) {
+                      ref.read(agriLogisticsProvider.notifier).updateCarrierProfile(
+                            curProfile.copyWith(vehicle: newVehicle),
+                          );
+                    }
+
+                    Navigator.pop(dialogCtx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(child: Text('Fleet Vehicle $plate ($model) registered into active grid! 🚚')),
+                          ],
+                        ),
+                        backgroundColor: green,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_task, size: 16),
+                  label: const Text('Register Truck', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: amber,
+                    foregroundColor: bgDark,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _LiveCorridorGpsMapWidget extends StatefulWidget {
+  final AgriLogisticsState state;
+  const _LiveCorridorGpsMapWidget({required this.state});
+
+  @override
+  State<_LiveCorridorGpsMapWidget> createState() => _LiveCorridorGpsMapWidgetState();
+}
+
+class _LiveCorridorGpsMapWidgetState extends State<_LiveCorridorGpsMapWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  bool _isPlaying = true;
+  double _zoomLevel = 1.0;
+  bool _satelliteMode = false;
+
+  final List<Map<String, dynamic>> _waypoints = [
+    {'name': 'Harare Freight Depot', 'coord': 'Lat -17.8252, Lng 31.0335', 'eta': 'Departed 05:30 AM', 'passed': true, 'progress': 0.0},
+    {'name': 'Beatrice Toll Plaza', 'coord': 'Lat -18.2520, Lng 30.8750', 'eta': 'Cleared Inspection', 'passed': true, 'progress': 0.22},
+    {'name': 'Mvuma Weighbridge & Hub', 'coord': 'Lat -19.2811, Lng 30.5319', 'eta': 'In-Transit (Current GPS)', 'active': true, 'progress': 0.52},
+    {'name': 'Masvingo Grain Depot', 'coord': 'Lat -20.0744, Lng 30.8328', 'eta': 'ETA: 14:15 (On Schedule)', 'progress': 0.74},
+    {'name': 'Beitbridge SADC Gateway', 'coord': 'Lat -22.2167, Lng 30.0000', 'eta': 'ETA: 18:30 (Cross-Border)', 'progress': 1.0},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 16),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const bgDark = Color(0xFF060B14);
+    const cardDark = Color(0xFF0D1626);
+    const cardBorder = Color(0xFF1E293B);
+    const amber = Color(0xFFFF9F1C);
+    const cyan = Color(0xFF00F0FF);
+    const green = Color(0xFF10B981);
+    const textMuted = Color(0xFF94A3B8);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Live Map Radar Canvas Container
+          Container(
+            height: 380,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: _satelliteMode ? const Color(0xFF071018) : bgDark,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: cyan.withOpacity(0.4), width: 1.5),
+              boxShadow: [
+                BoxShadow(color: cyan.withOpacity(0.08), blurRadius: 20, spreadRadius: 2),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Animated Custom Map Painter
+                AnimatedBuilder(
+                  animation: _animController,
+                  builder: (context, child) {
+                    final t = _isPlaying ? _animController.value : 0.52;
+                    return CustomPaint(
+                      size: Size.infinite,
+                      painter: _TransitCorridorPainter(
+                        animationValue: t,
+                        satelliteMode: _satelliteMode,
+                        zoom: _zoomLevel,
+                      ),
+                    );
+                  },
+                ),
+
+                // Top GPS HUD Bar
+                Positioned(
+                  top: 14,
+                  left: 14,
+                  right: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: cardDark.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.satellite_alt_rounded, color: cyan, size: 18),
+                        const SizedBox(width: 8),
+                        AnimatedBuilder(
+                          animation: _animController,
+                          builder: (context, _) {
+                            final lat = -18.2520 - (_animController.value * 2.2);
+                            final lng = 30.8750 - (_animController.value * 0.4);
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'A5 SADC Transit Corridor • Live GPS Stream',
+                                  style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                                Text(
+                                  'Coords: [${lat.toStringAsFixed(4)}° S, ${lng.toStringAsFixed(4)}° E] • 18 Sats (RTK Fixed 0.3m)',
+                                  style: const TextStyle(color: cyan, fontSize: 10.5, fontFamily: 'monospace'),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: green.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: green),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircleAvatar(backgroundColor: green, radius: 3),
+                              SizedBox(width: 5),
+                              Text('GPS ACTIVE', style: TextStyle(color: green, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Bottom Floating Telemetry Overlay
+                Positioned(
+                  bottom: 14,
+                  left: 14,
+                  right: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: cardDark.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: cyan.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _hudStat(Icons.speed, 'SPEED', '${widget.state.liveSpeedKmh.toStringAsFixed(1)} km/h', amber),
+                        _hudDivider(),
+                        _hudStat(Icons.ac_unit, 'REEFER TEMP', '+${widget.state.liveReeferTemp.toStringAsFixed(1)} °C', cyan),
+                        _hudDivider(),
+                        _hudStat(Icons.navigation_outlined, 'BEARING', '142° SE', Colors.white),
+                        _hudDivider(),
+                        _hudStat(Icons.local_gas_station_outlined, 'FUEL', '84% (420L)', green),
+                        _hudDivider(),
+                        _hudStat(Icons.timer_outlined, 'REMAINING', '238 km (3h 18m)', Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Interactive Controls (Right Side)
+                Positioned(
+                  right: 14,
+                  top: 72,
+                  child: Column(
+                    children: [
+                      _mapBtn(
+                        icon: _isPlaying ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                        tooltip: 'Play/Pause GPS Simulator',
+                        color: amber,
+                        onTap: () => setState(() => _isPlaying = !_isPlaying),
+                      ),
+                      const SizedBox(height: 8),
+                      _mapBtn(
+                        icon: _satelliteMode ? Icons.map_outlined : Icons.satellite_outlined,
+                        tooltip: 'Toggle Satellite/Radar HUD Mode',
+                        color: cyan,
+                        onTap: () => setState(() => _satelliteMode = !_satelliteMode),
+                      ),
+                      const SizedBox(height: 8),
+                      _mapBtn(
+                        icon: Icons.zoom_in,
+                        tooltip: 'Zoom In',
+                        color: Colors.white,
+                        onTap: () => setState(() => _zoomLevel = (_zoomLevel + 0.2).clamp(0.8, 1.8)),
+                      ),
+                      const SizedBox(height: 8),
+                      _mapBtn(
+                        icon: Icons.zoom_out,
+                        tooltip: 'Zoom Out',
+                        color: Colors.white,
+                        onTap: () => setState(() => _zoomLevel = (_zoomLevel - 0.2).clamp(0.8, 1.8)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Corridor Waypoint Pipeline Tracker
+          Text('Corridor Waypoints & Cargo Seal Status', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 4),
+          const Text('Live electronic seal (e-Seal) and GPS telemetry checkpoints along the transport route.', style: TextStyle(fontSize: 11.5, color: textMuted)),
+          const SizedBox(height: 12),
+
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _waypoints.length,
+              separatorBuilder: (_, __) => const Divider(color: cardBorder, height: 20),
+              itemBuilder: (context, idx) {
+                final wp = _waypoints[idx];
+                final isPassed = wp['passed'] == true;
+                final isActive = wp['active'] == true;
+
+                return Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: isPassed ? green.withOpacity(0.18) : (isActive ? amber.withOpacity(0.2) : bgDark),
+                      child: Icon(
+                        isPassed ? Icons.check_circle : (isActive ? Icons.navigation_rounded : Icons.radio_button_unchecked),
+                        size: 16,
+                        color: isPassed ? green : (isActive ? amber : textMuted),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(wp['name'], style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text(wp['coord'], style: const TextStyle(fontSize: 10.5, color: textMuted, fontFamily: 'monospace')),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isPassed ? green.withOpacity(0.12) : (isActive ? amber.withOpacity(0.15) : bgDark),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: isPassed ? green.withOpacity(0.4) : (isActive ? amber : cardBorder)),
+                      ),
+                      child: Text(
+                        wp['eta'],
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isPassed ? green : (isActive ? amber : textMuted),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _hudStat(IconData icon, String label, String value, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+            Text(label, style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(value, style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white)),
+      ],
+    );
+  }
+
+  Widget _hudDivider() => Container(height: 24, width: 1, color: const Color(0xFF1E293B));
+
+  Widget _mapBtn({required IconData icon, required String tooltip, required Color color, required VoidCallback onTap}) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D1626).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransitCorridorPainter extends CustomPainter {
+  final double animationValue;
+  final bool satelliteMode;
+  final double zoom;
+
+  _TransitCorridorPainter({
+    required this.animationValue,
+    required this.satelliteMode,
+    required this.zoom,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..color = satelliteMode ? const Color(0xFF102A45).withOpacity(0.3) : const Color(0xFF1E293B).withOpacity(0.35)
+      ..strokeWidth = 1.0;
+
+    // Draw Radar/GIS Grid
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    // Corridor Points across canvas
+    final points = [
+      Offset(size.width * 0.12, size.height * 0.35),
+      Offset(size.width * 0.28, size.height * 0.42),
+      Offset(size.width * 0.46, size.height * 0.55),
+      Offset(size.width * 0.68, size.height * 0.65),
+      Offset(size.width * 0.88, size.height * 0.78),
+    ];
+
+    // Draw Glow Background Corridor Polyline
+    final glowPaint = Paint()
+      ..color = const Color(0xFF00F0FF).withOpacity(0.25)
+      ..strokeWidth = 8.0
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final roadPaint = Paint()
+      ..color = const Color(0xFF00F0FF)
+      ..strokeWidth = 3.0
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+
+    canvas.drawPath(path, glowPaint);
+    canvas.drawPath(path, roadPaint);
+
+    // Draw Waypoint nodes
+    final nodePaint = Paint()..color = const Color(0xFFFF9F1C);
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+
+    final nodeLabels = ['Harare', 'Beatrice', 'Mvuma Hub', 'Masvingo', 'Beitbridge'];
+    for (int i = 0; i < points.length; i++) {
+      canvas.drawCircle(points[i], 5.0, nodePaint);
+      canvas.drawCircle(points[i], 8.0, Paint()..color = const Color(0xFFFF9F1C).withOpacity(0.3)..style = PaintingStyle.stroke..strokeWidth = 2);
+
+      textPainter.text = TextSpan(
+        text: nodeLabels[i],
+        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(points[i].dx - (textPainter.width / 2), points[i].dy - 18));
+    }
+
+    // Calculate current truck position along polyline based on animationValue
+    final totalSegments = points.length - 1;
+    final segFloat = animationValue * totalSegments;
+    final segIdx = segFloat.floor().clamp(0, totalSegments - 1);
+    final segFraction = (segFloat - segIdx).clamp(0.0, 1.0);
+
+    final currentPos = Offset(
+      points[segIdx].dx + (points[segIdx + 1].dx - points[segIdx].dx) * segFraction,
+      points[segIdx].dy + (points[segIdx + 1].dy - points[segIdx].dy) * segFraction,
+    );
+
+    // Pulse Ring around vehicle
+    canvas.drawCircle(
+      currentPos,
+      18.0 + (animationValue * 10),
+      Paint()..color = const Color(0xFFFF9F1C).withOpacity((1.0 - animationValue).clamp(0.0, 0.6))..style = PaintingStyle.stroke..strokeWidth = 2,
+    );
+
+    // Vehicle Core Marker
+    canvas.drawCircle(currentPos, 10.0, Paint()..color = const Color(0xFFFF9F1C));
+    canvas.drawCircle(currentPos, 4.0, Paint()..color = Colors.white);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TransitCorridorPainter oldDelegate) =>
+      oldDelegate.animationValue != animationValue ||
+      oldDelegate.satelliteMode != satelliteMode ||
+      oldDelegate.zoom != zoom;
 }

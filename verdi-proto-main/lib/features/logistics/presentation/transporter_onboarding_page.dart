@@ -27,19 +27,19 @@ class _TransporterOnboardingPageState extends ConsumerState<TransporterOnboardin
   int _currentStep = 0;
 
   // Step 1 Controllers
-  final _carrierNameCtrl = TextEditingController(text: 'Chinhoyi Express Heavy Haul & Reefer');
-  final _phoneCtrl = TextEditingController(text: '+263 77 902 1140');
+  final _carrierNameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   LogisticsTier _selectedTier = LogisticsTier.longDistance;
 
   // Step 2 Controllers
   VehicleType _selectedVehicleType = VehicleType.reeferContainer;
-  final _plateCtrl = TextEditingController(text: 'AEB-2910');
-  final _capacityCtrl = TextEditingController(text: '30000');
+  final _plateCtrl = TextEditingController();
+  final _capacityCtrl = TextEditingController();
   bool _hasColdChain = true;
 
   // Step 3 Controllers
-  final _licenseCtrl = TextEditingController(text: 'DL-ZIM-2026-99120');
-  final _eudrPermitCtrl = TextEditingController(text: 'EUDR-LOG-ZIM-2026-88');
+  final _licenseCtrl = TextEditingController();
+  final _eudrPermitCtrl = TextEditingController();
   bool _agreedToTerms = true;
 
   @override
@@ -259,9 +259,9 @@ class _TransporterOnboardingPageState extends ConsumerState<TransporterOnboardin
         const Text('Configure your carrier entity and choose your primary agricultural logistics domain.', style: TextStyle(fontSize: 12, color: textMuted)),
         const SizedBox(height: 20),
 
-        _inputField('Carrier / Fleet Business Name', _carrierNameCtrl, Icons.business_outlined),
+        _inputField('Carrier / Fleet Business Name', _carrierNameCtrl, Icons.business_outlined, hint: 'e.g. Chinhoyi Heavy Haulage Ltd'),
         const SizedBox(height: 14),
-        _inputField('Dispatch Contact Phone', _phoneCtrl, Icons.phone_outlined),
+        _inputField('Dispatch Contact Phone', _phoneCtrl, Icons.phone_outlined, hint: 'e.g. +263 77 902 1140', keyboardType: TextInputType.phone),
         const SizedBox(height: 20),
 
         Text('Primary Operating Tier', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -347,16 +347,17 @@ class _TransporterOnboardingPageState extends ConsumerState<TransporterOnboardin
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFF070B12),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: cardBorder)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: cardBorder)),
           ),
         ),
         const SizedBox(height: 14),
 
         Row(
           children: [
-            Expanded(child: _inputField('Vehicle Plate / SADC Reg', _plateCtrl, Icons.badge_outlined)),
+            Expanded(child: _inputField('Vehicle Plate / SADC Reg', _plateCtrl, Icons.badge_outlined, hint: 'e.g. AEB-2910')),
             const SizedBox(width: 12),
-            Expanded(child: _inputField('Max Weight Payload (kg)', _capacityCtrl, Icons.scale_outlined)),
+            Expanded(child: _inputField('Max Weight Payload (kg)', _capacityCtrl, Icons.scale_outlined, hint: 'e.g. 30000', keyboardType: TextInputType.number)),
           ],
         ),
         const SizedBox(height: 16),
@@ -406,9 +407,9 @@ class _TransporterOnboardingPageState extends ConsumerState<TransporterOnboardin
         const Text('Confirm regulatory compliance for cross-border corridor access and verified badge eligibility.', style: TextStyle(fontSize: 12, color: textMuted)),
         const SizedBox(height: 20),
 
-        _inputField('Driver Commercial License ID', _licenseCtrl, Icons.credit_card_outlined),
+        _inputField('Driver Commercial License ID', _licenseCtrl, Icons.credit_card_outlined, hint: 'e.g. DL-ZIM-2026-99120'),
         const SizedBox(height: 14),
-        _inputField('EUDR Carrier Provenance Permit', _eudrPermitCtrl, Icons.verified_user_outlined),
+        _inputField('EUDR Carrier Provenance Permit', _eudrPermitCtrl, Icons.verified_user_outlined, hint: 'e.g. EUDR-LOG-ZIM-2026-88'),
         const SizedBox(height: 20),
 
         Container(
@@ -443,17 +444,22 @@ class _TransporterOnboardingPageState extends ConsumerState<TransporterOnboardin
     );
   }
 
-  Widget _inputField(String label, TextEditingController ctrl, IconData icon) {
+  Widget _inputField(String label, TextEditingController ctrl, IconData icon, {String? hint, TextInputType? keyboardType}) {
     return TextField(
       controller: ctrl,
+      keyboardType: keyboardType,
       style: const TextStyle(color: Colors.white, fontSize: 13),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+        hintText: hint,
+        hintStyle: TextStyle(color: textMuted.withOpacity(0.35), fontSize: 12),
         prefixIcon: Icon(icon, color: amber, size: 18),
         filled: true,
         fillColor: const Color(0xFF070B12),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: cardBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: cardBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: amber)),
       ),
     );
   }

@@ -326,6 +326,8 @@ class MasterWaybill {
     this.isVerifiedCarrier = true,
     this.carrierMetadata = const {},
   });
+
+  double get totalQuantityKg => items.fold(0.0, (sum, item) => sum + item.loadedWeightKg);
 }
 
 class CarrierProfile {
@@ -358,4 +360,34 @@ class CarrierProfile {
   });
 
   bool get qualifiesForVerifiedBadge => completedTripsCount >= 20 || isVerifiedBadge;
+
+  CarrierProfile copyWith({
+    String? id,
+    String? carrierName,
+    String? phone,
+    String? email,
+    LogisticsTier? operatingTier,
+    AgriVehicle? vehicle,
+    bool? isVerifiedBadge,
+    int? completedTripsCount,
+    double? rating,
+    CarrierDutyStatus? dutyStatus,
+    double? walletBalance,
+    String? eudrPermitCode,
+  }) {
+    return CarrierProfile(
+      id: id ?? this.id,
+      carrierName: carrierName ?? this.carrierName,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      operatingTier: operatingTier ?? this.operatingTier,
+      vehicle: vehicle ?? this.vehicle,
+      isVerifiedBadge: isVerifiedBadge ?? this.isVerifiedBadge,
+      completedTripsCount: completedTripsCount ?? this.completedTripsCount,
+      rating: rating ?? this.rating,
+      dutyStatus: dutyStatus ?? this.dutyStatus,
+      walletBalance: walletBalance ?? this.walletBalance,
+      eudrPermitCode: eudrPermitCode ?? this.eudrPermitCode,
+    );
+  }
 }

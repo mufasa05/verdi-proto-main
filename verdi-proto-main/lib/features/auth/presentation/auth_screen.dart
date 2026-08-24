@@ -93,7 +93,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   void _showSmsOtpDialog({required String phone, required Future<void> Function() onVerified}) {
-    final otpController = TextEditingController(text: '482910');
+    final otpController = TextEditingController();
     final String simulatedOtp = '482910';
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -134,7 +134,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 textAlign: TextAlign.center,
                 decoration: InputDecoration(
                   labelText: '6-Digit OTP Code',
-                  hintText: '482910',
+                  hintText: 'e.g. 482910',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),

@@ -3136,17 +3136,6 @@ class _ReferenceDesktopPanel extends ConsumerWidget {
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(fontSize: 11.5, color: _MarketplacePageState.muted),
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: onOpenTransport,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _MarketplacePageState.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text('Register as Transporter', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                  ),
                 ],
               ],
             ],
