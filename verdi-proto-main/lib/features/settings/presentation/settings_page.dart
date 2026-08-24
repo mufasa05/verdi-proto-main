@@ -664,6 +664,77 @@ class _GeneralSettingsTab extends ConsumerWidget {
               const SizedBox(height: 12),
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6366F1).withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.palette_outlined, color: Color(0xFF6366F1), size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Appearance & Theme Mode',
+                                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                                const Text(
+                                  'Select your visual theme preference for all platform modules.',
+                                  style: TextStyle(fontSize: 11.5, color: SettingsPage.muted),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          _buildThemeButton(
+                            context: context,
+                            ref: ref,
+                            title: 'Light Mode',
+                            icon: Icons.light_mode_rounded,
+                            mode: ThemeMode.light,
+                            currentMode: ref.watch(themeModeProvider),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildThemeButton(
+                            context: context,
+                            ref: ref,
+                            title: 'Dark Mode',
+                            icon: Icons.dark_mode_rounded,
+                            mode: ThemeMode.dark,
+                            currentMode: ref.watch(themeModeProvider),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildThemeButton(
+                            context: context,
+                            ref: ref,
+                            title: 'System Auto',
+                            icon: Icons.brightness_auto_rounded,
+                            mode: ThemeMode.system,
+                            currentMode: ref.watch(themeModeProvider),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
                   onTap: () => _showNotificationPreferencesDialog(context),
                   leading: Container(
@@ -758,6 +829,55 @@ class _GeneralSettingsTab extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeButton({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String title,
+    required IconData icon,
+    required ThemeMode mode,
+    required ThemeMode currentMode,
+  }) {
+    final isSelected = currentMode == mode;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          ref.read(appStateProvider.notifier).setThemeMode(mode);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? SettingsPage.green.withOpacity(0.12) : const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? SettingsPage.green : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? SettingsPage.green : const Color(0xFF64748B),
+                size: 22,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? SettingsPage.green : const Color(0xFF334155),
+                ),
+              ),
             ],
           ),
         ),
@@ -1808,8 +1928,93 @@ class _ConsumerSettingsTabState extends ConsumerState<_ConsumerSettingsTab> {
               }).toList(),
             ),
           ),
+          const SizedBox(height: 20),
+
+          // 6. Appearance & Theme Mode
+          _buildSectionHeader(Icons.palette_outlined, 'Appearance & Theme Mode'),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                _buildConsumerThemeButton(
+                  title: 'Light Mode',
+                  icon: Icons.light_mode_rounded,
+                  mode: ThemeMode.light,
+                  currentMode: ref.watch(themeModeProvider),
+                  onSelect: (m) => notifier.setThemeMode(m),
+                ),
+                const SizedBox(width: 8),
+                _buildConsumerThemeButton(
+                  title: 'Dark Mode',
+                  icon: Icons.dark_mode_rounded,
+                  mode: ThemeMode.dark,
+                  currentMode: ref.watch(themeModeProvider),
+                  onSelect: (m) => notifier.setThemeMode(m),
+                ),
+                const SizedBox(width: 8),
+                _buildConsumerThemeButton(
+                  title: 'System Auto',
+                  icon: Icons.brightness_auto_rounded,
+                  mode: ThemeMode.system,
+                  currentMode: ref.watch(themeModeProvider),
+                  onSelect: (m) => notifier.setThemeMode(m),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 32),
         ],
+      ),
+    );
+  }
+
+  Widget _buildConsumerThemeButton({
+    required String title,
+    required IconData icon,
+    required ThemeMode mode,
+    required ThemeMode currentMode,
+    required ValueChanged<ThemeMode> onSelect,
+  }) {
+    final isSelected = currentMode == mode;
+    return Expanded(
+      child: InkWell(
+        onTap: () => onSelect(mode),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF10B981).withOpacity(0.12) : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? const Color(0xFF10B981) : const Color(0xFF64748B),
+                size: 22,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? const Color(0xFF10B981) : const Color(0xFF334155),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

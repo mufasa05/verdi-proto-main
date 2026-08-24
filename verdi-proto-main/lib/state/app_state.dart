@@ -191,6 +191,7 @@ class AppState {
   final int navIndex;
   final AppCurrency currency;
   final bool isDemoMode;
+  final ThemeMode themeMode;
 
   const AppState({
     required this.role,
@@ -198,6 +199,7 @@ class AppState {
     required this.navIndex,
     this.currency = AppCurrency.zig,
     this.isDemoMode = false,
+    this.themeMode = ThemeMode.system,
   });
 
   AppState copyWith({
@@ -206,6 +208,7 @@ class AppState {
     int? navIndex,
     AppCurrency? currency,
     bool? isDemoMode,
+    ThemeMode? themeMode,
   }) {
     return AppState(
       role: role ?? this.role,
@@ -213,6 +216,7 @@ class AppState {
       navIndex: navIndex ?? this.navIndex,
       currency: currency ?? this.currency,
       isDemoMode: isDemoMode ?? this.isDemoMode,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -222,6 +226,7 @@ class AppState {
     navIndex: 0,
     currency: AppCurrency.zig,
     isDemoMode: false,
+    themeMode: ThemeMode.system,
   );
 }
 
@@ -229,6 +234,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
   static const _prefDemoModeKey = 'verdi.app.is_demo_mode';
   static const _prefCurrencyKey = 'verdi.app.selected_currency';
   static const _prefBuyerSubRoleKey = 'verdi.app.buyer_sub_role';
+  static const _prefThemeModeKey = 'verdi.app.theme_mode';
 
   AppStateNotifier() : super(AppState.initial) {
     _loadPersistedPreferences();
@@ -241,6 +247,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       final isDemo = hasDemoPref ? (prefs.getBool(_prefDemoModeKey) ?? false) : false;
       final currencyCode = prefs.getString(_prefCurrencyKey);
       final buyerSubRoleName = prefs.getString(_prefBuyerSubRoleKey);
+      final savedThemeMode = prefs.getString(_prefThemeModeKey);
 
       AppCurrency selectedCurrency = AppCurrency.zig;
       if (currencyCode != null) {
@@ -258,10 +265,18 @@ class AppStateNotifier extends StateNotifier<AppState> {
         );
       }
 
+      ThemeMode selectedThemeMode = ThemeMode.system;
+      if (savedThemeMode != null) {
+        if (savedThemeMode == 'light') selectedThemeMode = ThemeMode.light;
+        if (savedThemeMode == 'dark') selectedThemeMode = ThemeMode.dark;
+        if (savedThemeMode == 'system') selectedThemeMode = ThemeMode.system;
+      }
+
       state = state.copyWith(
         isDemoMode: isDemo,
         currency: selectedCurrency,
         buyerSubRole: selectedBuyerSubRole,
+        themeMode: selectedThemeMode,
       );
     } catch (_) {}
   }
@@ -297,6 +312,11 @@ class AppStateNotifier extends StateNotifier<AppState> {
     final newMode = !state.isDemoMode;
     setDemoMode(newMode);
   }
+
+  void setThemeMode(ThemeMode mode) {
+    state = state.copyWith(themeMode: mode);
+    SharedPreferences.getInstance().then((p) => p.setString(_prefThemeModeKey, mode.name)).catchError((_) => false);
+  }
 }
 
 final appStateProvider =
@@ -306,4 +326,8 @@ final appStateProvider =
 
 final isDemoModeProvider = Provider<bool>((ref) {
   return ref.watch(appStateProvider).isDemoMode;
+});
+
+final themeModeProvider = Provider<ThemeMode>((ref) {
+  return ref.watch(appStateProvider).themeMode;
 });
