@@ -12,9 +12,9 @@ class _PaymentRoleTab {
   const _PaymentRoleTab(this.id, this.label, this.icon);
 }
 
-List<_PaymentRoleTab> _getTabsForRole(UserRole role, BuyerSubRole buyerSubRole) {
-  final isEndUser = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
-  final isB2BWholesaler = role == UserRole.buyer && !isEndUser;
+List<_PaymentRoleTab> _getTabsForRole(UserRole role) {
+  final isEndUser = role == UserRole.consumer;
+  final isB2BWholesaler = role == UserRole.buyer;
 
   if (isEndUser) {
     return const [
@@ -227,11 +227,10 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
     );
 
     final currentRole = ref.watch(appStateProvider).role;
-    final buyerSubRole = ref.watch(appStateProvider).buyerSubRole;
-    final isEndUser = (currentRole == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || currentRole == UserRole.consumer;
-    final isB2BWholesaler = currentRole == UserRole.buyer && !isEndUser;
+    final isEndUser = currentRole == UserRole.consumer;
+    final isB2BWholesaler = currentRole == UserRole.buyer;
 
-    final roleTabs = _getTabsForRole(currentRole, buyerSubRole);
+    final roleTabs = _getTabsForRole(currentRole);
     if (_activeTab >= roleTabs.length) {
       _activeTab = 0;
     }
@@ -1291,9 +1290,8 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(appStateProvider).role;
-    final buyerSubRole = ref.watch(appStateProvider).buyerSubRole;
-    final isEndUser = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
-    final isB2BWholesaler = role == UserRole.buyer && !isEndUser;
+    final isEndUser = role == UserRole.consumer;
+    final isB2BWholesaler = role == UserRole.buyer;
 
     final title = isEndUser
         ? 'Grocery Payments & Receipts'
@@ -1467,9 +1465,8 @@ class _StatsGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDemo = ref.watch(isDemoModeProvider);
     final role = ref.watch(appStateProvider).role;
-    final buyerSubRole = ref.watch(appStateProvider).buyerSubRole;
-    final isEndUser = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
-    final isB2BWholesaler = role == UserRole.buyer && !isEndUser;
+    final isEndUser = role == UserRole.consumer;
+    final isB2BWholesaler = role == UserRole.buyer;
 
     final List<_StatData> cards;
 

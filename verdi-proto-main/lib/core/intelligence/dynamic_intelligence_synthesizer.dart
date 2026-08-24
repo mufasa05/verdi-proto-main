@@ -56,9 +56,7 @@ class DynamicIntelligenceSynthesizer {
       case UserRole.transporter:
         return _synthesizeTransporterInsights(trucks, orders, isDemo);
       case UserRole.buyer:
-        return buyerSubRole == BuyerSubRole.endUserCustomer
-            ? _synthesizeConsumerInsights(orders, isDemo)
-            : _synthesizeBuyerInsights(orders, isDemo);
+        return _synthesizeBuyerInsights(orders, isDemo);
       case UserRole.financier:
         return _synthesizeFinancierInsights(payments, isDemo);
       case UserRole.government:

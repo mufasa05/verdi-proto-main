@@ -21,40 +21,40 @@ enum UserRole {
   /// Human-readable display label.
   String get label => switch (this) {
         UserRole.farmer => 'Farmer',
-        UserRole.buyer => 'Buyer',
+        UserRole.buyer => 'Commercial Buyer (B2B)',
         UserRole.admin => 'Admin',
         UserRole.transporter => 'Transporter',
         UserRole.valueAdder => 'Value Adder',
         UserRole.expert => 'Agri-Expert',
         UserRole.financier => 'Financial Institution',
         UserRole.government => 'Government / NGO',
-        UserRole.consumer => 'Consumer',
+        UserRole.consumer => 'Consumer (End-User)',
       };
 
   /// Short role category tag shown in banners/chips.
   String get categoryTag => switch (this) {
         UserRole.farmer => 'Supply-side',
-        UserRole.buyer => 'Demand-side',
+        UserRole.buyer => 'B2B Enterprise',
         UserRole.transporter => 'Logistics',
         UserRole.admin => 'Platform Admin',
         UserRole.valueAdder => 'Value Chain',
         UserRole.expert => 'Advisory',
         UserRole.financier => 'Financial Services',
         UserRole.government => 'Public Sector',
-        UserRole.consumer => 'End Consumer',
+        UserRole.consumer => 'Retail & Household',
       };
 
   /// Material icon for each role.
   IconData get icon => switch (this) {
         UserRole.farmer => Icons.agriculture_outlined,
-        UserRole.buyer => Icons.shopping_cart_outlined,
+        UserRole.buyer => Icons.storefront_outlined,
         UserRole.transporter => Icons.local_shipping_outlined,
         UserRole.admin => Icons.admin_panel_settings_outlined,
         UserRole.valueAdder => Icons.factory_outlined,
         UserRole.expert => Icons.science_outlined,
         UserRole.financier => Icons.account_balance_outlined,
         UserRole.government => Icons.account_balance_wallet_outlined,
-        UserRole.consumer => Icons.person_outline,
+        UserRole.consumer => Icons.shopping_basket_outlined,
       };
 
   /// Short description of what this role does on the platform.
@@ -62,7 +62,7 @@ enum UserRole {
         UserRole.farmer =>
           'Sell produce, access markets, view prices, request transport.',
         UserRole.buyer =>
-          'Browse produce, place orders, schedule deliveries.',
+          'Bulk lot procurement, outgrower contracts, wholesale trade desk, and commercial escrow.',
         UserRole.transporter =>
           'Manage fleet, register vehicles, assign drivers & track shipments.',
         UserRole.admin =>
@@ -76,7 +76,7 @@ enum UserRole {
         UserRole.government =>
           'Access data, monitor farmer activity, support programs.',
         UserRole.consumer =>
-          'Buy directly from farmers or retailers.',
+          'Farm-to-table fresh produce, consumer grocery basket, direct courier delivery & EcoCash wallet.',
       };
 
   /// Whether this role has full analytics access.

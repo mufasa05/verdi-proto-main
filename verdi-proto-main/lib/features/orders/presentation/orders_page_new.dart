@@ -196,8 +196,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
 
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 1100;
-
-    final isEndUserCustomer = (currentRole == UserRole.buyer && ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer) || currentRole == UserRole.consumer;
+    final isEndUserCustomer = currentRole == UserRole.consumer;
 
     final stats = isTransporter
         ? [

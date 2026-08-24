@@ -706,10 +706,8 @@ class _PriorityQueueSection extends ConsumerWidget {
       ];
     }
 
-    if (role == UserRole.buyer || role == UserRole.consumer) {
-      final isEndUser = (role == UserRole.buyer && ref.watch(appStateProvider).buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
-      if (isEndUser) {
-        if (!isDemo) {
+    if (role == UserRole.consumer) {
+      if (!isDemo) {
           return [
             _PriorityCard(
               badgeLabel: 'MARKETPLACE',
@@ -762,8 +760,10 @@ class _PriorityQueueSection extends ConsumerWidget {
             buttonLabel: 'View Deal',
             onTap: () => notifier.setNavIndex(1),
           ),
-        ];
-      }
+      ];
+    }
+
+    if (role == UserRole.buyer) {
       if (!isDemo) {
         return [
           _PriorityCard(
@@ -1064,14 +1064,6 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
     }
 
     if (role == UserRole.buyer) {
-      if (buyerSubRole == BuyerSubRole.endUserCustomer) {
-        return const [
-          _QuickActionConfig('Fresh Grocery Store', 'Farm-to-table produce', Icons.storefront_outlined, Color(0xFF16A34A), 1),
-          _QuickActionConfig('Track Deliveries', 'InDrive live ETA & orders', Icons.local_shipping_outlined, Color(0xFF2563EB), 4),
-          _QuickActionConfig('Direct Messenger', 'Chat with drivers & farmers', Icons.message_outlined, Color(0xFF7C3AED), 2),
-          _QuickActionConfig('Household Savings', 'Grocery spending analytics', Icons.insights_outlined, Color(0xFFF97316), 3),
-        ];
-      }
       return const [
         _QuickActionConfig('Wholesale Marketplace', 'Bulk produce sourcing', Icons.storefront_outlined, Color(0xFF16A34A), 1),
         _QuickActionConfig('Trade Intelligence', 'Forward procurement desk', Icons.work_outline, Color(0xFF2563EB), 19),

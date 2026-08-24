@@ -42,8 +42,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> with SingleTickerPr
     final buyerSubRole = state.buyerSubRole;
     final isAdmin = role == UserRole.admin;
     final isTransporter = role == UserRole.transporter;
-    final isBuyerB2B = role == UserRole.buyer && buyerSubRole == BuyerSubRole.retailerWholesaler;
-    final isEndUser = (role == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || role == UserRole.consumer;
+    final isBuyerB2B = role == UserRole.buyer;
+    final isEndUser = role == UserRole.consumer;
 
     if (isBuyerB2B) {
       return Scaffold(
@@ -1580,14 +1580,14 @@ class _CommercialBuyerSettingsTabState extends ConsumerState<_CommercialBuyerSet
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () async {
-                    final chosen = await BuyerSubRoleDialog.show(context, current: state.buyerSubRole);
-                    if (chosen != null) {
-                      notifier.setBuyerSubRole(chosen);
-                    }
+                  onPressed: () {
+                    notifier.setRole(UserRole.consumer);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Switched to Consumer (End-User) Workspace')),
+                    );
                   },
                   icon: const Icon(Icons.swap_horiz, size: 16),
-                  label: const Text('Switch Role', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  label: const Text('Switch to Consumer', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0F172A),
                     foregroundColor: Colors.white,
@@ -1778,14 +1778,14 @@ class _ConsumerSettingsTabState extends ConsumerState<_ConsumerSettingsTab> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () async {
-                    final chosen = await BuyerSubRoleDialog.show(context, current: state.buyerSubRole);
-                    if (chosen != null) {
-                      notifier.setBuyerSubRole(chosen);
-                    }
+                  onPressed: () {
+                    notifier.setRole(UserRole.buyer);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Switched to Commercial Buyer (B2B) Workspace')),
+                    );
                   },
                   icon: const Icon(Icons.swap_horiz, size: 16),
-                  label: const Text('Switch Role', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  label: const Text('Switch to B2B', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F172A), foregroundColor: Colors.white),
                 ),
               ],

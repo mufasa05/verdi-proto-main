@@ -349,17 +349,12 @@ class Sidebar extends ConsumerWidget {
               item.index == 24;
 
         case UserRole.buyer:
-          if (isEndUserCustomer) {
-            // End-user / direct consumer:
-            // Remove: Analytics (3), Trade (19), Traceability (15), News (24), Verdi Logistics OS (5), Notifications (7)
-            // Keep: Orders (4), Payments (6)
-            return item.index == 4 || item.index == 6;
-          } else {
-            // Buyer B2B (Retailer / Wholesaler):
-            // Remove: Verdi Logistics OS (5), Notifications (7), News (24)
-            // Keep: Analytics (3), Orders (4), Payments (6), Traceability (15), Trade (19)
-            return item.index == 3 || item.index == 4 || item.index == 6 || item.index == 15 || item.index == 19;
-          }
+          // Commercial Buyer (B2B): Analytics (3), Orders (4), Payments (6), Traceability (15), Trade (19)
+          return item.index == 3 || item.index == 4 || item.index == 6 || item.index == 15 || item.index == 19;
+
+        case UserRole.consumer:
+          // Consumer (End-User): Orders (4), Payments (6)
+          return item.index == 4 || item.index == 6;
 
         case UserRole.financier:
           return item.index == 3 || item.index == 6 || item.index == 16;

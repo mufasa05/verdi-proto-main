@@ -396,8 +396,8 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
     final isSuperAdmin = realRole == UserRole.admin;
     final effectiveRole = isSuperAdmin ? (_perspectiveOverride ?? UserRole.admin) : realRole;
 
-    final isB2BBuyer = effectiveRole == UserRole.buyer && buyerSubRole == BuyerSubRole.retailerWholesaler;
-    final isEndUser = (effectiveRole == UserRole.buyer && buyerSubRole == BuyerSubRole.endUserCustomer) || effectiveRole == UserRole.consumer;
+    final isB2BBuyer = effectiveRole == UserRole.buyer;
+    final isEndUser = effectiveRole == UserRole.consumer;
 
     if (isB2BBuyer) {
       return _B2BBuyerAnalyticsView(
