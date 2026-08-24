@@ -355,17 +355,19 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildTabChip(0, '🏛️ Multi-Tier Banking & Virtual Accounts', Icons.account_balance_outlined),
+                    _buildTabChip(0, '⭐ Super Master Finance Cockpit', Icons.space_dashboard_outlined),
                     const SizedBox(width: 8),
-                    _buildTabChip(1, '🔒 Universal Escrow & Multi-Party Split', Icons.lock_clock_outlined),
+                    _buildTabChip(1, '🏛️ Multi-Tier Banking & Virtual Accounts', Icons.account_balance_outlined),
                     const SizedBox(width: 8),
-                    _buildTabChip(2, '🛡️ Dual-Speed Credit & eWRS Collateral (${_pendingLoans.length})', Icons.verified_user_outlined),
+                    _buildTabChip(2, '🔒 Universal Escrow & Multi-Party Split', Icons.lock_clock_outlined),
                     const SizedBox(width: 8),
-                    _buildTabChip(3, '📊 Portfolio Health & Syndicate', Icons.donut_large_outlined),
+                    _buildTabChip(3, '🛡️ Dual-Speed Credit & eWRS Vault (${_pendingLoans.length})', Icons.verified_user_outlined),
                     const SizedBox(width: 8),
-                    _buildTabChip(4, '📜 Tiered KYC/KYB & Compliance', Icons.gavel_outlined),
+                    _buildTabChip(4, '📊 Portfolio Analytics & Risk Syndicate', Icons.donut_large_outlined),
                     const SizedBox(width: 8),
-                    _buildTabChip(5, '⚡ Policy Simulator & Creator Income', Icons.tune_outlined),
+                    _buildTabChip(5, '📜 Tiered KYC/KYB & Compliance', Icons.gavel_outlined),
+                    const SizedBox(width: 8),
+                    _buildTabChip(6, '⚙️ Institutional Settings & Policy Simulator', Icons.tune_outlined),
                   ],
                 ),
               ),
@@ -385,12 +387,13 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_activeTab == 0) _buildMultiTierBankingTab(isDesktop),
-                        if (_activeTab == 1) _buildUniversalEscrowTab(isDesktop),
-                        if (_activeTab == 2) _buildDualSpeedCreditTab(isDesktop),
-                        if (_activeTab == 3) _buildPortfolioRiskTab(isDesktop),
-                        if (_activeTab == 4) _buildKycComplianceTab(isDesktop),
-                        if (_activeTab == 5) _buildPolicyAndCreatorTab(),
+                        if (_activeTab == 0) _buildSuperMasterFinanceTab(isDesktop),
+                        if (_activeTab == 1) _buildMultiTierBankingTab(isDesktop),
+                        if (_activeTab == 2) _buildUniversalEscrowTab(isDesktop),
+                        if (_activeTab == 3) _buildDualSpeedCreditTab(isDesktop),
+                        if (_activeTab == 4) _buildPortfolioRiskTab(isDesktop),
+                        if (_activeTab == 5) _buildKycComplianceTab(isDesktop),
+                        if (_activeTab == 6) _buildPolicyAndCreatorTab(),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -435,7 +438,494 @@ class _FinancePageState extends ConsumerState<FinancePage> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // TAB 0: MULTI-TIER BANKING & VIRTUAL ACCOUNTS
+  // TAB 0: SUPER MASTER FINANCE COCKPIT
+  // ───────────────────────────────────────────────────────────────────────────
+
+  Widget _buildSuperMasterFinanceTab(bool isDesktop) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Executive Master Command Hero Card
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFF334155)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16A34A).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.shield, color: Color(0xFF22C55E), size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'SUPER MASTER TREASURY COMMAND CENTER',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF38BDF8),
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF22C55E),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'ISO 20022 LIVE DIRECT • 12ms PING',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '\$14,280,000.00',
+                    style: GoogleFonts.inter(
+                      fontSize: isDesktop ? 36 : 28,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'USD TOTAL AUM',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF38BDF8),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Master Proportion Allocation Bar
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 8,
+                  child: Row(
+                    children: [
+                      Expanded(flex: 17, child: Container(color: const Color(0xFF22C55E))),
+                      Expanded(flex: 34, child: Container(color: const Color(0xFF38BDF8))),
+                      Expanded(flex: 36, child: Container(color: const Color(0xFF818CF8))),
+                      Expanded(flex: 13, child: Container(color: const Color(0xFFFBBF24))),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                children: [
+                  _treasuryHeroBadge('Smallholder Pool: \$2.42M', Icons.nature_people_outlined),
+                  _treasuryHeroBadge('Aggregator Vault: \$4.85M', Icons.store_outlined),
+                  _treasuryHeroBadge('Off-taker Escrow: \$12.50M', Icons.account_balance_outlined),
+                  _treasuryHeroBadge('Input Suppliers: \$1.80M', Icons.shopping_bag_outlined),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Quick Command Action Desk
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _showBulkPaymentModal(),
+                icon: const Icon(Icons.flash_on, size: 16),
+                label: const Text('Execute Bulk Outgrower Payouts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _showLiquiditySweepModal(),
+                icon: const Icon(Icons.sync_alt, size: 16, color: dark),
+                label: const Text('Trigger EOD Liquidity Sweep', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: dark)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: dark),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _exportTreasuryAuditReport,
+                icon: const Icon(Icons.picture_as_pdf, size: 16),
+                label: const Text('Export Audit Statement', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: dark,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Master Quad Institutional Overview
+        Text(
+          'Master Institutional Command Quad',
+          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: dark),
+        ),
+        Text(
+          'Unified executive summary of digital wallets, escrow smart contracts, loan underwriting, and risk syndicates.',
+          style: GoogleFonts.inter(fontSize: 12, color: muted),
+        ),
+        const SizedBox(height: 16),
+
+        GridView.count(
+          crossAxisCount: isDesktop ? 2 : 1,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: isDesktop ? 1.6 : 1.3,
+          children: [
+            // Quad 1: Open Banking & vIBAN Accounts
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('🏛️ Banking & Virtual Accounts', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: dark)),
+                      TextButton(
+                        onPressed: () => setState(() => _activeTab = 1),
+                        child: const Text('View All (4)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: green)),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 10),
+                  _masterAccountTile('ZW-CBZ-8894-001', 'Kudakwashe Moyo', '\$2,450 USD', 'CBZ Bank'),
+                  _masterAccountTile('ZW-AGRI-1001-BYR', 'FreshMart Procurement', '\$145,000 USD', 'Stanbic'),
+                  _masterAccountTile('ZW-STB-4412-TRP', 'Tafadzwa Freight', '\$18,920 USD', 'AFC Agribank'),
+                ],
+              ),
+            ),
+
+            // Quad 2: Universal Smart Escrow Engine
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('🔒 Active Escrow Node (#ESC-1001)', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: dark)),
+                      TextButton(
+                        onPressed: () => setState(() => _activeTab = 2),
+                        child: const Text('Escrow Desk', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: green)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Grade-A Sugar Beans • Locked: \$14,500.00 USD', style: GoogleFonts.inter(fontSize: 12, color: muted)),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: SizedBox(
+                      height: 6,
+                      child: Row(
+                        children: [
+                          Expanded(flex: 85, child: Container(color: green)),
+                          Expanded(flex: 10, child: Container(color: const Color(0xFF2563EB))),
+                          Expanded(flex: 5, child: Container(color: dark)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text('• 85% Farmer (\$12,325) • 10% Freight (\$1,450) • 5% Platform (\$725)', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: dark)),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: const [
+                      Icon(Icons.check_circle, color: green, size: 14),
+                      SizedBox(width: 6),
+                      Text('IoT Geofence + Moisture Assay (12.2%) Verified', style: TextStyle(fontSize: 11.5, color: green, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Quad 3: Dual-Speed Credit Underwriting & eWRS
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('🛡️ Credit Desk & eWRS Collateral', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: dark)),
+                      TextButton(
+                        onPressed: () => setState(() => _activeTab = 3),
+                        child: Text('Review (${_pendingLoans.length})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: green)),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(10)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Smallholder AI Scoring', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: dark)),
+                              Text('NDVI Satellite 0.84 • Bullet Repay', style: const TextStyle(fontSize: 10, color: muted)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(10)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Corporate Fleet Financing', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: dark)),
+                              Text('Scania Reefer Fleet • Amortized', style: const TextStyle(fontSize: 10, color: muted)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text('eWRS Vault Collateral: eWRS-9920 Sugar Beans (\$60,000 USD • LTV 75%)', style: const TextStyle(fontSize: 11.5, color: dark, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+
+            // Quad 4: Risk Exposure & Compliance Status
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('📊 Risk Syndicate & KYC Status', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: dark)),
+                      TextButton(
+                        onPressed: () => setState(() => _activeTab = 4),
+                        child: const Text('Syndicate Details', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: green)),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('PAR 30 Days: 0.42%', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: green)),
+                      Text('NPL Default Ratio: 0.05%', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text('Syndicate Risk Share: AFC (40%) • CBZ (35%) • Stanbic (15%) • Verdi (10%)', style: const TextStyle(fontSize: 11, color: muted)),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: const [
+                      Icon(Icons.gavel, color: green, size: 14),
+                      SizedBox(width: 6),
+                      Text('Tier 1-3 Verified • AML Watchlist Screened', style: TextStyle(fontSize: 11.5, color: green, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Institutional Financial Settings Control Card
+        Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.black12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('⚙️ Institutional Settings & Risk Policy Controls', style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w800, color: dark)),
+                      Text('Configure automated disbursement triggers, multi-signature thresholds, and maximum risk limits.', style: GoogleFonts.inter(fontSize: 12, color: muted)),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: dark.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
+                    child: Text('FINANCE GOVERNANCE V2.4', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: dark)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Auto-Disbursement Limit:', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: dark)),
+                        const SizedBox(height: 4),
+                        Text('\$50,000.00 USD per single transaction', style: const TextStyle(fontSize: 11.5, color: muted)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Multi-Sig Approval Threshold:', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: dark)),
+                        const SizedBox(height: 4),
+                        Text('2 of 3 Platform Trustee Sign-offs', style: const TextStyle(fontSize: 11.5, color: muted)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Daily Settlement Cut-Off:', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: dark)),
+                        const SizedBox(height: 4),
+                        Text('17:00 CAT (Central Bank RTGS Window)', style: const TextStyle(fontSize: 11.5, color: muted)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _masterAccountTile(String iban, String name, String balance, String bank) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: dark), overflow: TextOverflow.ellipsis),
+                Text('$iban • $bank', style: const TextStyle(fontSize: 10.5, color: muted)),
+              ],
+            ),
+          ),
+          Text(balance, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w900, color: green)),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // TAB 1: MULTI-TIER BANKING & VIRTUAL ACCOUNTS
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildMultiTierBankingTab(bool isDesktop) {

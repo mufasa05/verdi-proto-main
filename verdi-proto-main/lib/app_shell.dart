@@ -324,6 +324,11 @@ class Sidebar extends ConsumerWidget {
     final filteredItems = _sidebarItems.where((item) {
       if (role == UserRole.admin) return true;
 
+      // Exclude Marketplace (1) and Chats (2) for Financier role for focused institutional operating view
+      if (role == UserRole.financier && (item.index == 1 || item.index == 2)) {
+        return false;
+      }
+
       // Shared/Universal modules: Home, Marketplace, My Chats, Settings, Community Hub
       if (item.index == 0 ||
           item.index == 1 ||
