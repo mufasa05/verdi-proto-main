@@ -306,7 +306,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ref.read(appStateProvider.notifier).setDemoMode(true);
               _showDemoRolePickerDialog();
             },
-            icon: const Icon(Icons.flash_on, size: 16),
+            icon: const Icon(Icons.explore_outlined, size: 16),
             label: const Text('Try Demo Login', style: TextStyle(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF16A34A),
@@ -394,8 +394,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ),
         title: Row(
           children: const [
-            Icon(Icons.flash_on, color: Color(0xFFF59E0B), size: 24),
-            SizedBox(width: 8),
+            Icon(Icons.explore_outlined, color: Color(0xFF10B981), size: 22),
+            SizedBox(width: 10),
             Text(
               'Launch Offline Demo Mode',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
@@ -857,7 +857,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   ref.read(appStateProvider.notifier).setDemoMode(true);
                   _showDemoRolePickerDialog();
                 },
-                icon: const Icon(Icons.flash_on, color: Colors.white, size: 18),
+                icon: const Icon(Icons.explore_outlined, color: Colors.white, size: 18),
                 label: const Text('Offline Demo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF59E0B),
