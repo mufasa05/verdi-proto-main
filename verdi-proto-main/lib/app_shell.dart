@@ -320,9 +320,12 @@ class Sidebar extends ConsumerWidget {
       return _buildTransporterSidebar(context, ref, appState, authState);
     }
 
+    final isCreatorAdmin = user?.id == 'admin_creator' || user?.email == 'creator@verdi.ag';
+
     // Filter items based on stakeholder role visibility rules:
     final filteredItems = _sidebarItems.where((item) {
       if (role == UserRole.admin) return true;
+      if (isCreatorAdmin && item.index == 23) return true;
 
       // Exclude Marketplace (1) and Chats (2) for Financier role for focused institutional operating view
       if (role == UserRole.financier && (item.index == 1 || item.index == 2)) {

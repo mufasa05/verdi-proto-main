@@ -39,13 +39,24 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
     final role = ref.watch(appStateProvider).role;
     final isTransporter = role == UserRole.transporter;
     final isAdmin = role == UserRole.admin;
-    final isReadOnly = role != UserRole.farmer && role != UserRole.admin && role != UserRole.transporter;
+    final isExpert = role == UserRole.expert;
+    final isReadOnly = role != UserRole.farmer && role != UserRole.admin && role != UserRole.transporter && role != UserRole.expert;
+
+    final roleAccentColor = isAdmin
+        ? const Color(0xFF7C3AED)
+        : (isTransporter
+            ? const Color(0xFF2563EB)
+            : (isExpert
+                ? const Color(0xFF10B981)
+                : green));
 
     final sourceFilters = isAdmin
         ? ['All', 'Security & KYC', 'Escrow Vault', 'API Gateway', 'Satellite Telemetry', 'System Health']
         : (isTransporter
             ? ['All', 'Route Hazards', 'Telematics', 'Cold Chain', 'Weighbridge & Tolls', 'Escrow Payout']
-            : ['All', 'Irrigation', 'Satellite', 'Crop Health', 'System']);
+            : (isExpert
+                ? ['All', 'Disease Outbreaks', 'Farmer Consultations', 'Soil & Lab Tests', 'Field Rx Prescriptions', 'Advisory Payouts']
+                : ['All', 'Irrigation', 'Satellite', 'Crop Health', 'System']));
 
     return Scaffold(
       backgroundColor: background,
@@ -53,7 +64,11 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
         title: Text(
           isAdmin
               ? 'Security & Infrastructure Notification Center'
-              : (isTransporter ? 'Transporter Road & Dispatch Alerts' : 'Alerts & Exceptions Board'),
+              : (isTransporter
+                  ? 'Transporter Road & Dispatch Alerts'
+                  : (isExpert
+                      ? 'Agri-Expert Diagnostic & Clinical Advisory Alerts'
+                      : 'Alerts & Exceptions Board')),
           style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: dark, fontSize: 16),
         ),
         backgroundColor: Colors.white,
@@ -64,9 +79,9 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
             color: Colors.white,
             child: TabBar(
               controller: _tabController,
-              labelColor: isAdmin ? const Color(0xFF7C3AED) : (isTransporter ? const Color(0xFF2563EB) : green),
+              labelColor: roleAccentColor,
               unselectedLabelColor: muted,
-              indicatorColor: isAdmin ? const Color(0xFF7C3AED) : (isTransporter ? const Color(0xFF2563EB) : green),
+              indicatorColor: roleAccentColor,
               tabs: const [
                 Tab(text: 'Critical'),
                 Tab(text: 'Warning'),
@@ -101,7 +116,7 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
                             onSelected: (val) {
                               if (val) setState(() => _selectedSourceFilter = f);
                             },
-                            selectedColor: isAdmin ? const Color(0xFF7C3AED) : (isTransporter ? const Color(0xFF2563EB) : green),
+                            selectedColor: roleAccentColor,
                             backgroundColor: const Color(0xFFF1F5F9),
                             side: BorderSide.none,
                           ),
@@ -117,9 +132,9 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildAlertList(context, 'Critical', isReadOnly, role),
-                      _buildAlertList(context, 'Warning', isReadOnly, role),
-                      _buildAlertList(context, 'Info', isReadOnly, role),
+                      _buildAlertList(context, 'Critical', isReadOnly, role, roleAccentColor),
+                      _buildAlertList(context, 'Warning', isReadOnly, role, roleAccentColor),
+                      _buildAlertList(context, 'Info', isReadOnly, role, roleAccentColor),
                     ],
                   ),
                 ),
@@ -131,13 +146,15 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
     );
   }
 
-  Widget _buildAlertList(BuildContext context, String severity, bool isReadOnly, UserRole role) {
+  Widget _buildAlertList(BuildContext context, String severity, bool isReadOnly, UserRole role, Color roleAccentColor) {
     final isDemo = ref.watch(isDemoModeProvider);
     final alertList = role == UserRole.admin
         ? (isDemo ? _adminAlerts : <_AlertEntry>[])
         : (role == UserRole.transporter
             ? (isDemo ? _transporterAlerts : <_AlertEntry>[])
-            : (isDemo ? _allAlerts : <_AlertEntry>[]));
+            : (role == UserRole.expert
+                ? (isDemo ? _expertAlerts : <_AlertEntry>[])
+                : (isDemo ? _allAlerts : <_AlertEntry>[])));
     // Filter alerts by severity and source
     final alerts = alertList.where((a) {
       final matchesSeverity = a.severity == severity;
@@ -295,18 +312,31 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
                   builder: (context, constraints) {
                     final isNarrow = constraints.maxWidth < 340;
                     final btnOpen = OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Opening detailed record for: ${alert.title}')),
+                        );
+                      },
                       style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                       child: const Text('Open Record', style: TextStyle(fontSize: 12)),
                     );
                     final btnResolve = ElevatedButton(
-                      onPressed: isReadOnly ? null : () {},
+                      onPressed: isReadOnly
+                          ? null
+                          : () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Alert "${alert.title}" acknowledged & action logged.'),
+                                  backgroundColor: roleAccentColor,
+                                ),
+                              );
+                            },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: green,
+                        backgroundColor: roleAccentColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text('Resolve', style: TextStyle(fontSize: 12)),
+                      child: Text(role == UserRole.expert ? 'Take Action' : 'Resolve', style: const TextStyle(fontSize: 12)),
                     );
 
                     if (isNarrow) {
@@ -535,6 +565,117 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
       probableCause: 'Ministry of Agriculture digital inspection approval.',
       likelyImpact: 'Green-lane express bypass enabled at national inspection stations.',
       ownerSuggestion: 'National Plant Quarantine Inspector',
+    ),
+  ];
+
+  static const List<_AlertEntry> _expertAlerts = [
+    _AlertEntry(
+      title: 'Suspected Fall Armyworm (Spodoptera frugiperda) Outbreak',
+      details: 'Rapid larval infestation reported across 14 smallholder maize plots in Mazowe Valley North quadrant.',
+      time: '6m ago',
+      severity: 'Critical',
+      source: 'Disease Outbreaks',
+      icon: Icons.bug_report_outlined,
+      confidence: 96,
+      probableCause: 'Extended humid micro-climate accelerating Spodoptera egg hatching cycles.',
+      likelyImpact: 'Up to 40% foliar canopy destruction within 72h if bio-pesticide spray schedule is delayed.',
+      ownerSuggestion: 'Issue Emergency Regional Spray Advisory & Deploy Scout Team',
+    ),
+    _AlertEntry(
+      title: 'Emergency Tele-Agronomy Call Request — Severe Tomato Blight',
+      details: 'Commercial grower T. Shumba (Goromonzi Greenhouses) requested urgent diagnostic video consultation.',
+      time: '18m ago',
+      severity: 'Critical',
+      source: 'Farmer Consultations',
+      icon: Icons.videocam_outlined,
+      confidence: 92,
+      probableCause: 'Early symptoms of Alternaria solani (Early Blight) from uncalibrated drip humidity.',
+      likelyImpact: 'Rapid airborne spore dispersion to adjacent 2,500 tomato vines if fungicide spray delayed.',
+      ownerSuggestion: 'Accept Tele-Consultation Call & Issue Digital Rx Pad',
+    ),
+    _AlertEntry(
+      title: 'Severe Soil Acidification & Bacterial Wilt Culture Confirmed',
+      details: 'Harare Agronomy Lab returned positive Ralstonia solanacearum culture from Marondera Block C.',
+      time: '45m ago',
+      severity: 'Critical',
+      source: 'Soil & Lab Tests',
+      icon: Icons.biotech_outlined,
+      confidence: 95,
+      probableCause: 'Contaminated irrigation runoff and soil pH dropped below 5.1.',
+      likelyImpact: 'Vascular wilt mortality in Solanaceae crops; strict biological quarantine protocol required.',
+      ownerSuggestion: 'Issue Immediate Dolomitic Lime & Field Quarantine Protocol',
+    ),
+    _AlertEntry(
+      title: 'Soil Fertility & Phosphorus Lockout Diagnostic (Marondera North)',
+      details: 'Composite soil test results indicate critical Phosphorus (P) lockout and low organic carbon (0.8%).',
+      time: '1h ago',
+      severity: 'Warning',
+      source: 'Soil & Lab Tests',
+      icon: Icons.science_outlined,
+      confidence: 91,
+      probableCause: 'Continuous single-crop maize cultivation without calcium/magnesium lime buffering.',
+      likelyImpact: 'Stunted root development and delayed flowering for upcoming season crop.',
+      ownerSuggestion: 'Generate Custom NPK 7:14:7 + Agricultural Lime Prescription',
+    ),
+    _AlertEntry(
+      title: 'On-Site GPS Farm Fertility & Drip Audit Scheduled (Sunrise Citrus)',
+      details: 'Enterprise client Sunrise Citrus Estate confirmed on-site GPS soil & drip irrigation fertility audit.',
+      time: '2h ago',
+      severity: 'Warning',
+      source: 'Farmer Consultations',
+      icon: Icons.pin_drop_outlined,
+      confidence: 89,
+      probableCause: 'Scheduled pre-blossom seasonal nutritional and fertigation assessment.',
+      likelyImpact: '3.5h on-site field survey and spectral drone vegetation mapping required.',
+      ownerSuggestion: 'Prepare Soil Core Sampler & EC/pH Field Diagnostic Kit',
+    ),
+    _AlertEntry(
+      title: 'Digital Prescription #RX-8820 Awaiting Agronomist Sign-Off',
+      details: 'Recommendation for Copper Oxychloride + Mancozeb treatment in Shamva Valley awaits expert signature.',
+      time: '3h ago',
+      severity: 'Warning',
+      source: 'Field Rx Prescriptions',
+      icon: Icons.receipt_long_outlined,
+      confidence: 94,
+      probableCause: 'Standard preventative spray cycle for downy mildew in high-density cucurbits.',
+      likelyImpact: 'Farmer cannot redeem subsidized inputs at partner agro-dealers until digitally signed.',
+      ownerSuggestion: 'Review Dosage Calculations & Digitally Sign Rx',
+    ),
+    _AlertEntry(
+      title: 'Consultation Escrow Fee Released (US\$ 45.00)',
+      details: 'Smart contract consultation escrow released to expert wallet for completed 45-minute video diagnostic.',
+      time: '4h ago',
+      severity: 'Info',
+      source: 'Advisory Payouts',
+      icon: Icons.account_balance_wallet_outlined,
+      confidence: 99,
+      probableCause: 'Farmer accepted advisory diagnosis and rated consultation 5/5 stars.',
+      likelyImpact: 'Funds credited to Nostro wallet balance; automated tax receipt issued.',
+      ownerSuggestion: 'Verdi Escrow Payout Engine',
+    ),
+    _AlertEntry(
+      title: 'Agronomy Clinical Guide Approved by Agritex Review Board',
+      details: 'Your paper "Integrated Pest Management for Tuta Absoluta" has been published to national farmer feed.',
+      time: '6h ago',
+      severity: 'Info',
+      source: 'Farmer Consultations',
+      icon: Icons.menu_book_outlined,
+      confidence: 100,
+      probableCause: 'Agritex national peer-review panel verification complete.',
+      likelyImpact: 'Accessible to over 14,200 registered commercial and smallholder farmers.',
+      ownerSuggestion: 'National Extension Directorate',
+    ),
+    _AlertEntry(
+      title: 'State Accreditation Credential (AGX-ZW-9942) Synchronized',
+      details: 'National Ministry of Lands, Agriculture, Fisheries, Water & Rural Development credentials verified.',
+      time: '1d ago',
+      severity: 'Info',
+      source: 'Soil & Lab Tests',
+      icon: Icons.verified_outlined,
+      confidence: 100,
+      probableCause: 'Annual professional licensing and sovereign register validation.',
+      likelyImpact: 'Full sovereign consultation signing authority enabled across all 10 provinces.',
+      ownerSuggestion: 'Ministry Accreditation Desk',
     ),
   ];
 }

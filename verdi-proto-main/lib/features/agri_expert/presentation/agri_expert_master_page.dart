@@ -988,7 +988,7 @@ class _AgriExpertMasterPageState extends ConsumerState<AgriExpertMasterPage> wit
                           ),
                           InkWell(
                             onTap: () {
-                              ref.read(appStateProvider.notifier).setNavIndex(7); // Jump to Geospatial map
+                              ref.read(appStateProvider.notifier).setNavIndex(13); // Jump to Geospatial map
                             },
                             child: const Text('View on GIS Map →', style: TextStyle(color: Color(0xFF16A34A), fontSize: 11.5, fontWeight: FontWeight.bold)),
                           ),

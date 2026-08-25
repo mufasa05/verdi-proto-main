@@ -136,6 +136,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
               // --- Header Sovereignty Banner ---
               _buildHeaderBanner(isDemo),
 
+              const SizedBox(height: 14),
+
+              // --- Live Role Perspective Switcher (Admin Construction Oversight) ---
+              _buildPerspectiveSwitcher(),
+
               const SizedBox(height: 16),
 
               // --- 5 Top Navigation Tabs ---
@@ -413,6 +418,131 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
               _buildBadge('Read + Write + Delete + Configure', accentBlue),
               _buildBadge('Full audit trail on every action', accentGold),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerspectiveSwitcher() {
+    final currentRole = ref.watch(appStateProvider).role;
+
+    final roles = [
+      (UserRole.farmer, 'Farmer (Producer)', Icons.eco_outlined, const Color(0xFF16A34A), 0),
+      (UserRole.transporter, 'Transporter (Carrier)', Icons.local_shipping_outlined, const Color(0xFF2563EB), 5),
+      (UserRole.buyer, 'Commercial Buyer (B2B)', Icons.business_outlined, const Color(0xFF6366F1), 0),
+      (UserRole.consumer, 'Consumer (End-User)', Icons.person_outline, const Color(0xFF10B981), 0),
+      (UserRole.expert, 'Agri-Expert (Agronomist)', Icons.biotech_outlined, const Color(0xFF14B8A6), 29),
+      (UserRole.government, 'Ministry Portal (Gov)', Icons.account_balance_outlined, const Color(0xFF8B5CF6), 18),
+      (UserRole.admin, 'Super Administrator', Icons.shield_outlined, const Color(0xFFF59E0B), 23),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardDark,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentGreen.withOpacity(0.35)),
+        gradient: LinearGradient(
+          colors: [
+            cardDark,
+            const Color(0xFF10B981).withOpacity(0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: accentGreen.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.remove_red_eye_outlined, color: accentGreen, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Live Role Perspective Switcher (Admin Construction Oversight)',
+                      style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Switch stakeholder perspectives in live mode to audit real-time UX, permissions, and construction progress.',
+                      style: GoogleFonts.inter(fontSize: 11, color: textMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: roles.map((r) {
+              final isSelected = currentRole == r.$1;
+              return InkWell(
+                onTap: () {
+                  ref.read(appStateProvider.notifier).setRole(r.$1);
+                  ref.read(appStateProvider.notifier).setNavIndex(r.$5);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Switched live perspective to: ${r.$2}'),
+                      backgroundColor: r.$4,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? r.$4.withOpacity(0.25) : const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? r.$4 : const Color(0xFF334155),
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(r.$3, size: 15, color: isSelected ? r.$4 : Colors.white70),
+                      const SizedBox(width: 6),
+                      Text(
+                        r.$2,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? Colors.white : Colors.white70,
+                        ),
+                      ),
+                      if (isSelected) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: r.$4,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),

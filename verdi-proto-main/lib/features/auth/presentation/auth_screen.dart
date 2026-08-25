@@ -235,6 +235,91 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
+  void _showLiveUnderConstructionDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.construction_rounded, color: Color(0xFFF59E0B), size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Live Account System Under Construction',
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'The production live account infrastructure is currently under active development. Live accounts are restricted to verified administrators at this stage.',
+              style: TextStyle(fontSize: 13.5, color: Color(0xFF475569), height: 1.45),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.info_outline, color: Color(0xFF16A34A), size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Please use Demo Login to experience all interactive features, tools, and dashboards across all stakeholder roles.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF334155), fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _showAdminPasskeyDialog();
+            },
+            icon: const Icon(Icons.admin_panel_settings_outlined, size: 16, color: Color(0xFF64748B)),
+            label: const Text('Admin Access', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(appStateProvider.notifier).setDemoMode(true);
+              _showDemoRolePickerDialog();
+            },
+            icon: const Icon(Icons.flash_on, size: 16),
+            label: const Text('Try Demo Login', style: TextStyle(fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF16A34A),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAdminPasskeyDialog() {
     final controller = TextEditingController();
     showDialog(
@@ -750,11 +835,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             runSpacing: 12,
             children: [
               ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _currentStep = 1;
-                  });
-                },
+                onPressed: _showLiveUnderConstructionDialog,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF16A34A),
                   foregroundColor: Colors.white,
@@ -878,9 +959,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-            const SizedBox(height: 12),
-            _buildModeSelectorTile(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: authState.isLoading ? null : _submitAuth,
               style: ElevatedButton.styleFrom(
@@ -907,132 +986,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ),
             ),
             const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton.icon(
-                  onPressed: _showDemoRolePickerDialog,
-                  icon: const Icon(Icons.flash_on_outlined, size: 16, color: Color(0xFF16A34A)),
-                  label: const Text('Launch Offline Demo Mode', style: TextStyle(color: Color(0xFF16A34A), fontSize: 12, fontWeight: FontWeight.bold)),
-                ),
-                TextButton.icon(
-                  onPressed: _showAdminPasskeyDialog,
-                  icon: const Icon(Icons.admin_panel_settings_outlined, size: 16, color: Color(0xFF64748B)),
-                  label: const Text('Admin Access', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                ),
-              ],
+            Center(
+              child: TextButton.icon(
+                onPressed: _showAdminPasskeyDialog,
+                icon: const Icon(Icons.admin_panel_settings_outlined, size: 16, color: Color(0xFF64748B)),
+                label: const Text('Admin Access', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildModeSelectorTile() {
-    final isDemoMode = ref.watch(isDemoModeProvider);
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          // Segment 1: Live Real Mode
-          Expanded(
-            child: InkWell(
-              onTap: () => ref.read(appStateProvider.notifier).setDemoMode(false),
-              borderRadius: BorderRadius.circular(12),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                decoration: BoxDecoration(
-                  color: !isDemoMode ? const Color(0xFF10B981) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: !isDemoMode
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.4),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          )
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        color: !isDemoMode ? Colors.white : Colors.white38,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Live Real Mode',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: !isDemoMode ? FontWeight.w800 : FontWeight.w600,
-                        color: !isDemoMode ? Colors.white : Colors.white60,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          // Segment 2: Offline Demo Mode
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                ref.read(appStateProvider.notifier).setDemoMode(true);
-                _showDemoRolePickerDialog();
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                decoration: BoxDecoration(
-                  color: isDemoMode ? const Color(0xFFF59E0B) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: isDemoMode
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          )
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.science_outlined,
-                      size: 13,
-                      color: isDemoMode ? Colors.white : Colors.white38,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Offline Demo',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: isDemoMode ? FontWeight.w800 : FontWeight.w600,
-                        color: isDemoMode ? Colors.white : Colors.white60,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

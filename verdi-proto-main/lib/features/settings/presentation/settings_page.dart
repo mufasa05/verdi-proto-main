@@ -1576,7 +1576,6 @@ class _CommercialBuyerSettingsTabState extends ConsumerState<_CommercialBuyerSet
 
   @override
   Widget build(BuildContext context) {
-    final notifier = ref.read(appStateProvider.notifier);
     final authState = ref.watch(authStateProvider);
     final user = authState.user;
 
@@ -1620,20 +1619,6 @@ class _CommercialBuyerSettingsTabState extends ConsumerState<_CommercialBuyerSet
                         style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
                       ),
                     ],
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    notifier.setRole(UserRole.consumer);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Switched to Consumer (End-User) Workspace')),
-                    );
-                  },
-                  icon: const Icon(Icons.swap_horiz, size: 16),
-                  label: const Text('Switch to Consumer', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
-                    foregroundColor: Colors.white,
                   ),
                 ),
               ],
@@ -1819,17 +1804,6 @@ class _ConsumerSettingsTabState extends ConsumerState<_ConsumerSettingsTab> {
                       const Text('Direct Farm-to-Table Grocery & Household Consumer', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                     ],
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    notifier.setRole(UserRole.buyer);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Switched to Commercial Buyer (B2B) Workspace')),
-                    );
-                  },
-                  icon: const Icon(Icons.swap_horiz, size: 16),
-                  label: const Text('Switch to B2B', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F172A), foregroundColor: Colors.white),
                 ),
               ],
             ),
