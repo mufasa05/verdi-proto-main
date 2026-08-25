@@ -406,42 +406,7 @@ class DynamicIntelligenceSynthesizer {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // FINANCIER & INSTITUTIONAL TREASURY INSIGHTS
-  // ───────────────────────────────────────────────────────────────────────────
-  static List<AiInsightItem> _synthesizeFinancierInsights(List<PaymentItem> payments, bool isDemo) {
-    if (!isDemo) {
-      return [
-        const AiInsightItem(
-          title: 'Agri-Credit Underwriting Portal Active',
-          subtitle: 'Review smallholder credit requests verified with satellite NDVI vegetative health data.',
-          action: 'Credit Desk',
-          imageUrl: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
-          color: green,
-          confidence: 0.97,
-          targetScreen: VerdiScreen.finance,
-          category: 'Financial',
-          severity: 'Moderate',
-        ),
-      ];
-    }
-
-    return [
-      const AiInsightItem(
-        title: 'Agri-Credit Portfolio Health: 96.8% Repayment Rate',
-        subtitle: 'Automated escrow deduction from marketplace harvest sales maintaining low default rate.',
-        action: 'Treasury Hub',
-        imageUrl: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
-        color: green,
-        confidence: 0.96,
-        targetScreen: VerdiScreen.finance,
-        category: 'Financial',
-        severity: 'Moderate',
-      ),
-    ];
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // GOVERNMENT & VALUE ADDER & EXPERT INSIGHTS
+  // GOVERNMENT & CONSUMER & EXPERT INSIGHTS
   // ───────────────────────────────────────────────────────────────────────────
   static List<AiInsightItem> _synthesizeGovernmentInsights(List<OrderItem> orders, bool isDemo) {
     return [
@@ -453,22 +418,6 @@ class DynamicIntelligenceSynthesizer {
         color: green,
         confidence: 0.96,
         targetScreen: VerdiScreen.analytics,
-        category: 'Agronomic',
-        severity: 'Moderate',
-      ),
-    ];
-  }
-
-  static List<AiInsightItem> _synthesizeValueAdderInsights(List<OrderItem> orders, bool isDemo) {
-    return [
-      const AiInsightItem(
-        title: 'Raw Crop Processing Intake Weighbridge',
-        subtitle: 'Log raw intake moisture grade and processing yield on active mill lines.',
-        action: 'Log Intake',
-        imageUrl: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80',
-        color: green,
-        confidence: 0.94,
-        targetScreen: VerdiScreen.processing,
         category: 'Agronomic',
         severity: 'Moderate',
       ),
@@ -522,7 +471,7 @@ class DynamicIntelligenceSynthesizer {
         imageUrl: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80',
         color: purple,
         confidence: 0.93,
-        targetScreen: VerdiScreen.cropHealth,
+        targetScreen: VerdiScreen.farmOps,
         category: 'Agronomic',
         severity: 'Moderate',
       ),

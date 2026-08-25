@@ -900,7 +900,6 @@ class _RadarCard extends StatefulWidget {
   final ValueChanged<String> onModeChanged;
 
   const _RadarCard({
-    super.key,
     required this.weather,
     required this.selectedMode,
     required this.onModeChanged,
@@ -1201,8 +1200,6 @@ class _DopplerRadarPainter extends CustomPainter {
     canvas.drawLine(Offset(center.dx, center.dy - maxRadius), Offset(center.dx, center.dy + maxRadius), gridPaint);
 
     // Weather reflectivity rain bands
-    final rainPaint = Paint()..style = PaintingStyle.fill;
-
     if (mode == 'Wind Vectors') {
       // Draw wind vector stream lines
       final windPaint = Paint()
@@ -1247,11 +1244,6 @@ class _DopplerRadarPainter extends CustomPainter {
     final linePaint = Paint()
       ..color = const Color(0xFF22C55E)
       ..strokeWidth = 2.0;
-    final endX = center.dx + maxRadius * double.parse((1.0 * (sweepAngle).clamp(-100, 100)).toString()) * 0; // line direction
-    final lineEnd = Offset(
-      center.dx + maxRadius * (double.parse((sweepAngle).toString()) * 0 + 1) * 0,
-      center.dy,
-    );
     canvas.drawLine(center, Offset(center.dx + maxRadius * (sweepAngle > 0 ? 0.8 : 0.8), center.dy - maxRadius * 0.6), linePaint);
 
     // Center Station Marker
