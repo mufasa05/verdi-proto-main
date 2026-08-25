@@ -776,7 +776,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTicker
             children: [
               _buildRoleRow('Super Administrator', 'Full R/W/D + Escrow Override + Telemetry Broadcast', accentGreen),
               _buildRoleRow('Government Inspector', 'Phytosanitary Sign-off + EUDR Regulatory Audit + Parcel Inspection', accentBlue),
-              _buildRoleRow('Financier', 'Credit Underwriting + Escrow Vault Collateralization + Loan Approval', accentGold),
+              _buildRoleRow('Agri-Expert (Agronomist)', 'Diagnostic Prescriptions + Soil Lab Sign-off + Farmer Consultations', const Color(0xFF14B8A6)),
               _buildRoleRow('Transporter', 'OBD-II Telemetry Broadcast + Digital Waybill Sign-off + Logistics Hub', const Color(0xFFF97316)),
               _buildRoleRow('Farmer', 'Produce Batch Listing + AI Agronomy + Weather Alerts + Parcel Management', accentGreen),
               _buildRoleRow('Buyer', 'Marketplace Order Placement + Smart Escrow Funding + Logistics Request', accentBlue),

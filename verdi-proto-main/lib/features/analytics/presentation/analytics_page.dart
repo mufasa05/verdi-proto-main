@@ -465,8 +465,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
                 UserRole.transporter => 'Freight & Logistics Analytics',
                 UserRole.buyer => 'Supply Chain Sourcing Analytics',
                 UserRole.expert => 'Agronomy Diagnostic Analytics',
-                UserRole.financier => 'Agri-Credit Portfolio Analytics',
-                UserRole.valueAdder => 'Agri-Processing Analytics',
                 UserRole.government => 'Grain Security & Trade Analytics',
                 UserRole.consumer => 'Commercial Value Chain Analytics',
                 UserRole.admin => 'Executive Value Chain Analytics',
@@ -946,12 +944,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
           UserRole.transporter => isDemo
               ? [_kpiCard('Distance Driven', '4,280 km', '+12.3%', Icons.route_outlined, AnalyticsPage.green, width), _kpiCard('Completed Trips', '48 Trips', '+8.0%', Icons.local_shipping_outlined, AnalyticsPage.blue, width), _kpiCard('Fuel Efficiency', '28.5 L/100km', '-4.1%', Icons.local_gas_station_outlined, AnalyticsPage.orange, width), _kpiCard('Haulage Earnings', '\$3,420', '+15.2%', Icons.account_balance_wallet_outlined, AnalyticsPage.purple, width)]
               : [_kpiCard('Distance Driven', '0 km', '+0.0%', Icons.route_outlined, AnalyticsPage.green, width), _kpiCard('Completed Trips', '0 Trips', '+0.0%', Icons.local_shipping_outlined, AnalyticsPage.blue, width), _kpiCard('Fuel Efficiency', '0.0 L/100km', '+0.0%', Icons.local_gas_station_outlined, AnalyticsPage.orange, width), _kpiCard('Haulage Earnings', '\$0', '+0.0%', Icons.account_balance_wallet_outlined, AnalyticsPage.purple, width)],
-          UserRole.financier => isDemo
-              ? [_kpiCard('Deployed Capital', '\$385,000', '+14.2%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Repayment Rate', '96.8%', '+1.4%', Icons.fact_check_outlined, AnalyticsPage.blue, width), _kpiCard('Portfolio Risk', 'Low (3.2%)', '-0.8%', Icons.shield_outlined, AnalyticsPage.orange, width), _kpiCard('Net Interest Yield', '11.4% p.a.', '+0.9%', Icons.trending_up, AnalyticsPage.purple, width)]
-              : [_kpiCard('Deployed Capital', '\$0', '+0.0%', Icons.account_balance_outlined, AnalyticsPage.green, width), _kpiCard('Repayment Rate', '100.0%', '+0.0%', Icons.fact_check_outlined, AnalyticsPage.blue, width), _kpiCard('Portfolio Risk', 'None (0.0%)', '+0.0%', Icons.shield_outlined, AnalyticsPage.orange, width), _kpiCard('Net Interest Yield', '0.0% p.a.', '+0.0%', Icons.trending_up, AnalyticsPage.purple, width)],
-          UserRole.valueAdder => isDemo
-              ? [_kpiCard('Processing Vol', '840 Tons', '+21.0%', Icons.factory_outlined, AnalyticsPage.green, width), _kpiCard('Input Cost / Ton', '\$185/ton', '-2.4%', Icons.point_of_sale_outlined, AnalyticsPage.blue, width), _kpiCard('Value Margin', '42.5%', '+3.8%', Icons.bar_chart_outlined, AnalyticsPage.orange, width), _kpiCard('Plant Uptime', '97.2%', '+0.8%', Icons.precision_manufacturing_outlined, AnalyticsPage.purple, width)]
-              : [_kpiCard('Processing Vol', '0 Tons', '+0.0%', Icons.factory_outlined, AnalyticsPage.green, width), _kpiCard('Input Cost / Ton', '\$0/ton', '+0.0%', Icons.point_of_sale_outlined, AnalyticsPage.blue, width), _kpiCard('Value Margin', '0.0%', '+0.0%', Icons.bar_chart_outlined, AnalyticsPage.orange, width), _kpiCard('Plant Uptime', '100.0%', '+0.0%', Icons.precision_manufacturing_outlined, AnalyticsPage.purple, width)],
           UserRole.expert => isDemo
               ? [_kpiCard('Advisory Sessions', '142 Cases', '+18.0%', Icons.psychology_outlined, AnalyticsPage.green, width), _kpiCard('Diagnosis Accuracy', '98.2%', '+1.1%', Icons.health_and_safety_outlined, AnalyticsPage.blue, width), _kpiCard('Farmer Reach', '1,240 Farmers', '+24.5%', Icons.groups_outlined, AnalyticsPage.orange, width), _kpiCard('Field Anomalies', '12 Active', '-4.0%', Icons.crisis_alert_outlined, AnalyticsPage.purple, width)]
               : [_kpiCard('Advisory Sessions', '0 Cases', '+0.0%', Icons.psychology_outlined, AnalyticsPage.green, width), _kpiCard('Diagnosis Accuracy', '100.0%', '+0.0%', Icons.health_and_safety_outlined, AnalyticsPage.blue, width), _kpiCard('Farmer Reach', '0 Farmers', '+0.0%', Icons.groups_outlined, AnalyticsPage.orange, width), _kpiCard('Field Anomalies', '0 Active', '+0.0%', Icons.crisis_alert_outlined, AnalyticsPage.purple, width)],
@@ -1105,7 +1097,7 @@ class _SuperAdminPerspectiveSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final roles = [UserRole.admin, UserRole.farmer, UserRole.buyer, UserRole.transporter, UserRole.financier, UserRole.valueAdder, UserRole.expert];
+    final roles = [UserRole.admin, UserRole.farmer, UserRole.buyer, UserRole.transporter, UserRole.expert, UserRole.government, UserRole.consumer];
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: AnalyticsPage.green.withValues(alpha: 0.3)), boxShadow: const [BoxShadow(color: Color(0x06000000), blurRadius: 10, offset: Offset(0, 3))]),
@@ -1186,8 +1178,6 @@ class _AiAdvisoryCard extends ConsumerWidget {
                 : (title: 'Grade A White Maize Procurement Opportunity', text: 'Masvingo grain silos reporting 3,200 MT fresh harvest arrival. Recommended action: Place forward orders to lock in lower farmgate floor pricing.'),
             UserRole.consumer => (title: 'Farmgate Fresh Harvest & Price Drop Alert', text: 'Mazowe tomatoes and Marondera sweet maize are 18% cheaper today due to peak morning harvest. Best value grocery window is active.'),
             UserRole.transporter => (title: 'Beira Customs Corridor Freight Clearance Peak', text: 'Port scanner queues down to 20 minutes. Recommended action: Accept refrigerated container dispatches for immediate transport.'),
-            UserRole.financier => (title: 'Low Portfolio Default Risk across Smallholder Credit Lines', text: 'Repayment compliance reaches 96.8%. Recommended action: Expand working capital loans for certified macadamia and blueberry growers.'),
-            UserRole.valueAdder => (title: 'Oilseed Processing Throughput Optimization', text: 'Soybean crushing margin increased to 42.5%. Recommended action: Maximize shift capacity during low electricity tariff hours.'),
             UserRole.expert => (title: 'Targeted Pest Control Advisory for Fall Armyworm', text: 'Multispectral satellite imagery flagged early leaf biomass change in Zone 2. Recommended action: Send targeted bio-pesticide spray alerts to field managers.'),
             UserRole.government => (title: 'National Strategic Food Security & EUDR Trade Compliance', text: 'Maize reserves are 18.5% above strategic threshold. EUDR deforestation compliance reaches 98.4% across southern corridors.'),
           }
@@ -1196,8 +1186,6 @@ class _AiAdvisoryCard extends ConsumerWidget {
             UserRole.farmer => (title: 'Field Telemetry & Soil Sensing Bus Ready', text: 'Map your farm parcel boundaries and log harvest yields to activate automated agronomic AI crop health forecasting and soil fertigation schedules.'),
             UserRole.buyer || UserRole.consumer => (title: 'Real-Time Farmgate Sourcing Engine Ready', text: 'Live marketplace catalog connected to verified outgrowers. AI price arbitration will optimize orders as farmers publish produce batches.'),
             UserRole.transporter => (title: 'GPS Corridor Telemetry & Freight Routing Ready', text: 'Register your transport fleet to enable automated corridor route planning, reefer temperature monitoring, and smart escrow settlements.'),
-            UserRole.financier => (title: 'Agri-Credit Portfolio Risk Engine Active', text: 'Underwriting algorithms connected to live field data. Credit evaluations will compute automatically as smallholders apply for input financing.'),
-            UserRole.valueAdder => (title: 'Processing Batch & Supply Pipeline Ready', text: 'Connect plant processing capacity to track input crushing yields, supplier quality grades, and energy tariff schedules.'),
             UserRole.expert => (title: 'Diagnostic AI & Agronomic Knowledge Mesh Ready', text: 'Agronomy advisory engine standing by to ingest field anomaly reports and dispatch targeted pesticide recommendations.'),
             UserRole.government => (title: 'National Grain Reserves & Trade Compliance Stream', text: 'Sovereign food security telemetry active. SADC border clearance queues and ePhyto certification records will stream continuously.'),
           };

@@ -46,20 +46,6 @@ List<_PaymentRoleTab> _getTabsForRole(UserRole role) {
         _PaymentRoleTab(2, '⚡ Tariff & Demurrage Calculator', Icons.calculate_outlined),
       ];
 
-    case UserRole.financier:
-      return const [
-        _PaymentRoleTab(0, '📊 Loan Tranche Disbursements', Icons.account_balance_wallet_outlined),
-        _PaymentRoleTab(1, '🛡️ Portfolio Credit Risk Radar', Icons.security_outlined),
-        _PaymentRoleTab(2, '⚡ Structured Loan Yield Engine', Icons.calculate_outlined),
-      ];
-
-    case UserRole.valueAdder:
-      return const [
-        _PaymentRoleTab(0, '🏭 Raw Intake Settlements', Icons.factory_outlined),
-        _PaymentRoleTab(1, '🏦 Working Capital Credit Line', Icons.account_balance_outlined),
-        _PaymentRoleTab(2, '🧾 Wholesale Sales Invoices', Icons.receipt_long_outlined),
-      ];
-
     case UserRole.admin:
     case UserRole.government:
     default:
@@ -374,18 +360,6 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
         if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
         if (tabIndex == 1) return _buildFuelCardTab();
         if (tabIndex == 2) return _buildYieldCalculatorTab();
-        return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
-
-      case UserRole.financier:
-        if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
-        if (tabIndex == 1) return _buildCreditRadarTab();
-        if (tabIndex == 2) return _buildYieldCalculatorTab();
-        return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
-
-      case UserRole.valueAdder:
-        if (tabIndex == 0) return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
-        if (tabIndex == 1) return _buildCreditRadarTab();
-        if (tabIndex == 2) return _buildBankWireGatewayTab();
         return _buildEscrowTab(payments, selectedPayment, isDesktop, allPayments);
 
       case UserRole.admin:
@@ -1300,8 +1274,6 @@ class _Header extends ConsumerWidget {
             : switch (role) {
                 UserRole.farmer => 'Harvest Payouts & Farmgate Cashout',
                 UserRole.transporter => 'Freight Settlements & Fleet Fuel',
-                UserRole.financier => 'Agri-Credit Portfolio & Escrow Custody',
-                UserRole.valueAdder => 'Factory Raw Intake Settlements',
                 UserRole.admin || UserRole.government => 'National Escrow & Payment Gateway Hub',
                 _ => 'Payments Command Center',
               });
@@ -1313,8 +1285,6 @@ class _Header extends ConsumerWidget {
             : switch (role) {
                 UserRole.farmer => 'Track direct crop payments, escrow disbursements, and mobile money cashouts.',
                 UserRole.transporter => 'Manage cargo waybill payouts, tollgate fuel cards, and driver travel disbursements.',
-                UserRole.financier => 'Monitor loan tranches, collateral liens, and credit risk repayment radar.',
-                UserRole.valueAdder => 'Manage outgrower raw commodity intake, quality grade adjustments, and wholesale billing.',
                 UserRole.admin || UserRole.government => 'Central bank RTGS settlements, processor uptime, AML risk flags, and platform treasury.',
                 _ => 'Review settlements, processor health, wallet movements, and exceptions from one workspace.',
               });
@@ -1500,22 +1470,6 @@ class _StatsGrid extends ConsumerWidget {
             _StatData('Pending POD Signoff', isDemo ? 'US\$ 650' : 'US\$ 0', Icons.hourglass_top_outlined),
             _StatData('Diesel Fuel Wallet', isDemo ? 'US\$ 480' : 'US\$ 0', Icons.local_gas_station_outlined),
             _StatData('Net Cleared', isDemo ? 'US\$ 2,020' : 'US\$ 0', Icons.payments_outlined),
-          ];
-          break;
-        case UserRole.financier:
-          cards = [
-            _StatData('Portfolio Active', isDemo ? 'US\$ 450,000' : 'US\$ 0', Icons.account_balance_outlined),
-            _StatData('Tranches Disbursed', isDemo ? 'US\$ 320,000' : 'US\$ 0', Icons.send_outlined),
-            _StatData('Collateral Locked', isDemo ? 'US\$ 130,000' : 'US\$ 0', Icons.lock_clock_outlined),
-            _StatData('Repayment Rate', isDemo ? '99.2%' : '100%', Icons.check_circle_outlined),
-          ];
-          break;
-        case UserRole.valueAdder:
-          cards = [
-            _StatData('Raw Intake Settled', isDemo ? 'US\$ 64,500' : 'US\$ 0', Icons.factory_outlined),
-            _StatData('Pending QA Cleared', isDemo ? 'US\$ 12,200' : 'US\$ 0', Icons.hourglass_top_outlined),
-            _StatData('Factory Credit Line', isDemo ? 'US\$ 85,000' : 'US\$ 0', Icons.account_balance_outlined),
-            _StatData('Wholesale Invoices', isDemo ? 'US\$ 41,000' : 'US\$ 0', Icons.receipt_long_outlined),
           ];
           break;
         case UserRole.admin:

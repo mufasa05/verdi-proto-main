@@ -57,12 +57,8 @@ class DynamicIntelligenceSynthesizer {
         return _synthesizeTransporterInsights(trucks, orders, isDemo);
       case UserRole.buyer:
         return _synthesizeBuyerInsights(orders, isDemo);
-      case UserRole.financier:
-        return _synthesizeFinancierInsights(payments, isDemo);
       case UserRole.government:
         return _synthesizeGovernmentInsights(orders, isDemo);
-      case UserRole.valueAdder:
-        return _synthesizeValueAdderInsights(orders, isDemo);
       case UserRole.expert:
         return _synthesizeExpertInsights(isDemo);
       case UserRole.consumer:

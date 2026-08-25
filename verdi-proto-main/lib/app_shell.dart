@@ -299,7 +299,6 @@ class Sidebar extends ConsumerWidget {
     _SidebarMenuItem(index: 22, label: 'Export', icon: LucideIcons.packageOpen),
     _SidebarMenuItem(index: 23, label: 'Admin Command Center', icon: LucideIcons.shieldAlert),
     _SidebarMenuItem(index: 24, label: 'News', icon: LucideIcons.newspaper),
-    _SidebarMenuItem(index: 25, label: 'Value Addition Hub', icon: LucideIcons.factory),
     _SidebarMenuItem(index: 26, label: 'User Activities & Logs', icon: LucideIcons.history),
     _SidebarMenuItem(index: 27, label: 'System Health & Services', icon: LucideIcons.activity),
     _SidebarMenuItem(index: 29, label: 'Agri-Expert Console', icon: LucideIcons.stethoscope),
@@ -325,11 +324,6 @@ class Sidebar extends ConsumerWidget {
     final filteredItems = _sidebarItems.where((item) {
       if (role == UserRole.admin) return true;
       if (isCreatorAdmin && item.index == 23) return true;
-
-      // Exclude Marketplace (1) and Chats (2) for Financier role for focused institutional operating view
-      if (role == UserRole.financier && (item.index == 1 || item.index == 2)) {
-        return false;
-      }
 
       // Shared/Universal modules: Home, Marketplace, My Chats, Settings, Community Hub
       if (item.index == 0 ||
@@ -365,14 +359,8 @@ class Sidebar extends ConsumerWidget {
           // Consumer (End-User): Orders (4), Payments (6)
           return item.index == 4 || item.index == 6;
 
-        case UserRole.financier:
-          return item.index == 3 || item.index == 6 || item.index == 16;
-
         case UserRole.government:
           return item.index == 3 || item.index == 7 || item.index == 17 || item.index == 18 || item.index == 20 || item.index == 24;
-
-        case UserRole.valueAdder:
-          return item.index == 3 || item.index == 4 || item.index == 6 || item.index == 16 || item.index == 25;
 
         default:
           return false;

@@ -284,37 +284,6 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
       'escrowBalance': 'US\$ 0.00',
     },
 
-    // 🏦 FINANCIERS
-    {
-      'id': 'USR-10923',
-      'name': 'AFC Agribank Treasury',
-      'email': 'agricredit@afcbank.co.zw',
-      'role': 'Financier',
-      'kyc': 'VERIFIED',
-      'location': 'Reserve Bank Clearing Desk',
-      'eudr': 'FIN-CBZ-2026',
-      'status': 'ACTIVE',
-      'sessions': 3,
-      'lastSeen': '4 mins ago',
-      'joiningDate': '10 September 2024 (1 year 11 months on Verdi)',
-      'phone': '+263 24 279 0011',
-      'escrowBalance': 'US\$ 150,000.00',
-    },
-    {
-      'id': 'USR-10924',
-      'name': 'CBZ Agro-Financing Unit',
-      'email': 'agrodesk@cbz.co.zw',
-      'role': 'Financier',
-      'kyc': 'VERIFIED',
-      'location': 'Harare Commercial Center',
-      'eudr': 'FIN-CBZ-889',
-      'status': 'ACTIVE',
-      'sessions': 2,
-      'lastSeen': '1 hour ago',
-      'joiningDate': '01 October 2024',
-      'phone': '+263 24 274 8000',
-      'escrowBalance': 'US\$ 98,000.00',
-    },
 
     // 🏛️ GOVERNMENT
     {
@@ -576,15 +545,13 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                 const Text('Select new stakeholder privilege level:', style: TextStyle(color: textMuted, fontSize: 12)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: ['Farmer', 'Buyer', 'Transporter', 'ValueAdder', 'Financier', 'Expert', 'Government', 'Admin'].contains(currentRole) ? currentRole : 'Farmer',
+                  value: ['Farmer', 'Buyer', 'Transporter', 'Expert', 'Government', 'Admin'].contains(currentRole) ? currentRole : 'Farmer',
                   dropdownColor: cardDark,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   items: [
                     'Farmer',
                     'Buyer',
                     'Transporter',
-                    'ValueAdder',
-                    'Financier',
                     'Expert',
                     'Government',
                     'Admin',
@@ -686,10 +653,9 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                 'farmer' => UserRole.farmer,
                 'buyer' => UserRole.buyer,
                 'transporter' => UserRole.transporter,
-                'financier' => UserRole.financier,
-                'valueadder' => UserRole.valueAdder,
                 'expert' => UserRole.expert,
                 'government' => UserRole.government,
+                'consumer' => UserRole.consumer,
                 _ => UserRole.admin,
               };
               ref.read(appStateProvider.notifier).setRole(userRole);
@@ -782,7 +748,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                   value: selectedRole,
                   dropdownColor: cardDark,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
-                  items: ['Farmer', 'Buyer', 'Transporter', 'ValueAdder', 'Financier', 'Expert', 'Government', 'Admin'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                  items: ['Farmer', 'Buyer', 'Transporter', 'Expert', 'Government', 'Admin'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
                   onChanged: (v) {
                     if (v != null) setModalState(() => selectedRole = v);
                   },
@@ -1017,9 +983,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                   'Consumer (End-User)',
                   'Transporter',
                   'Agri-Expert',
-                  'Financier',
                   'Government',
-                  'Value Adder',
                   'Admin',
                 ],
                 (v) => setState(() => _selectedRoleFilter = v),
@@ -1046,9 +1010,7 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                 'Consumer (End-User)',
                 'Transporter',
                 'Agri-Expert',
-                'Financier',
                 'Government',
-                'Value Adder',
                 'Admin',
               ].map((roleName) {
                 final isSelected = _selectedRoleFilter == roleName;

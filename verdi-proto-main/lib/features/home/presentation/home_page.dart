@@ -581,7 +581,6 @@ class _HomePageState extends ConsumerState<HomePage> {
             UserRole.transporter => const Color(0xFFF97316),
             UserRole.buyer => const Color(0xFF2563EB),
             UserRole.admin => const Color(0xFF7C3AED),
-            UserRole.financier => const Color(0xFF0F766E),
             _ => const Color(0xFF2563EB),
           };
           final icon = switch (evt.module.toLowerCase()) {
@@ -1320,14 +1319,6 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
       ];
     }
 
-    if (role == UserRole.valueAdder) {
-      return const [
-        _QuickActionConfig('Start Batch Run', 'Value addition hub', Icons.factory_outlined, Color(0xFF16A34A), 25),
-        _QuickActionConfig('Grade Raw Intake', 'Quality & Brix inspection', Icons.assignment_turned_in_outlined, Color(0xFF2563EB), 25),
-        _QuickActionConfig('Bulk Crop Sourcing', 'Procure raw produce', Icons.storefront_outlined, Color(0xFFF97316), 1),
-        _QuickActionConfig('Traceability Certs', 'Batch verification', Icons.verified_outlined, Color(0xFF7C3AED), 15),
-      ];
-    }
 
     if (role == UserRole.government) {
       return const [

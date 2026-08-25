@@ -53,8 +53,6 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
     UserItem(id: 'USR-003', name: 'Blessing Ndlovu', email: 'b.ndlovu@expresslogistics.co.zw', role: UserRole.transporter, status: 'Active', location: 'Gweru, ZW', joinedDate: '18 Mar 2024'),
     UserItem(id: 'USR-004', name: 'Dr. Farai Chigumba', email: 'farai.agri@gov.zw', role: UserRole.government, status: 'Active', location: 'Harare, ZW', joinedDate: '01 Nov 2023'),
     UserItem(id: 'USR-005', name: 'Chipo Sibanda', email: 'chipo.expert@verdi.co', role: UserRole.expert, status: 'Pending', location: 'Mutare, ZW', joinedDate: '10 Jul 2024'),
-    UserItem(id: 'USR-006', name: 'Stanbic Agri Capital', email: 'loans@stanbic.co.zw', role: UserRole.financier, status: 'Active', location: 'Harare, ZW', joinedDate: '15 Dec 2023'),
-    UserItem(id: 'USR-007', name: 'GreenMill Processing', email: 'info@greenmill.co.zw', role: UserRole.valueAdder, status: 'Active', location: 'Chinhoyi, ZW', joinedDate: '22 Feb 2024'),
     UserItem(id: 'USR-008', name: 'Simbarashe Dube', email: 'simba.dube@gmail.com', role: UserRole.consumer, status: 'Suspended', location: 'Masvingo, ZW', joinedDate: '05 May 2024'),
     UserItem(id: 'USR-009', name: 'Tinashe Zvobgo', email: 'admin.tinashe@verdi.co', role: UserRole.admin, status: 'Active', location: 'Harare, ZW', joinedDate: '01 Oct 2023'),
   ];

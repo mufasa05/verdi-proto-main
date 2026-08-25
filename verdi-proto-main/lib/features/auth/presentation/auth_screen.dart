@@ -1865,7 +1865,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       },
       {
         'name': 'Payments & Finance',
-        'access': (role == UserRole.financier || role == UserRole.admin || role == UserRole.farmer)
+        'access': (role == UserRole.admin || role == UserRole.farmer)
             ? 'Read + Write'
             : (role == UserRole.buyer ? 'Read Only' : 'Hidden'),
         'icon': Icons.payments_outlined,

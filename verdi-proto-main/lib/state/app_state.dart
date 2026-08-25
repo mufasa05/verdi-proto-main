@@ -12,9 +12,7 @@ enum UserRole {
   admin,        // 10. Platform admins & developers
 
   // ── Extended stakeholder roles ──────────────────────────────────
-  valueAdder,   // 4. Food processors, packagers, cold storage
   expert,       // 5. Agronomists, vets, soil scientists
-  financier,    // 6. Banks, MFIs, agri-loan & insurance providers
   government,   // 8. Ministry of Agriculture, NGOs, extension officers
   consumer,     // 9. Individuals, restaurants, institutions
 ;
@@ -25,9 +23,7 @@ enum UserRole {
         UserRole.buyer => 'Commercial Buyer (B2B)',
         UserRole.admin => 'Admin',
         UserRole.transporter => 'Transporter',
-        UserRole.valueAdder => 'Value Adder',
         UserRole.expert => 'Agri-Expert',
-        UserRole.financier => 'Financial Institution',
         UserRole.government => 'Government / NGO',
         UserRole.consumer => 'Consumer (End-User)',
       };
@@ -38,9 +34,7 @@ enum UserRole {
         UserRole.buyer => 'B2B Enterprise',
         UserRole.transporter => 'Logistics',
         UserRole.admin => 'Platform Admin',
-        UserRole.valueAdder => 'Value Chain',
         UserRole.expert => 'Advisory',
-        UserRole.financier => 'Financial Services',
         UserRole.government => 'Public Sector',
         UserRole.consumer => 'Retail & Household',
       };
@@ -51,9 +45,7 @@ enum UserRole {
         UserRole.buyer => Icons.storefront_outlined,
         UserRole.transporter => Icons.local_shipping_outlined,
         UserRole.admin => Icons.admin_panel_settings_outlined,
-        UserRole.valueAdder => Icons.factory_outlined,
         UserRole.expert => Icons.science_outlined,
-        UserRole.financier => Icons.account_balance_outlined,
         UserRole.government => Icons.account_balance_wallet_outlined,
         UserRole.consumer => Icons.shopping_basket_outlined,
       };
@@ -68,12 +60,8 @@ enum UserRole {
           'Manage fleet, register vehicles, assign drivers & track shipments.',
         UserRole.admin =>
           'Maintain system, manage users, monitor platform health.',
-        UserRole.valueAdder =>
-          'Source raw materials, offer processing & storage services.',
         UserRole.expert =>
           'Offer advisory services, field diagnostics, and reports.',
-        UserRole.financier =>
-          'Offer credit scoring, loans, crop insurance, wallet integration.',
         UserRole.government =>
           'Access data, monitor farmer activity, support programs.',
         UserRole.consumer =>
@@ -93,12 +81,11 @@ enum UserRole {
   /// Whether this role can place orders.
   bool get canPlaceOrders =>
       this == UserRole.buyer ||
-      this == UserRole.consumer ||
-      this == UserRole.valueAdder;
+      this == UserRole.consumer;
 
   /// Whether this role can list produce.
   bool get canListProduce =>
-      this == UserRole.farmer || this == UserRole.valueAdder;
+      this == UserRole.farmer;
 }
 
 /// Supported Multi-Currency Modes for Zimbabwe & SADC Agricultural Trade.
@@ -313,14 +300,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       case UserRole.admin:
         initialNav = 23; // Admin Command Center
         break;
-      case UserRole.valueAdder:
-        initialNav = 25; // Value Addition Hub
-        break;
       case UserRole.expert:
         initialNav = 29; // Agri-Expert Master Console
-        break;
-      case UserRole.financier:
-        initialNav = 16; // Finance & Credit Hub
         break;
       case UserRole.government:
         initialNav = 18; // Government Overview / Agritex M&E

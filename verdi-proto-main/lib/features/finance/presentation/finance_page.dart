@@ -166,7 +166,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 1100;
     final role = ref.watch(appStateProvider).role;
-    final isInstitutionalAllowed = role == UserRole.admin || role == UserRole.financier || role == UserRole.government;
+    final isInstitutionalAllowed = role == UserRole.admin || role == UserRole.government;
 
     // Show Personal Agri-Wallet view for regular users (Driver, Farmer, Buyer, Expert, etc.)
     if (!isInstitutionalAllowed || !_showInstitutionalView) {
