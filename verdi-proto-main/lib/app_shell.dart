@@ -281,7 +281,6 @@ class Sidebar extends ConsumerWidget {
       icon: LucideIcons.hammer,
     ),
     _SidebarMenuItem(index: 13, label: 'Geospatial', icon: LucideIcons.map),
-    _SidebarMenuItem(index: 14, label: 'Crop Health', icon: LucideIcons.leaf),
     _SidebarMenuItem(index: 15, label: 'Traceability', icon: LucideIcons.link),
     _SidebarMenuItem(index: 16, label: 'Finance', icon: LucideIcons.dollarSign),
     _SidebarMenuItem(index: 17, label: 'Weather', icon: LucideIcons.cloud),
@@ -354,7 +353,6 @@ class Sidebar extends ConsumerWidget {
           return item.index == 29 ||
               item.index == 7 ||
               item.index == 11 ||
-              item.index == 14 ||
               item.index == 17 ||
               item.index == 20 ||
               item.index == 24;

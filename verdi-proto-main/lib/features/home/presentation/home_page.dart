@@ -1266,7 +1266,7 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
     if (role == UserRole.expert) {
       return const [
         _QuickActionConfig('Start Advisory Session', 'Agronomy & client chat', Icons.lightbulb_outline, Color(0xFF16A34A), 2),
-        _QuickActionConfig('Scan Crop Health', 'AI disease scanner', Icons.energy_savings_leaf_outlined, Color(0xFF7C3AED), 14),
+        _QuickActionConfig('Farm Operations', 'Field ops & agronomy hub', Icons.agriculture_outlined, Color(0xFF16A34A), 11),
         _QuickActionConfig('Generate Field Report', 'Farm operations log', Icons.description_outlined, Color(0xFF2563EB), 11),
         _QuickActionConfig('Message 142 Farmers', 'Alerts & broad notices', Icons.forum_outlined, Color(0xFFF97316), 7),
       ];

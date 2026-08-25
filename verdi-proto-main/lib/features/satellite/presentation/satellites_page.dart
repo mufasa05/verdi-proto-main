@@ -291,10 +291,10 @@ class _SatellitesPageState extends ConsumerState<SatellitesPage> {
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(context);
-              ref.read(appStateProvider.notifier).setNavIndex(14); // Crop Health
+              ref.read(appStateProvider.notifier).setNavIndex(11); // Farm Operations
             },
-            icon: const Icon(Icons.health_and_safety_outlined, size: 16),
-            label: const Text('Crop Health'),
+            icon: const Icon(Icons.agriculture_outlined, size: 16),
+            label: const Text('Farm Operations'),
             style: ElevatedButton.styleFrom(backgroundColor: SatellitesPage.green, foregroundColor: Colors.white),
           ),
           ElevatedButton.icon(
@@ -375,10 +375,10 @@ class _SatellitesPageState extends ConsumerState<SatellitesPage> {
                 ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    ref.read(appStateProvider.notifier).setNavIndex(14); // Crop Health
+                    ref.read(appStateProvider.notifier).setNavIndex(11); // Farm Operations
                   },
-                  icon: const Icon(Icons.health_and_safety_outlined, size: 16),
-                  label: const Text('Crop Health'),
+                  icon: const Icon(Icons.agriculture_outlined, size: 16),
+                  label: const Text('Farm Operations'),
                   style: ElevatedButton.styleFrom(backgroundColor: SatellitesPage.green, foregroundColor: Colors.white),
                 ),
                 ElevatedButton.icon(

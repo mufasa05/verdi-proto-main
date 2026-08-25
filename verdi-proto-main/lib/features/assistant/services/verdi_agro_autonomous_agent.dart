@@ -204,13 +204,13 @@ class VerdiAgroAutonomousAgent {
       );
     }
 
-    // Crop Health (Index 14)
-    if (lower.contains('crop health') || lower.contains('disease') || lower.contains('pest') || lower.contains('diagnosis') || lower.contains('scan') || lower.contains('diagnostic')) {
+    // Farm Operations & Agronomy (Index 11)
+    if (lower.contains('crop health') || lower.contains('farm operations') || lower.contains('disease') || lower.contains('pest') || lower.contains('diagnosis') || lower.contains('scan') || lower.contains('diagnostic')) {
       return const AgentExecutionResult(
         actionType: 'navigate',
-        moduleName: 'crop_health',
-        navIndex: 14,
-        responseSpeech: 'Opening Crop Health diagnostics...',
+        moduleName: 'farm_ops',
+        navIndex: 11,
+        responseSpeech: 'Opening Farm Operations & Agronomy Hub...',
       );
     }
 

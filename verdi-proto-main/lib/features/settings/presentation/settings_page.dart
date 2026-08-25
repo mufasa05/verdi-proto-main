@@ -564,7 +564,7 @@ class _AccessMatrixCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          _MatrixRow(module: 'Crop Health Dashboard', farmer: true, govt: true, scout: true),
+          _MatrixRow(module: 'Farm Operations Hub', farmer: true, govt: true, scout: true),
           _MatrixRow(module: 'Satellite Intelligence', farmer: true, govt: true, scout: false),
           _MatrixRow(module: 'Drone Inspection Workspace', farmer: true, govt: false, scout: true),
           _MatrixRow(module: 'Irrigation Command Centre', farmer: true, govt: true, scout: false),

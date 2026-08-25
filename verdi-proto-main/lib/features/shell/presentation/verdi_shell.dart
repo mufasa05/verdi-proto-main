@@ -6,7 +6,7 @@ import '../../weather/presentation/weather_page.dart';
 import '../../alerts/presentation/alerts_page.dart';
 import '../../logistics/presentation/logistics_dashboard_page.dart';
 import '../../analytics/presentation/analytics_page.dart';
-import '../../crop_health/presentation/crop_health_page.dart';
+import '../../farm_operations/presentation/farm_operations_page.dart';
 import '../../marketplace/presentation/marketplace_page.dart';
 
 class VerdiShell extends StatefulWidget {
@@ -25,7 +25,7 @@ class _VerdiShellState extends State<VerdiShell> {
     AlertsPage(),
     LogisticsDashboardPage(),
     AnalyticsPage(),
-    CropHealthPage(),
+    FarmOperationsPage(),
     MarketplacePage(),
   ];
 
@@ -35,7 +35,7 @@ class _VerdiShellState extends State<VerdiShell> {
     'Alerts',
     'Logistics',
     'Analytics',
-    'Crop Health',
+    'Farm Operations',
     'Marketplace',
   ];
 
@@ -45,7 +45,7 @@ class _VerdiShellState extends State<VerdiShell> {
     Icons.notifications_outlined,
     Icons.local_shipping_outlined,
     Icons.show_chart_outlined,
-    Icons.health_and_safety_outlined,
+    Icons.agriculture_outlined,
     Icons.storefront_outlined,
   ];
 

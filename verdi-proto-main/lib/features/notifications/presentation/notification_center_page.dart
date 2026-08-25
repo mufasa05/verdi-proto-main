@@ -56,7 +56,7 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
             ? ['All', 'Route Hazards', 'Telematics', 'Cold Chain', 'Weighbridge & Tolls', 'Escrow Payout']
             : (isExpert
                 ? ['All', 'Disease Outbreaks', 'Farmer Consultations', 'Soil & Lab Tests', 'Field Rx Prescriptions', 'Advisory Payouts']
-                : ['All', 'Irrigation', 'Satellite', 'Crop Health', 'System']));
+                : ['All', 'Irrigation', 'Satellite', 'Farm Operations', 'System']));
 
     return Scaffold(
       backgroundColor: background,
