@@ -725,20 +725,42 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
         const SizedBox(height: 16),
 
         // Live Gateway Health Grid
-        Row(
-          children: [
-            Expanded(child: _gatewayHealthCard('EcoCash 📱', '99.98% Uptime', 'Instant USD/ZiG Payout', green, Icons.check_circle_outline)),
-            const SizedBox(width: 12),
-            Expanded(child: _gatewayHealthCard('OneMoney 📱', '99.90% Uptime', 'NetOne Wallet Active', green, Icons.check_circle_outline)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _gatewayHealthCard('Bank ZIPIT 🏦', 'Normal Speed', 'Instant Interbank Clearing', const Color(0xFF2563EB), Icons.account_balance_outlined)),
-            const SizedBox(width: 12),
-            Expanded(child: _gatewayHealthCard('Visa / Mastercard 💳', 'Operational', '3DS Secure Gateway', const Color(0xFF7C3AED), Icons.credit_card_outlined)),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 600;
+            if (isNarrow) {
+              return Column(
+                children: [
+                  _gatewayHealthCard('EcoCash 📱', '99.98% Uptime', 'Instant USD/ZiG Payout', green, Icons.check_circle_outline),
+                  const SizedBox(height: 10),
+                  _gatewayHealthCard('OneMoney 📱', '99.90% Uptime', 'NetOne Wallet Active', green, Icons.check_circle_outline),
+                  const SizedBox(height: 10),
+                  _gatewayHealthCard('Bank ZIPIT 🏦', 'Normal Speed', 'Instant Interbank Clearing', const Color(0xFF2563EB), Icons.account_balance_outlined),
+                  const SizedBox(height: 10),
+                  _gatewayHealthCard('Visa / Mastercard 💳', 'Operational', '3DS Secure Gateway', const Color(0xFF7C3AED), Icons.credit_card_outlined),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: _gatewayHealthCard('EcoCash 📱', '99.98% Uptime', 'Instant USD/ZiG Payout', green, Icons.check_circle_outline)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _gatewayHealthCard('OneMoney 📱', '99.90% Uptime', 'NetOne Wallet Active', green, Icons.check_circle_outline)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: _gatewayHealthCard('Bank ZIPIT 🏦', 'Normal Speed', 'Instant Interbank Clearing', const Color(0xFF2563EB), Icons.account_balance_outlined)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _gatewayHealthCard('Visa / Mastercard 💳', 'Operational', '3DS Secure Gateway', const Color(0xFF7C3AED), Icons.credit_card_outlined)),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 20),
 
@@ -751,37 +773,52 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             children: [
               Text('REAL-TIME MULTI-CURRENCY CONVERTER', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: green, letterSpacing: 1.0)),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Base Amount (USD)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        prefixIcon: const Icon(Icons.attach_money_outlined, color: green),
-                      ),
-                      onChanged: (v) {
-                        final parsed = double.tryParse(v);
-                        if (parsed != null) setState(() => _converterUsd = parsed);
-                      },
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 600;
+                  final textInput = TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Base Amount (USD)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.attach_money_outlined, color: green),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _targetCurrency,
-                      decoration: InputDecoration(
-                        labelText: 'Target Settlement Currency',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      items: ['ZiG (Zimbabwe Gold)', 'ZAR (South African Rand)', 'MZN (Mozambican Metical)'].map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)))).toList(),
-                      onChanged: (v) {
-                        if (v != null) setState(() => _targetCurrency = v);
-                      },
+                    onChanged: (v) {
+                      final parsed = double.tryParse(v);
+                      if (parsed != null) setState(() => _converterUsd = parsed);
+                    },
+                  );
+
+                  final dropdownInput = DropdownButtonFormField<String>(
+                    value: _targetCurrency,
+                    decoration: InputDecoration(
+                      labelText: 'Target Settlement Currency',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                  ),
-                ],
+                    items: ['ZiG (Zimbabwe Gold)', 'ZAR (South African Rand)', 'MZN (Mozambican Metical)'].map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)))).toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _targetCurrency = v);
+                    },
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      children: [
+                        textInput,
+                        const SizedBox(height: 12),
+                        dropdownInput,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: textInput),
+                      const SizedBox(width: 12),
+                      Expanded(child: dropdownInput),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 16),
               Container(
@@ -852,19 +889,36 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                 ],
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Text(isDemo ? '840 / 900' : 'Unrated', style: GoogleFonts.inter(fontSize: isDemo ? 32 : 24, fontWeight: FontWeight.w900, color: Colors.white)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      isDemo
-                          ? 'Based on 98.4% trade fulfillment, zero default history, and verified Landsat field polygons.'
-                          : 'No historical contract defaults or verified trade fulfillment recorded yet on this live account.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 550;
+                  final scoreText = Text(isDemo ? '840 / 900' : 'Unrated', style: GoogleFonts.inter(fontSize: isDemo ? 32 : 24, fontWeight: FontWeight.w900, color: Colors.white));
+                  final descText = Text(
+                    isDemo
+                        ? 'Based on 98.4% trade fulfillment, zero default history, and verified Landsat field polygons.'
+                        : 'No historical contract defaults or verified trade fulfillment recorded yet on this live account.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        scoreText,
+                        const SizedBox(height: 8),
+                        descText,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      scoreText,
+                      const SizedBox(width: 16),
+                      Expanded(child: descText),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -947,13 +1001,30 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _simOutputMetric('Active Sourcing Volume', '0.0 MT', Colors.white),
-                    _simOutputMetric('Escrow Protection Fee', '1.5% (Standard)', const Color(0xFF22C55E)),
-                    _simOutputMetric('Accrued Yield', 'US\$ 0.00', const Color(0xFF38BDF8)),
-                  ],
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 550;
+                    if (isNarrow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _simOutputMetric('Active Sourcing Volume', '0.0 MT', Colors.white),
+                          const SizedBox(height: 10),
+                          _simOutputMetric('Escrow Protection Fee', '1.5% (Standard)', const Color(0xFF22C55E)),
+                          const SizedBox(height: 10),
+                          _simOutputMetric('Accrued Yield', 'US\$ 0.00', const Color(0xFF38BDF8)),
+                        ],
+                      );
+                    }
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _simOutputMetric('Active Sourcing Volume', '0.0 MT', Colors.white),
+                        _simOutputMetric('Escrow Protection Fee', '1.5% (Standard)', const Color(0xFF22C55E)),
+                        _simOutputMetric('Accrued Yield', 'US\$ 0.00', const Color(0xFF38BDF8)),
+                      ],
+                    );
+                  },
                 ),
                 const Divider(color: Color(0xFF334155), height: 28),
                 const Text(
@@ -1025,13 +1096,30 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
             children: [
               Text('CALCULATED SETTLEMENT OUTCOMES', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF22C55E), letterSpacing: 1.0)),
               const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _simOutputMetric('Net Seller Payout', '\$${netSellerPayout.toStringAsFixed(2)}', const Color(0xFF22C55E)),
-                  _simOutputMetric('Escrow Fee (1.5%)', '\$${escrowProtectionFee.toStringAsFixed(2)}', Colors.white),
-                  _simOutputMetric('Vault Interest Yield', '\$${interestEarned.toStringAsFixed(2)}', const Color(0xFF38BDF8)),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 550;
+                  if (isNarrow) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _simOutputMetric('Net Seller Payout', '\$${netSellerPayout.toStringAsFixed(2)}', const Color(0xFF22C55E)),
+                        const SizedBox(height: 10),
+                        _simOutputMetric('Escrow Fee (1.5%)', '\$${escrowProtectionFee.toStringAsFixed(2)}', Colors.white),
+                        const SizedBox(height: 10),
+                        _simOutputMetric('Vault Interest Yield', '\$${interestEarned.toStringAsFixed(2)}', const Color(0xFF38BDF8)),
+                      ],
+                    );
+                  }
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _simOutputMetric('Net Seller Payout', '\$${netSellerPayout.toStringAsFixed(2)}', const Color(0xFF22C55E)),
+                      _simOutputMetric('Escrow Fee (1.5%)', '\$${escrowProtectionFee.toStringAsFixed(2)}', Colors.white),
+                      _simOutputMetric('Vault Interest Yield', '\$${interestEarned.toStringAsFixed(2)}', const Color(0xFF38BDF8)),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -1086,19 +1174,36 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                 ],
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Text(isDemo ? '\$145,000.00 USD' : '\$0.00 USD', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      isDemo
-                          ? 'Linked to Stanbic Zimbabwe & First National Bank SADC Gateway for bulk grain contract settlement.'
-                          : 'No commercial RTGS vault funds deposited yet. Link your corporate bank account or initiate incoming wire transfer to fund live contract settlements.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 550;
+                  final amountText = Text(isDemo ? '\$145,000.00 USD' : '\$0.00 USD', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white));
+                  final descText = Text(
+                    isDemo
+                        ? 'Linked to Stanbic Zimbabwe & First National Bank SADC Gateway for bulk grain contract settlement.'
+                        : 'No commercial RTGS vault funds deposited yet. Link your corporate bank account or initiate incoming wire transfer to fund live contract settlements.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        amountText,
+                        const SizedBox(height: 8),
+                        descText,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      amountText,
+                      const SizedBox(width: 16),
+                      Expanded(child: descText),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -1169,19 +1274,36 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                 ],
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Text(isDemo ? '\$420.00 Remaining' : '\$0.00 Remaining', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      isDemo
-                          ? 'Initial \$2,800.00 seed & fertilizer loan automatically deducted from delivered maize contracts.'
-                          : 'No active seasonal input loans on live account.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 550;
+                  final amountText = Text(isDemo ? '\$420.00 Remaining' : '\$0.00 Remaining', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white));
+                  final descText = Text(
+                    isDemo
+                        ? 'Initial \$2,800.00 seed & fertilizer loan automatically deducted from delivered maize contracts.'
+                        : 'No active seasonal input loans on live account.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        amountText,
+                        const SizedBox(height: 8),
+                        descText,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      amountText,
+                      const SizedBox(width: 16),
+                      Expanded(child: descText),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -1224,19 +1346,36 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                 ],
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Text(isDemo ? '\$1,850.00 Available' : '\$0.00 Available', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      isDemo
-                          ? 'Linked to TotalEnergies & Puma Energy filling stations along the Harare-Beira and Harare-Bulawayo corridors.'
-                          : 'No live fleet fuel card pool activated yet.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 550;
+                  final amountText = Text(isDemo ? '\$1,850.00 Available' : '\$0.00 Available', style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white));
+                  final descText = Text(
+                    isDemo
+                        ? 'Linked to TotalEnergies & Puma Energy filling stations along the Harare-Beira and Harare-Bulawayo corridors.'
+                        : 'No live fleet fuel card pool activated yet.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        amountText,
+                        const SizedBox(height: 8),
+                        descText,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      amountText,
+                      const SizedBox(width: 16),
+                      Expanded(child: descText),
+                    ],
+                  );
+                },
               ),
             ],
           ),

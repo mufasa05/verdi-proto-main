@@ -4,8 +4,8 @@
 -- =============================================================================
 
 -- 1. Enable PostGIS for Parcel Polygons & Fleet GPS Route Analysis
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "postgis";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "postgis" WITH SCHEMA extensions;
 
 -- 2. User Profiles Table
 CREATE TABLE IF NOT EXISTS public.profiles (

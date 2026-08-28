@@ -190,34 +190,58 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
             child: ListView(
               padding: MediaQuery.of(context).size.width < 600 ? const EdgeInsets.all(12) : const EdgeInsets.all(24),
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 600;
+                    final titleColumn = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          titleText,
+                          style: GoogleFonts.inter(fontSize: 21, fontWeight: FontWeight.w800, color: dark),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          subtitleText,
+                          style: GoogleFonts.inter(color: muted, fontSize: 13),
+                        ),
+                      ],
+                    );
+
+                    final badge = batches.isNotEmpty
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999), border: Border.all(color: Colors.black12)),
+                            child: Text(
+                              isTransporter ? 'Seal Verified 99.4%' : (isBuyer ? 'EUDR Verified 98.6%' : 'Avg ${(_overallReadiness(batches) * 100).round()}%'),
+                              style: const TextStyle(fontWeight: FontWeight.w700, color: dark, fontSize: 12),
+                            ),
+                          )
+                        : const SizedBox.shrink();
+
+                    if (isNarrow) {
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            titleText,
-                            style: GoogleFonts.inter(fontSize: 21, fontWeight: FontWeight.w800, color: dark),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            subtitleText,
-                            style: GoogleFonts.inter(color: muted, fontSize: 13),
-                          ),
+                          titleColumn,
+                          if (batches.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            badge,
+                          ],
                         ],
-                      ),
-                    ),
-                    if (batches.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999), border: Border.all(color: Colors.black12)),
-                        child: Text(
-                          isTransporter ? 'Seal Verified 99.4%' : (isBuyer ? 'EUDR Verified 98.6%' : 'Avg ${(_overallReadiness(batches) * 100).round()}%'),
-                          style: const TextStyle(fontWeight: FontWeight.w700, color: dark, fontSize: 12),
-                        ),
-                      ),
-                  ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        Expanded(child: titleColumn),
+                        if (batches.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          badge,
+                        ],
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 if (batches.isEmpty)

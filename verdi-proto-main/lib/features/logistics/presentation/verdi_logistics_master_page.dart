@@ -123,108 +123,133 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
   // TOP CARRIER HEADER
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildCarrierHeader(CarrierProfile profile, bool isVerified, AgriLogisticsState state) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        color: cardDark,
-        border: Border(bottom: BorderSide(color: cardBorder)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Carrier Avatar
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: amber.withOpacity(0.18),
-                child: const Icon(Icons.local_shipping_rounded, color: amber, size: 20),
-              ),
-              const SizedBox(width: 12),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 720;
 
-              // Carrier Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            profile.carrierName,
-                            style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14.5, color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
+        final carrierInfo = Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: amber.withOpacity(0.18),
+              child: const Icon(Icons.local_shipping_rounded, color: amber, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          profile.carrierName,
+                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14.5, color: Colors.white),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (isVerified)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: amber.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: amber),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.verified, size: 12, color: amber),
+                              SizedBox(width: 4),
+                              Text('VERIFIED CARRIER', style: TextStyle(color: amber, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        if (isVerified)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: amber.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: amber),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.verified, size: 12, color: amber),
-                                SizedBox(width: 4),
-                                Text('VERIFIED CARRIER', style: TextStyle(color: amber, fontSize: 9.5, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${profile.vehicle.registrationNumber} • ${profile.vehicle.model} • ${profile.completedTripsCount} Trips • ⭐ ${profile.rating}',
-                      style: const TextStyle(fontSize: 11, color: textMuted),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${profile.vehicle.registrationNumber} • ${profile.vehicle.model} • ${profile.completedTripsCount} Trips • ⭐ ${profile.rating}',
+                    style: const TextStyle(fontSize: 11, color: textMuted),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
+            ),
+          ],
+        );
 
-              // Carrier Escrow Balance Pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: bgDark,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: green.withOpacity(0.4)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text('CARRIER ESCROW WALLET', style: TextStyle(fontSize: 8.5, color: textMuted, fontWeight: FontWeight.bold)),
-                    Text(
-                      'US\$ ${profile.walletBalance.toStringAsFixed(2)}',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: green, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-
-              // Duty Status Dropdown
-              _buildDutyStatusDropdown(profile),
-              const SizedBox(width: 8),
-
-              // Register New Truck Action Button
-              ElevatedButton.icon(
-                onPressed: () => _showRegisterTruckModal(context),
-                icon: const Icon(Icons.add, size: 14),
-                label: const Text('Register Truck', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: amber,
-                  foregroundColor: bgDark,
-                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+        final escrowPill = Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: bgDark,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: green.withOpacity(0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: isNarrow ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+            children: [
+              const Text('CARRIER ESCROW WALLET', style: TextStyle(fontSize: 8.5, color: textMuted, fontWeight: FontWeight.bold)),
+              Text(
+                'US\$ ${profile.walletBalance.toStringAsFixed(2)}',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: green, fontSize: 13),
               ),
             ],
           ),
-        ],
-      ),
+        );
+
+        final dutyDropdown = _buildDutyStatusDropdown(profile);
+
+        final registerBtn = ElevatedButton.icon(
+          onPressed: () => _showRegisterTruckModal(context),
+          icon: const Icon(Icons.add, size: 14),
+          label: const Text('Register Truck', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: amber,
+            foregroundColor: bgDark,
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: const BoxDecoration(
+            color: cardDark,
+            border: Border(bottom: BorderSide(color: cardBorder)),
+          ),
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    carrierInfo,
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        escrowPill,
+                        dutyDropdown,
+                        registerBtn,
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: carrierInfo),
+                    const SizedBox(width: 12),
+                    escrowPill,
+                    const SizedBox(width: 10),
+                    dutyDropdown,
+                    const SizedBox(width: 8),
+                    registerBtn,
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -276,16 +301,41 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // KPI Metric Bar
-          Row(
-            children: [
-              Expanded(child: _buildMetricCard('Active Freight Runs', '${activeWaybills.length}', Icons.local_shipping_outlined, amber)),
-              const SizedBox(width: 10),
-              Expanded(child: _buildMetricCard('Live IoT Speed', '${state.liveSpeedKmh.toStringAsFixed(1)} km/h', Icons.speed_outlined, cyan)),
-              const SizedBox(width: 10),
-              Expanded(child: _buildMetricCard('Reefer Chamber Temp', '+${state.liveReeferTemp.toStringAsFixed(1)} °C', Icons.ac_unit_outlined, green)),
-              const SizedBox(width: 10),
-              Expanded(child: _buildMetricCard('Marketplace Jobs', '${openOrders.length}', Icons.storefront_outlined, purple)),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 700) {
+                return Row(
+                  children: [
+                    Expanded(child: _buildMetricCard('Active Freight Runs', '${activeWaybills.length}', Icons.local_shipping_outlined, amber)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildMetricCard('Live IoT Speed', '${state.liveSpeedKmh.toStringAsFixed(1)} km/h', Icons.speed_outlined, cyan)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildMetricCard('Reefer Chamber Temp', '+${state.liveReeferTemp.toStringAsFixed(1)} °C', Icons.ac_unit_outlined, green)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildMetricCard('Marketplace Jobs', '${openOrders.length}', Icons.storefront_outlined, purple)),
+                  ],
+                );
+              }
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: _buildMetricCard('Active Freight Runs', '${activeWaybills.length}', Icons.local_shipping_outlined, amber)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildMetricCard('Live IoT Speed', '${state.liveSpeedKmh.toStringAsFixed(1)} km/h', Icons.speed_outlined, cyan)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildMetricCard('Reefer Chamber Temp', '+${state.liveReeferTemp.toStringAsFixed(1)} °C', Icons.ac_unit_outlined, green)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildMetricCard('Marketplace Jobs', '${openOrders.length}', Icons.storefront_outlined, purple)),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
 
@@ -460,6 +510,62 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
     );
   }
 
+  Widget _buildModuleBanner({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required Widget trailing,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 650;
+        final mainContent = Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontSize: 11.5, color: textMuted)),
+                ],
+              ),
+            ),
+          ],
+        );
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    mainContent,
+                    const SizedBox(height: 10),
+                    trailing,
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: mainContent),
+                    const SizedBox(width: 12),
+                    trailing,
+                  ],
+                ),
+        );
+      },
+    );
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
   // TAB 2: HYPER-LOCAL SHORT-TRIP POOLS
   // ───────────────────────────────────────────────────────────────────────────
@@ -471,32 +577,15 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: green.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: green.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.electric_rickshaw_outlined, color: green, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Hyper-Local Farmgate Aggregation Pools', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                      Text('Optimized for smallholder farmgate-to-hub consolidation (< 50 km) using motorcycles, tricycles & light utilities.', style: TextStyle(fontSize: 11.5, color: textMuted)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: green.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-                  child: const Text('FIXED & PER-KM FORMULAS', style: TextStyle(color: green, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              ],
+          _buildModuleBanner(
+            icon: Icons.electric_rickshaw_outlined,
+            color: green,
+            title: 'Hyper-Local Farmgate Aggregation Pools',
+            subtitle: 'Optimized for smallholder farmgate-to-hub consolidation (< 50 km) using motorcycles, tricycles & light utilities.',
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: green.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+              child: const Text('FIXED & PER-KM FORMULAS', style: TextStyle(color: green, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 16),
@@ -560,32 +649,15 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: cyan.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: cyan.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.ac_unit_outlined, color: cyan, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Long-Distance Bulk Haulage & Reefer Telemetry', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                      Text('Multi-tonne inter-provincial corridors with live ELD IoT cold-chain temperature stream, fuel index & border clearance.', style: TextStyle(fontSize: 11.5, color: textMuted)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: cyan.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-                  child: const Text('PER-TONNE-KM FORMULA', style: TextStyle(color: cyan, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              ],
+          _buildModuleBanner(
+            icon: Icons.ac_unit_outlined,
+            color: cyan,
+            title: 'Long-Distance Bulk Haulage & Reefer Telemetry',
+            subtitle: 'Multi-tonne inter-provincial corridors with live ELD IoT cold-chain temperature stream, fuel index & border clearance.',
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: cyan.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+              child: const Text('PER-TONNE-KM FORMULA', style: TextStyle(color: cyan, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 16),
@@ -695,21 +767,27 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-                child: Row(
-                  children: [
-                    CircleAvatar(backgroundColor: amber.withOpacity(0.15), radius: 18, child: const Icon(Icons.qr_code_2, color: amber, size: 18)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${b.cropVariety} (${b.initialQuantityKg} kg)', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white)),
-                          Text('Farmer: ${b.farmerName} • Origin: ${b.location}', style: const TextStyle(fontSize: 11, color: textMuted)),
-                          Text('EUDR Cert: ${b.organicCertificationCode}', style: const TextStyle(fontSize: 10.5, color: cyan)),
-                        ],
-                      ),
-                    ),
-                    ElevatedButton.icon(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 550;
+                    final infoRow = Row(
+                      children: [
+                        CircleAvatar(backgroundColor: amber.withOpacity(0.15), radius: 18, child: const Icon(Icons.qr_code_2, color: amber, size: 18)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${b.cropVariety} (${b.initialQuantityKg} kg)', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.white)),
+                              Text('Farmer: ${b.farmerName} • Origin: ${b.location}', style: const TextStyle(fontSize: 11, color: textMuted)),
+                              Text('EUDR Cert: ${b.organicCertificationCode}', style: const TextStyle(fontSize: 10.5, color: cyan)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+
+                    final btn = ElevatedButton.icon(
                       onPressed: () {
                         if (primaryWaybill != null) {
                           ref.read(agriLogisticsProvider.notifier).aggregateBatchToWaybill(primaryWaybill.id, b, b.initialQuantityKg);
@@ -721,8 +799,27 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
                       icon: const Icon(Icons.add_link_rounded, size: 14),
                       label: const Text('Aggregate Lot', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(backgroundColor: green, foregroundColor: Colors.white),
-                    ),
-                  ],
+                    );
+
+                    if (isNarrow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          infoRow,
+                          const SizedBox(height: 10),
+                          btn,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        Expanded(child: infoRow),
+                        const SizedBox(width: 12),
+                        btn,
+                      ],
+                    );
+                  },
                 ),
               );
             },
@@ -756,32 +853,15 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: purple.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: purple.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.fact_check_outlined, color: purple, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Discharge Quality Verification & e-POD Settlement', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                      Text('Log received weight, moisture drop & inspector signature to instantly trigger automatic escrow payout to carrier and farmer.', style: TextStyle(fontSize: 11.5, color: textMuted)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: purple.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-                  child: const Text('ESCROW SETTLEMENT READY', style: TextStyle(color: purple, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-              ],
+          _buildModuleBanner(
+            icon: Icons.fact_check_outlined,
+            color: purple,
+            title: 'Discharge Quality Verification & e-POD Settlement',
+            subtitle: 'Log received weight, moisture drop & inspector signature to instantly trigger automatic escrow payout to carrier and farmer.',
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: purple.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+              child: const Text('ESCROW SETTLEMENT READY', style: TextStyle(color: purple, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 16),
@@ -862,15 +942,20 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
                           );
                         }
                       },
-                      icon: const Icon(Icons.verified_rounded, size: 18),
+                      icon: const Icon(Icons.verified, size: 18),
                       label: Text('Sign e-POD & Trigger Instant Escrow Payout (US\$ ${activeWaybill.totalFreightFee.toStringAsFixed(2)})', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(backgroundColor: green, foregroundColor: Colors.white),
+                      style: ElevatedButton.styleFrom(backgroundColor: green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
+          ] else
+            Container(
+              padding: const EdgeInsets.all(32),
+              alignment: Alignment.center,
+              child: const Text('No active master waybill awaiting destination discharge inspection.', style: TextStyle(color: textMuted)),
+            ),
         ],
       ),
     );
@@ -921,33 +1006,16 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: cyan.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: cyan.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.link_rounded, color: cyan, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Agricultural Freight Traceability & Documents', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                      Text('End-to-end QR provenance, digital Bills of Lading (BoL), phytosanitary certificates, and corridor weighbridge logs.', style: TextStyle(fontSize: 11.5, color: textMuted)),
-                    ],
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => ref.read(appStateProvider.notifier).setNavIndex(15),
-                  icon: const Icon(Icons.open_in_new, size: 13),
-                  label: const Text('Open Full Traceability Hub', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: cyan, foregroundColor: bgDark),
-                ),
-              ],
+          _buildModuleBanner(
+            icon: Icons.link_rounded,
+            color: cyan,
+            title: 'Agricultural Freight Traceability & Documents',
+            subtitle: 'End-to-end QR provenance, digital Bills of Lading (BoL), phytosanitary certificates, and corridor weighbridge logs.',
+            trailing: ElevatedButton.icon(
+              onPressed: () => ref.read(appStateProvider.notifier).setNavIndex(15),
+              icon: const Icon(Icons.open_in_new, size: 13),
+              label: const Text('Open Full Traceability Hub', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(backgroundColor: cyan, foregroundColor: bgDark),
             ),
           ),
           const SizedBox(height: 16),
@@ -968,34 +1036,57 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
   }
 
   Widget _buildDocCard(String title, String filename, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-      child: Row(
-        children: [
-          CircleAvatar(backgroundColor: color.withOpacity(0.15), radius: 18, child: Icon(icon, color: color, size: 18)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
-                Text(filename, style: const TextStyle(fontSize: 11, color: textMuted)),
-              ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
+        final infoRow = Row(
+          children: [
+            CircleAvatar(backgroundColor: color.withOpacity(0.15), radius: 18, child: Icon(icon, color: color, size: 18)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                  Text(filename, style: const TextStyle(fontSize: 11, color: textMuted)),
+                ],
+              ),
             ),
-          ),
-          OutlinedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Downloading verified document: $filename'), backgroundColor: color),
-              );
-            },
-            icon: const Icon(Icons.download_rounded, size: 14),
-            label: const Text('Download PDF', style: TextStyle(fontSize: 11)),
-            style: OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color)),
-          ),
-        ],
-      ),
+          ],
+        );
+
+        final btn = OutlinedButton.icon(
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Downloading verified document: $filename'), backgroundColor: color),
+            );
+          },
+          icon: const Icon(Icons.download_rounded, size: 14),
+          label: const Text('Download PDF', style: TextStyle(fontSize: 11)),
+          style: OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color)),
+        );
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    infoRow,
+                    const SizedBox(height: 8),
+                    btn,
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: infoRow),
+                    const SizedBox(width: 12),
+                    btn,
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -1010,33 +1101,16 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: amber.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: amber.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.settings_outlined, color: amber, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Carrier Telematics Hardware & Platform Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                      Text('Configure in-cab IoT sensors, calibrate cold-chain thresholds, managing operating corridors and escrow payout bank accounts.', style: TextStyle(fontSize: 11.5, color: textMuted)),
-                    ],
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => ref.read(appStateProvider.notifier).setNavIndex(21),
-                  icon: const Icon(Icons.open_in_new, size: 13),
-                  label: const Text('Open System Settings', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: amber, foregroundColor: bgDark),
-                ),
-              ],
+          _buildModuleBanner(
+            icon: Icons.settings_outlined,
+            color: amber,
+            title: 'Carrier Telematics Hardware & Platform Settings',
+            subtitle: 'Configure in-cab IoT sensors, calibrate cold-chain thresholds, managing operating corridors and escrow payout bank accounts.',
+            trailing: ElevatedButton.icon(
+              onPressed: () => ref.read(appStateProvider.notifier).setNavIndex(21),
+              icon: const Icon(Icons.open_in_new, size: 13),
+              label: const Text('Open System Settings', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(backgroundColor: amber, foregroundColor: bgDark),
             ),
           ),
           const SizedBox(height: 16),
@@ -1065,19 +1139,45 @@ class _VerdiLogisticsMasterPageState extends ConsumerState<VerdiLogisticsMasterP
   }
 
   Widget _buildSettingRow(String title, String value, Color color, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 18),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-        ),
-        Container(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 460;
+        final badge = Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withOpacity(0.4))),
           child: Text(value, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-        ),
-      ],
+        );
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              badge,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+            ),
+            badge,
+          ],
+        );
+      },
     );
   }
 
