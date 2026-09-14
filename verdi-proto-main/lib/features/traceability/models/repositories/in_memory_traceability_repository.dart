@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../../../../core/services/security_crypto_service.dart';
 import '../batch_document_model.dart';
 import '../batch_model.dart';
 import '../farm_model.dart';
@@ -80,21 +81,43 @@ class InMemoryTraceabilityRepository implements TraceabilityRepository {
 
     _fields.addAll([field1, field2]);
 
+    final harvestDate1 = DateTime.now();
+    final seal1 = SecurityCryptoService.instance.generateBatchSeal(
+      batchCode: 'VER-TR-10021',
+      farmId: farm1.id,
+      harvestDate: harvestDate1.toIso8601String(),
+      quantity: 1200.0,
+      latitude: farm1.latitude,
+      longitude: farm1.longitude,
+    );
+
     final batch1 = BatchModel(
       id: 'batch-1',
       batchCode: 'VER-TR-10021',
       farmId: farm1.id,
       fieldId: field1.id,
       cropName: 'Mango',
-      harvestDate: DateTime.now(),
+      harvestDate: harvestDate1,
       quantity: 1200,
       unit: 'kg',
       status: 'Ready',
       readinessScore: 0.96,
       originVerified: true,
       inspectionPassed: true,
+      integritySeal: seal1,
+      antiTamperVerified: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+    );
+
+    final harvestDate2 = DateTime.now();
+    final seal2 = SecurityCryptoService.instance.generateBatchSeal(
+      batchCode: 'VER-TR-10022',
+      farmId: farm2.id,
+      harvestDate: harvestDate2.toIso8601String(),
+      quantity: 780.0,
+      latitude: farm2.latitude,
+      longitude: farm2.longitude,
     );
 
     final batch2 = BatchModel(
@@ -103,13 +126,15 @@ class InMemoryTraceabilityRepository implements TraceabilityRepository {
       farmId: farm2.id,
       fieldId: field2.id,
       cropName: 'Tomatoes',
-      harvestDate: DateTime.now(),
+      harvestDate: harvestDate2,
       quantity: 780,
       unit: 'kg',
       status: 'Review',
       readinessScore: 0.71,
       originVerified: true,
       inspectionPassed: false,
+      integritySeal: seal2,
+      antiTamperVerified: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -209,6 +234,21 @@ class InMemoryTraceabilityRepository implements TraceabilityRepository {
   @override
   Future<BatchModel> saveBatch(BatchModel batch) async {
     final index = _batches.indexWhere((b) => b.id == batch.id);
+    final farm = _farms.where((f) => f.id == batch.farmId).cast<FarmModel?>().firstOrNull;
+    final lat = farm?.latitude ?? -18.0;
+    final lng = farm?.longitude ?? 31.0;
+
+    final seal = batch.integritySeal.isNotEmpty
+        ? batch.integritySeal
+        : SecurityCryptoService.instance.generateBatchSeal(
+            batchCode: batch.batchCode,
+            farmId: batch.farmId,
+            harvestDate: batch.harvestDate.toIso8601String(),
+            quantity: batch.quantity.toDouble(),
+            latitude: lat,
+            longitude: lng,
+          );
+
     final newBatch = BatchModel(
       id: batch.id.isEmpty ? _id('batch') : batch.id,
       batchCode: batch.batchCode,
@@ -222,6 +262,8 @@ class InMemoryTraceabilityRepository implements TraceabilityRepository {
       readinessScore: batch.readinessScore,
       originVerified: batch.originVerified,
       inspectionPassed: batch.inspectionPassed,
+      integritySeal: seal,
+      antiTamperVerified: true,
       createdAt: batch.createdAt,
       updatedAt: DateTime.now(),
     );

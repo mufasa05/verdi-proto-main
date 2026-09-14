@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'supabase_service.dart';
+import 'security_crypto_service.dart';
 
 class KycVerificationRecord {
   final String userId;
@@ -42,20 +43,22 @@ class KycVerificationService {
     return zimIdRegex.hasMatch(clean) || clean.length >= 8;
   }
 
-  /// Submits KYC verification request to Supabase
+  /// Submits KYC verification request to Supabase with input sanitization
   Future<bool> submitKyc({
     required String userId,
     required String userName,
     required String idNumber,
     required String documentType,
   }) async {
-    final isValidFormat = validateNationalIdChecksum(idNumber);
+    final cleanUser = SecurityCryptoService.instance.sanitizeInput(userName);
+    final cleanIdNumber = SecurityCryptoService.instance.sanitizeInput(idNumber);
+    final isValidFormat = validateNationalIdChecksum(cleanIdNumber);
     final status = isValidFormat ? 'VERIFIED' : 'PENDING';
 
     final rec = KycVerificationRecord(
       userId: userId,
-      userName: userName,
-      idNumber: idNumber,
+      userName: cleanUser,
+      idNumber: cleanIdNumber,
       documentType: documentType,
       status: status,
       submittedAt: DateTime.now().toIso8601String(),
@@ -65,13 +68,13 @@ class KycVerificationService {
       final success = await _supabase.insertRecord('verdi_kyc_verifications', rec.toJson());
       if (success) {
         await _supabase.logActivity(
-          userName: userName,
+          userName: cleanUser,
           userId: userId,
           userRole: 'Stakeholder',
           actionTitle: '🛡️ KYC Document Submitted',
-          actionDescription: 'Submitted $documentType ($idNumber) for automated verification.',
+          actionDescription: 'Submitted $documentType ($cleanIdNumber) for automated verification.',
           module: 'Identity',
-          targetResource: idNumber,
+          targetResource: cleanIdNumber,
         );
       }
       return success;

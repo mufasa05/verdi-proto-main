@@ -1,9 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'weather_model.dart';
+import 'weather_repository.dart';
 
-class MockWeatherRepository {
-  Future<WeatherData> fetchWeather({bool isDemo = true}) async {
+class MockWeatherRepository implements WeatherRepository {
+  @override
+  Future<WeatherData> fetchWeather({
+    double? latitude,
+    double? longitude,
+    String? locationName,
+    bool isDemo = true,
+  }) async {
     try {
       final url = Uri.parse(
         'https://api.open-meteo.com/v1/forecast?latitude=-17.8252&longitude=31.0335&current=temperature_2m,relative_humidity_2m,wind_speed_10m,surface_pressure,rain&hourly=temperature_2m&daily=temperature_2m_max,temperature_2m_min&timezone=Africa%2FHarare',

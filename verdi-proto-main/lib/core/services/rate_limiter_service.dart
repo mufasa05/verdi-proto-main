@@ -1,14 +1,19 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'security_vault_service.dart';
 
 enum RateLimitCategory {
-  auth(defaultMaxRequests: 5, windowSeconds: 60, name: 'Authentication & Security'),
+  auth(defaultMaxRequests: 5, windowSeconds: 60, name: 'Authentication & 2FA'),
   aiAssistant(defaultMaxRequests: 20, windowSeconds: 60, name: 'AI Copilot & Voice'),
   escrowPayment(defaultMaxRequests: 10, windowSeconds: 60, name: 'Escrow & Payments'),
-  iotTelemetry(defaultMaxRequests: 20, windowSeconds: 60, name: 'IoT Telemetry Ping'),
   marketplace(defaultMaxRequests: 30, windowSeconds: 60, name: 'Marketplace & Orders'),
-  geospatial(defaultMaxRequests: 40, windowSeconds: 60, name: 'Geospatial & Satellite'),
-  adminActions(defaultMaxRequests: 15, windowSeconds: 60, name: 'Admin Command Console');
+  iotTelemetry(defaultMaxRequests: 25, windowSeconds: 60, name: 'IoT Drone & Telemetry'),
+  geospatial(defaultMaxRequests: 40, windowSeconds: 60, name: 'Geospatial & Satellite NDVI'),
+  adminActions(defaultMaxRequests: 15, windowSeconds: 60, name: 'Admin Security Controls'),
+  exportPermits(defaultMaxRequests: 10, windowSeconds: 60, name: 'e-Phyto Export Permits'),
+  traceability(defaultMaxRequests: 35, windowSeconds: 60, name: 'Traceability & QR Scans');
 
   final int defaultMaxRequests;
   final int windowSeconds;
@@ -37,24 +42,46 @@ class RateViolationRecord {
     required this.rejectedRequests,
     required this.ipOrUser,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'categoryName': categoryName,
+    'targetKey': targetKey,
+    'timestamp': timestamp.toIso8601String(),
+    'rejectedRequests': rejectedRequests,
+    'ipOrUser': ipOrUser,
+  };
+
+  factory RateViolationRecord.fromJson(Map<String, dynamic> json) => RateViolationRecord(
+    id: json['id']?.toString() ?? 'VIO-0',
+    categoryName: json['categoryName']?.toString() ?? 'General',
+    targetKey: json['targetKey']?.toString() ?? 'target',
+    timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
+    rejectedRequests: (json['rejectedRequests'] as num?)?.toInt() ?? 1,
+    ipOrUser: json['ipOrUser']?.toString() ?? 'Client',
+  );
 }
 
-class RateLimiterService {
+/// Enterprise-Grade Sliding-Window Rate Limiter & Token Quota Throttler.
+class RateLimiterService extends ChangeNotifier {
   RateLimiterService._();
   static final RateLimiterService instance = RateLimiterService._();
+
+  static const String _prefCustomLimits = 'verdi.rate_limiter.custom_limits';
+  static const String _prefTokenUsage = 'verdi.rate_limiter.tokens_used';
 
   final Map<String, Queue<DateTime>> _requestHistory = {};
   final Map<RateLimitCategory, int> _customLimits = {};
 
-  // Token monitoring state
   int _dailyTokenCap = 1000000;
   int _tokensUsedToday = 142850;
   int _tokensPerMinuteLimit = 25000;
+  bool _isLoaded = false;
 
   final List<RateViolationRecord> _violations = [
     RateViolationRecord(
       id: 'VIO-901',
-      categoryName: 'Authentication & Security',
+      categoryName: 'Authentication & 2FA',
       targetKey: 'auth_ip_197.210.45.19',
       timestamp: DateTime.now().subtract(const Duration(minutes: 14)),
       rejectedRequests: 12,
@@ -74,42 +101,76 @@ class RateLimiterService {
       targetKey: 'escrow_USR-99214',
       timestamp: DateTime.now().subtract(const Duration(hours: 2)),
       rejectedRequests: 2,
-      ipOrUser: 'USR-99214 (Harare Fresh Produce Hub)',
+      ipOrUser: 'USR-99214 (Harare Hub)',
     ),
   ];
 
-  // Getters
   int get dailyTokenCap => _dailyTokenCap;
   int get tokensUsedToday => _tokensUsedToday;
   int get tokensPerMinuteLimit => _tokensPerMinuteLimit;
   List<RateViolationRecord> get violations => List.unmodifiable(_violations);
 
+  Future<void> initialize() async {
+    if (_isLoaded) return;
+    final prefs = await SharedPreferences.getInstance();
+    final rawLimits = prefs.getString(_prefCustomLimits);
+    if (rawLimits != null && rawLimits.isNotEmpty) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(rawLimits);
+        for (final entry in decoded.entries) {
+          final cat = RateLimitCategory.values.firstWhere(
+            (c) => c.name == entry.key,
+            orElse: () => RateLimitCategory.auth,
+          );
+          _customLimits[cat] = (entry.value as num).toInt();
+        }
+      } catch (_) {}
+    }
+
+    _tokensUsedToday = prefs.getInt(_prefTokenUsage) ?? _tokensUsedToday;
+    _isLoaded = true;
+    notifyListeners();
+  }
+
   int getCategoryLimit(RateLimitCategory category) {
     return _customLimits[category] ?? category.defaultMaxRequests;
   }
 
-  void setCategoryLimit(RateLimitCategory category, int newLimit) {
+  Future<void> setCategoryLimit(RateLimitCategory category, int newLimit) async {
     _customLimits[category] = newLimit.clamp(1, 1000);
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    final map = _customLimits.map((k, v) => MapEntry(k.name, v));
+    await prefs.setString(_prefCustomLimits, jsonEncode(map));
   }
 
   void setDailyTokenCap(int newCap) {
     _dailyTokenCap = newCap.clamp(10000, 100000000);
+    notifyListeners();
   }
 
   void setTokensPerMinuteLimit(int newLimit) {
     _tokensPerMinuteLimit = newLimit.clamp(1000, 1000000);
+    notifyListeners();
   }
 
-  void consumeTokens(int tokenCount) {
+  Future<void> consumeTokens(int tokenCount) async {
     _tokensUsedToday += tokenCount;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_prefTokenUsage, _tokensUsedToday);
   }
 
   void flushAllCooldowns() {
     _requestHistory.clear();
+    notifyListeners();
   }
 
   void flushCategoryCooldown(RateLimitCategory category) {
     _requestHistory.removeWhere((key, _) => key.startsWith(category.name));
+    notifyListeners();
   }
 
   int getActiveRequestCountInWindow(RateLimitCategory category, {String keySuffix = 'global'}) {
@@ -122,9 +183,16 @@ class RateLimiterService {
     return history.where((dt) => now.difference(dt) <= windowDuration).length;
   }
 
-  /// Checks if an action is permitted under its rate limit.
+  double getCategoryUsageRatio(RateLimitCategory category, {String keySuffix = 'global'}) {
+    final active = getActiveRequestCountInWindow(category, keySuffix: keySuffix);
+    final limit = getCategoryLimit(category);
+    if (limit == 0) return 0.0;
+    return (active / limit).clamp(0.0, 1.0);
+  }
+
+  /// Checks if an action is permitted under its sliding window rate limit.
   /// If permitted, records the timestamp and returns `true`.
-  /// If exceeded, records a violation record, returns `false` and optionally calls [onRateLimited].
+  /// If exceeded, records a violation record, triggers threat logging, returns `false`.
   bool checkAndRecord(
     RateLimitCategory category, {
     String keySuffix = 'global',
@@ -147,18 +215,27 @@ class RateLimiterService {
       final timeSinceOldest = now.difference(oldestInWindow);
       final secondsRemaining = (category.windowSeconds - timeSinceOldest.inSeconds).clamp(1, category.windowSeconds);
 
-      // Record violation
-      _violations.insert(
-        0,
-        RateViolationRecord(
-          id: 'VIO-${DateTime.now().millisecondsSinceEpoch % 10000}',
-          categoryName: category.name,
-          targetKey: key,
-          timestamp: now,
-          rejectedRequests: 1,
-          ipOrUser: keySuffix == 'global' ? 'Client Device' : keySuffix,
-        ),
+      // Record violation locally
+      final violation = RateViolationRecord(
+        id: 'VIO-${DateTime.now().millisecondsSinceEpoch % 10000}',
+        categoryName: category.name,
+        targetKey: key,
+        timestamp: now,
+        rejectedRequests: 1,
+        ipOrUser: keySuffix == 'global' ? 'Client Device' : keySuffix,
       );
+      _violations.insert(0, violation);
+      if (_violations.length > 50) _violations.removeLast();
+
+      // Log threat event to SecurityVaultService
+      SecurityVaultService.instance.logSecurityIncident(
+        title: 'Rate Limit Exceeded on ${category.name}',
+        ip: keySuffix == 'global' ? '127.0.0.1' : keySuffix,
+        severity: category == RateLimitCategory.auth || category == RateLimitCategory.escrowPayment ? 'HIGH' : 'LOW',
+        status: 'RATE_LIMITED',
+      );
+
+      notifyListeners();
 
       if (onRateLimited != null) {
         onRateLimited(secondsRemaining);
@@ -167,6 +244,7 @@ class RateLimiterService {
     }
 
     history.addLast(now);
+    notifyListeners();
     return true;
   }
 

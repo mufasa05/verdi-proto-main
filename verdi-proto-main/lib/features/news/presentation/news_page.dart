@@ -149,26 +149,31 @@ class _NewsPageState extends State<NewsPage> {
               ),
               child: const Icon(Icons.newspaper_outlined, color: NewsPage.green, size: 20),
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Southern Africa Agri-News',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: NewsPage.dark,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Southern Africa Agri-News',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: NewsPage.dark,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Text(
-                  'Real-time live RSS updates • 5-day rolling archive',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: NewsPage.muted,
+                  Text(
+                    'Real-time live RSS updates • 5-day rolling archive',
+                    style: GoogleFonts.inter(
+                      fontSize: 10.5,
+                      color: NewsPage.muted,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -438,8 +443,11 @@ class _NewsPageState extends State<NewsPage> {
           const SizedBox(height: 12),
 
           // Footer Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 10,
+            runSpacing: 8,
             children: [
               Text(
                 fullDateStr,

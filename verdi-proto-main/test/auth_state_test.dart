@@ -38,7 +38,7 @@ void main() {
       await notifier.initialize();
 
       final success = await notifier.signIn(
-        emailOrPhone: 'farmer@verdi.com',
+        emailOrPhone: 'farmer@demo.verdi.co',
         password: 'password123',
       );
 

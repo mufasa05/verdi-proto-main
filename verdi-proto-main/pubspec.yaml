@@ -46,6 +46,7 @@ dependencies:
   flutter_joystick: ^0.2.2
   url_launcher: ^6.3.2
   supabase_flutter: ^2.8.0
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

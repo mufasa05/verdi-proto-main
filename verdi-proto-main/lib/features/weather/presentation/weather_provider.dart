@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
-
-import '../data/mock_weather_repository.dart';
 import '../data/weather_model.dart';
+import '../data/weather_repository.dart';
 
 class WeatherProvider extends ChangeNotifier {
-  final MockWeatherRepository repository;
+  final WeatherRepository repository;
 
   WeatherProvider({
     required this.repository,

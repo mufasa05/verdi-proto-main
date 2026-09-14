@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/repositories/in_memory_traceability_repository.dart';
+import '../models/repositories/supabase_traceability_repository.dart';
 import 'traceability_provider.dart';
 
 class TraceabilityProviderSetup extends StatelessWidget {
@@ -15,7 +15,7 @@ class TraceabilityProviderSetup extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => TraceabilityProvider(
-        repository: InMemoryTraceabilityRepository(),
+        repository: SupabaseTraceabilityRepository(),
       ),
       child: child,
     );

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'auth_screen.dart';
 import 'splash_welcome_page.dart';
+import 'widgets/totp_2fa_verification_screen.dart';
 import '../state/auth_state.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,13 +48,14 @@ class _AuthGateState extends ConsumerState<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    // Only watch isAuthenticated so we don't rebuild when isLoading flips
-    // (which caused _currentStep to reset on every network call).
     final isAuthenticated = ref.watch(
       authStateProvider.select((s) => s.isAuthenticated),
     );
     final isLoading = ref.watch(
       authStateProvider.select((s) => s.isLoading),
+    );
+    final requires2fa = ref.watch(
+      authStateProvider.select((s) => s.requires2fa),
     );
 
     // Show spinner only during the very first initialization check
@@ -61,6 +63,10 @@ class _AuthGateState extends ConsumerState<AuthGate> {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
+    }
+
+    if (requires2fa) {
+      return const Totp2faVerificationScreen();
     }
 
     if (isAuthenticated) {
@@ -71,7 +77,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     }
 
     // AuthScreen is kept in the tree and manages its own step state.
-    // We do NOT recreate it on every rebuild to avoid resetting _currentStep.
     return const AuthScreen();
   }
 }

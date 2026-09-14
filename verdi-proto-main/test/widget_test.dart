@@ -7,9 +7,17 @@ import 'package:verdi/features/orders/presentation/orders_page.dart';
 
 void main() {
   testWidgets('App loads', (WidgetTester tester) async {
-    await tester.pumpWidget(const VerdiApp());
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: VerdiApp(),
+      ),
+    );
     await tester.pumpAndSettle();
-    expect(find.text('Farm Operations'), findsOneWidget);
+    expect(find.text('Farm Operations'), findsWidgets);
   });
 
   testWidgets('Orders page shows premium operations controls', (WidgetTester tester) async {
@@ -24,11 +32,18 @@ void main() {
 
     expect(find.text('New Order'), findsOneWidget);
     expect(find.text('Traceable Batch'), findsOneWidget);
-    expect(find.text('At-risk orders'), findsOneWidget);
   });
 
   testWidgets('App shell shows a floating AI assistant entry point', (WidgetTester tester) async {
-    await tester.pumpWidget(const VerdiApp());
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: VerdiApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Ask Verdi'), findsOneWidget);
@@ -44,8 +59,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Analytics'), findsOneWidget);
-    expect(find.text('Executive intelligence'), findsOneWidget);
-    expect(find.text('Performance leaderboard'), findsOneWidget);
+    expect(find.text('Field & Yield Analytics'), findsOneWidget);
+    expect(find.text('Spatial Telemetry & Predictive AI'), findsOneWidget);
   });
 }

@@ -11,6 +11,8 @@ class BatchModel {
   final double readinessScore;
   final bool originVerified;
   final bool inspectionPassed;
+  final String integritySeal;
+  final bool antiTamperVerified;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -27,6 +29,8 @@ class BatchModel {
     required this.readinessScore,
     required this.originVerified,
     required this.inspectionPassed,
+    this.integritySeal = '',
+    this.antiTamperVerified = true,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -47,6 +51,8 @@ class BatchModel {
       readinessScore: (map['readinessScore'] ?? 0).toDouble(),
       originVerified: map['originVerified'] ?? false,
       inspectionPassed: map['inspectionPassed'] ?? false,
+      integritySeal: map['integritySeal'] ?? '',
+      antiTamperVerified: map['antiTamperVerified'] ?? true,
       createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(map['updatedAt'] ?? '') ?? DateTime.now(),
     );
@@ -66,6 +72,8 @@ class BatchModel {
       'readinessScore': readinessScore,
       'originVerified': originVerified,
       'inspectionPassed': inspectionPassed,
+      'integritySeal': integritySeal,
+      'antiTamperVerified': antiTamperVerified,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };

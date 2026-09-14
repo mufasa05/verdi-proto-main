@@ -31,7 +31,7 @@ import 'features/settings/presentation/settings_page.dart';
 import 'features/export/presentation/export_page.dart';
 import 'features/trade/presentation/trade_page.dart';
 import 'features/traceability/presentation/traceability_page.dart';
-import 'features/weather/data/mock_weather_repository.dart';
+import 'features/weather/data/open_meteo_weather_repository.dart';
 import 'features/weather/presentation/weather_page.dart';
 import 'features/weather/presentation/weather_provider.dart';
 import 'features/news/presentation/news_page.dart';
@@ -98,7 +98,7 @@ class AppShell extends ConsumerWidget {
 
     return ChangeNotifierProvider<WeatherProvider>(
       create: (_) {
-        final provider = WeatherProvider(repository: MockWeatherRepository());
+        final provider = WeatherProvider(repository: OpenMeteoWeatherRepository());
         provider.loadWeather();
         return provider;
       },

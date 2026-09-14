@@ -6,8 +6,16 @@ import 'package:verdi/features/notifications/repositories/notification_repositor
 import 'package:verdi/features/weather/data/weather_model.dart';
 import 'package:verdi/state/platform_data_state.dart';
 
-class _FakeWeatherRepository {
-  Future<WeatherData> fetchWeather() async {
+import 'package:verdi/features/weather/data/weather_repository.dart';
+
+class _FakeWeatherRepository implements WeatherRepository {
+  @override
+  Future<WeatherData> fetchWeather({
+    double? latitude,
+    double? longitude,
+    String? locationName,
+    bool isDemo = true,
+  }) async {
     return const WeatherData(
       location: 'Harare',
       summary: 'Heavy rain',

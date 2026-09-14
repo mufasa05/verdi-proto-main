@@ -867,12 +867,19 @@ class _FarmOperationsPageState extends ConsumerState<FarmOperationsPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: _muted)),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: _muted),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 4),
                 Icon(icon, color: color, size: 18),
               ],
             ),
             Text(mainVal, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: _dark)),
-            Text(subtitle, style: TextStyle(fontSize: 10.5, color: color, fontWeight: FontWeight.bold), maxLines: 1),
+            Text(subtitle, style: TextStyle(fontSize: 10.5, color: color, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),

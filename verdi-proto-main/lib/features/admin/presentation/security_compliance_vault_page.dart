@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/rate_limiter_service.dart';
+import '../../../core/services/security_vault_service.dart';
+import '../../../core/widgets/security_pin_biometric_dialog.dart';
 
 /// Dedicated Sovereign Control Console: Security, Compliance & API Vault
 class SecurityComplianceVaultPage extends StatefulWidget {
@@ -24,25 +26,6 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
 
   double _ddosRateLimit = 100.0;
 
-  final List<Map<String, String>> _apiKeys = [
-    {'name': 'Verdi Backend AI Service Token', 'key': 'verdi-backend-ai-token-prod-v1-9981', 'status': 'ACTIVE', 'scope': 'Full Model Access'},
-    {'name': 'Copernicus Sentinel API', 'key': 'copernicus-auth-token-v2-live-881', 'status': 'ACTIVE', 'scope': 'Sentinel-2 Satellite Feed'},
-    {'name': 'EcoCash Merchant Gateway API', 'key': 'ecocash-merchant-key-prod-9941', 'status': 'ACTIVE', 'scope': 'Escrow Payments'},
-    {'name': 'AWS S3 Satellite Storage Vault', 'key': 'aws-s3-raster-vault-key-zim-01', 'status': 'ACTIVE', 'scope': 'GeoTIFF Rasters'},
-  ];
-
-  final List<Map<String, String>> _ipRules = [
-    {'ip': '196.220.12.0/24', 'action': 'ALLOW', 'note': 'Harare Data Center Node'},
-    {'ip': '197.210.45.19', 'action': 'BLOCK', 'note': 'Brute-force SSH Attempt Flagged'},
-    {'ip': '41.206.18.99', 'action': 'BLOCK', 'note': 'Suspicious Escrow Re-entry Attempt'},
-  ];
-
-  final List<Map<String, String>> _securityIncidents = [
-    {'id': 'INC-9912', 'time': '10 mins ago', 'severity': 'MEDIUM', 'title': 'Failed KYC Document Hash Spoof Attempt', 'ip': '197.221.12.8', 'status': 'BLOCKED'},
-    {'id': 'INC-8819', 'time': '1 hour ago', 'severity': 'LOW', 'title': 'Repeated Rate Limit Hit on Trade Endpoint', 'ip': '41.206.18.99', 'status': 'RATE_LIMITED'},
-    {'id': 'INC-4412', 'time': 'Yesterday', 'severity': 'HIGH', 'title': 'Unverified EUDR Export Permit Attempt', 'ip': '196.220.14.2', 'status': 'REJECTED'},
-  ];
-
   final Map<String, bool> _complianceRulepack = {
     'EUDR Deforestation Polygon Scan (Mandatory for Coffee/Cocoa/Timber)': true,
     'GDPR Cryptographic Data Anonymization Engine': true,
@@ -54,10 +37,20 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    SecurityVaultService.instance.initialize();
+    SecurityVaultService.instance.addListener(_onVaultUpdated);
+    RateLimiterService.instance.initialize();
+    RateLimiterService.instance.addListener(_onVaultUpdated);
+  }
+
+  void _onVaultUpdated() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    SecurityVaultService.instance.removeListener(_onVaultUpdated);
+    RateLimiterService.instance.removeListener(_onVaultUpdated);
     _tabController.dispose();
     super.dispose();
   }
@@ -149,6 +142,8 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
 
   // --- TAB 1: API VAULT ---
   Widget _buildApiVaultTab() {
+    final keys = SecurityVaultService.instance.apiKeys;
+
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -157,10 +152,15 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
           children: [
             Text('Third-Party API Credentials & Secret Tokens', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
             ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('New Production API Key generated.'), backgroundColor: accentGreen),
+              onPressed: () async {
+                final authOk = await SecurityPinBiometricDialog.prompt(
+                  context,
+                  title: 'Authorize Key Generation',
+                  description: 'Enter your Master Security PIN or Biometric Pass to generate a production API secret token.',
                 );
+                if (!authOk || !mounted) return;
+
+                _showCreateKeyModal();
               },
               icon: const Icon(Icons.key_outlined, size: 16),
               label: const Text('Generate API Key'),
@@ -170,7 +170,7 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
         ),
         const SizedBox(height: 16),
 
-        for (int i = 0; i < _apiKeys.length; i++) ...[
+        for (final k in keys) ...[
           Container(
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(bottom: 10),
@@ -181,23 +181,35 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_apiKeys[i]['name']!, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    Text(k.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: accentGreen.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(999)),
-                      child: Text(_apiKeys[i]['status']!, style: const TextStyle(color: accentGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                      decoration: BoxDecoration(
+                        color: (k.status == 'ACTIVE' ? accentGreen : accentDanger).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(k.status, style: TextStyle(color: k.status == 'ACTIVE' ? accentGreen : accentDanger, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text('Token: ${_apiKeys[i]['key']} • Scope: ${_apiKeys[i]['scope']}', style: const TextStyle(color: textMuted, fontSize: 11)),
+                Text('Token: ${k.key} • Scope: ${k.scope} • Rotated: ${k.lastRotated}', style: const TextStyle(color: textMuted, fontSize: 11)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
+                        final authOk = await SecurityPinBiometricDialog.prompt(
+                          context,
+                          title: 'Authorize Secret Rotation',
+                          description: 'Enter Master PIN to rotate the secret token for ${k.name}.',
+                        );
+                        if (!authOk) return;
+
+                        await SecurityVaultService.instance.rotateApiKey(k.id);
+                        if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Key rotated for ${_apiKeys[i]['name']}'), backgroundColor: accentBlue),
+                          SnackBar(content: Text('Key successfully rotated for ${k.name}'), backgroundColor: accentBlue),
                         );
                       },
                       icon: const Icon(Icons.sync, size: 14, color: accentBlue),
@@ -205,17 +217,27 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
                       style: OutlinedButton.styleFrom(side: const BorderSide(color: accentBlue)),
                     ),
                     const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        setState(() => _apiKeys[i]['status'] = 'REVOKED');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Revoked key for ${_apiKeys[i]['name']}'), backgroundColor: accentDanger),
-                        );
-                      },
-                      icon: const Icon(Icons.block, size: 14, color: accentDanger),
-                      label: const Text('Revoke Token', style: TextStyle(color: accentDanger, fontSize: 11)),
-                      style: OutlinedButton.styleFrom(side: const BorderSide(color: accentDanger)),
-                    ),
+                    if (k.status == 'ACTIVE')
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final authOk = await SecurityPinBiometricDialog.prompt(
+                            context,
+                            title: 'Authorize Token Revocation',
+                            description: 'Revoking this token will immediately terminate third-party access.',
+                            actionButtonLabel: 'Confirm Revocation',
+                          );
+                          if (!authOk) return;
+
+                          await SecurityVaultService.instance.revokeApiKey(k.id);
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Revoked key for ${k.name}'), backgroundColor: accentDanger),
+                          );
+                        },
+                        icon: const Icon(Icons.block, size: 14, color: accentDanger),
+                        label: const Text('Revoke Token', style: TextStyle(color: accentDanger, fontSize: 11)),
+                        style: OutlinedButton.styleFrom(side: const BorderSide(color: accentDanger)),
+                      ),
                   ],
                 ),
               ],
@@ -226,8 +248,54 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
     );
   }
 
+  void _showCreateKeyModal() {
+    final nameCtrl = TextEditingController();
+    final scopeCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: cardDark,
+        title: const Text('Create New API Secret Token', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: 'Service Name (e.g. Export Gate)', labelStyle: TextStyle(color: textMuted)),
+            ),
+            TextField(
+              controller: scopeCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: 'Permission Scope (e.g. Read/Write Escrow)', labelStyle: TextStyle(color: textMuted)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: textMuted))),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameCtrl.text.isNotEmpty) {
+                await SecurityVaultService.instance.createApiKey(
+                  nameCtrl.text.trim(),
+                  scopeCtrl.text.trim().isEmpty ? 'Full Sovereign Access' : scopeCtrl.text.trim(),
+                );
+              }
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: accentGreen, foregroundColor: Colors.white),
+            child: const Text('Create Token'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // --- TAB 2: FIREWALL ---
   Widget _buildFirewallTab() {
+    final rules = SecurityVaultService.instance.ipRules;
+
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -269,7 +337,7 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
 
         const SizedBox(height: 12),
 
-        for (final rule in _ipRules) ...[
+        for (final rule in rules) ...[
           Container(
             padding: const EdgeInsets.all(14),
             margin: const EdgeInsets.only(bottom: 8),
@@ -279,22 +347,36 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
               children: [
                 Row(
                   children: [
-                    Icon(rule['action'] == 'ALLOW' ? Icons.check_circle_outline : Icons.do_not_disturb_on_outlined,
-                        color: rule['action'] == 'ALLOW' ? accentGreen : accentDanger, size: 20),
+                    Icon(rule.action == 'ALLOW' ? Icons.check_circle_outline : Icons.do_not_disturb_on_outlined,
+                        color: rule.action == 'ALLOW' ? accentGreen : accentDanger, size: 20),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(rule['ip']!, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-                        Text(rule['note']!, style: const TextStyle(color: textMuted, fontSize: 11)),
+                        Text(rule.ip, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('${rule.note} • ${rule.addedAt}', style: const TextStyle(color: textMuted, fontSize: 11)),
                       ],
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: (rule['action'] == 'ALLOW' ? accentGreen : accentDanger).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(999)),
-                  child: Text(rule['action']!, style: TextStyle(color: rule['action'] == 'ALLOW' ? accentGreen : accentDanger, fontSize: 11, fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: (rule.action == 'ALLOW' ? accentGreen : accentDanger).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(rule.action, style: TextStyle(color: rule.action == 'ALLOW' ? accentGreen : accentDanger, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18, color: textMuted),
+                      onPressed: () async {
+                        await SecurityVaultService.instance.removeIpRule(rule.ip);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -345,38 +427,42 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
 
   // --- TAB 4: INCIDENTS ---
   Widget _buildIncidentsTab() {
+    final incidents = SecurityVaultService.instance.incidents;
+
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
       children: [
         Text('Real-Time Security Threat & Anomaly Desk', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
         const SizedBox(height: 12),
 
-        for (final inc in _securityIncidents) ...[
+        for (final inc in incidents) ...[
           Container(
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
               color: cardDark,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: inc['severity'] == 'HIGH' ? accentDanger : cardBorder),
+              border: Border.all(color: inc.severity == 'HIGH' || inc.severity == 'CRITICAL' ? accentDanger : cardBorder),
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: inc['severity'] == 'HIGH' ? accentDanger : accentGold, size: 24),
+                Icon(Icons.warning_amber_rounded, color: inc.severity == 'HIGH' || inc.severity == 'CRITICAL' ? accentDanger : accentGold, size: 24),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(inc['title']!, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-                      Text('IP: ${inc['ip']} • Time: ${inc['time']}', style: const TextStyle(color: textMuted, fontSize: 11)),
+                      Text(inc.title, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text('IP: ${inc.ip} • Time: ${inc.time} • Status: ${inc.status}', style: const TextStyle(color: textMuted, fontSize: 11)),
                     ],
                   ),
                 ),
                 OutlinedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    await SecurityVaultService.instance.addIpRule(inc.ip, 'BLOCK', 'Flagged via incident ${inc.id}');
+                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('IP ${inc['ip']} added to firewall block list.'), backgroundColor: accentDanger),
+                      SnackBar(content: Text('IP ${inc.ip} added to firewall block list.'), backgroundColor: accentDanger),
                     );
                   },
                   style: OutlinedButton.styleFrom(side: const BorderSide(color: accentDanger)),
@@ -418,13 +504,11 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: textMuted))),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (ipCtrl.text.isNotEmpty) {
-                setState(() {
-                  _ipRules.add({'ip': ipCtrl.text, 'action': action, 'note': noteCtrl.text});
-                });
+                await SecurityVaultService.instance.addIpRule(ipCtrl.text.trim(), action, noteCtrl.text.trim());
               }
-              Navigator.pop(context);
+              if (context.mounted) Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: accentGreen, foregroundColor: Colors.white),
             child: const Text('Add Rule'),
@@ -442,19 +526,19 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
     final usedTokens = limiter.tokensUsedToday;
     final totalCap = limiter.dailyTokenCap;
     final tokenUsageRatio = (usedTokens / totalCap).clamp(0.0, 1.0);
-    final estimatedCost = (usedTokens / 1000.0) * 0.00015; // Gemini Flash est. $0.15 per 1M tokens
+    final estimatedCost = (usedTokens / 1000.0) * 0.00015;
+    final violations = limiter.violations;
 
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        // Top Summary: AI Token Quota & Daily Budget Meter
+        // 1. Daily Token Budget Card
         Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: cardDark,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: accentBlue.withOpacity(0.4)),
-            boxShadow: [BoxShadow(color: accentBlue.withOpacity(0.05), blurRadius: 12)],
+            border: Border.all(color: cardBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,101 +546,26 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: accentBlue.withOpacity(0.15), shape: BoxShape.circle),
-                        child: const Icon(Icons.token_outlined, color: accentBlue, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('AI Token Budget & Real-Time Consumption Meter', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
-                          const Text('Live Gemini Copilot token usage, daily quota limits, and API cost calculation.', style: TextStyle(color: textMuted, fontSize: 11.5)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: accentGreen.withOpacity(0.12), borderRadius: BorderRadius.circular(8), border: Border.all(color: accentGreen.withOpacity(0.4))),
-                    child: Text('EST. COST: \$${estimatedCost.toStringAsFixed(4)} USD', style: const TextStyle(color: accentGreen, fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
+                  Text('DAILY BACKBONE TOKEN BUDGET', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: accentBlue, letterSpacing: 1.0)),
+                  Text('${(tokenUsageRatio * 100).toStringAsFixed(1)}% Consumed', style: TextStyle(color: tokenUsageRatio > 0.85 ? accentDanger : accentGreen, fontWeight: FontWeight.bold, fontSize: 11)),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              // Progress Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Daily Token Usage: ${usedTokens.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} / ${totalCap.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}', style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
-                  Text('${(tokenUsageRatio * 100).toStringAsFixed(1)}% Consumed', style: TextStyle(color: tokenUsageRatio > 0.8 ? accentDanger : accentBlue, fontSize: 12, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
                   value: tokenUsageRatio,
-                  backgroundColor: const Color(0xFF0F172A),
-                  valueColor: AlwaysStoppedAnimation<Color>(tokenUsageRatio > 0.8 ? accentDanger : accentBlue),
-                  minHeight: 8,
+                  minHeight: 10,
+                  backgroundColor: const Color(0xFF1E293B),
+                  valueColor: AlwaysStoppedAnimation<Color>(tokenUsageRatio > 0.85 ? accentDanger : accentGreen),
                 ),
               ),
-
-              const SizedBox(height: 16),
-              const Divider(color: cardBorder, height: 1),
-              const SizedBox(height: 14),
-
-              // Sliders for Daily Cap and Tokens / Min
+              const SizedBox(height: 12),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Daily Token Cap: ${(totalCap / 1000).toInt()}k Tokens', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                        Slider(
-                          value: totalCap.toDouble(),
-                          min: 100000,
-                          max: 5000000,
-                          divisions: 49,
-                          activeColor: accentBlue,
-                          inactiveColor: cardBorder,
-                          onChanged: (val) {
-                            setState(() {
-                              limiter.setDailyTokenCap(val.toInt());
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Max Tokens/Min: ${(limiter.tokensPerMinuteLimit / 1000).toInt()}k Tokens/Min', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                        Slider(
-                          value: limiter.tokensPerMinuteLimit.toDouble(),
-                          min: 5000,
-                          max: 100000,
-                          divisions: 19,
-                          activeColor: accentGold,
-                          inactiveColor: cardBorder,
-                          onChanged: (val) {
-                            setState(() {
-                              limiter.setTokensPerMinuteLimit(val.toInt());
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                  Text('$usedTokens / $totalCap Tokens Today', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text('Est. Spend: \$${estimatedCost.toStringAsFixed(3)}', style: const TextStyle(color: textMuted, fontSize: 12)),
                 ],
               ),
             ],
@@ -565,144 +574,144 @@ class _SecurityComplianceVaultPageState extends State<SecurityComplianceVaultPag
 
         const SizedBox(height: 20),
 
-        // Stack Rate Limits Controller & Sliders
+        // 2. Category Sliding Window Control Desk
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Platform Stack Rate Limit Configurations', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-            Row(
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () {
-                    limiter.consumeTokens(1500);
-                    setState(() {});
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Simulated AI prompt token consumption (+1,500 tokens).'), backgroundColor: accentBlue),
-                    );
-                  },
-                  icon: const Icon(Icons.bolt, size: 14),
-                  label: const Text('Simulate Token Load', style: TextStyle(fontSize: 11)),
-                  style: OutlinedButton.styleFrom(foregroundColor: accentBlue, side: const BorderSide(color: accentBlue)),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    limiter.flushAllCooldowns();
-                    setState(() {});
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('All platform rate limits & cooldowns flushed successfully.'), backgroundColor: accentGreen),
-                    );
-                  },
-                  icon: const Icon(Icons.refresh_rounded, size: 14),
-                  label: const Text('Flush All Cooldowns', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: accentGreen, foregroundColor: Colors.white),
-                ),
-              ],
+            Text('Live Sliding-Window Rate Controls', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            ElevatedButton.icon(
+              onPressed: () {
+                limiter.flushAllCooldowns();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('All sliding-window rate cooldowns flushed.'), backgroundColor: accentGreen),
+                );
+              },
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Flush All Cooldowns'),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
             ),
           ],
         ),
+
         const SizedBox(height: 12),
 
-        // Rate Limit Cards Grid
-        ...RateLimitCategory.values.map((cat) => _buildRateLimitRow(cat, limiter)),
+        for (final category in RateLimitCategory.values) ...[
+          _buildCategoryRateCard(category, limiter),
+        ],
 
         const SizedBox(height: 24),
 
-        // Violations & Throttling Incidents
-        Text('Real-Time Rate Limit Violations & Throttling Feed', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-        const SizedBox(height: 10),
+        // 3. Live Rate Limit Violation Incident Table
+        Text('Recent Rate Limit & Quota Violations', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+        const SizedBox(height: 12),
 
-        Container(
-          decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: cardBorder)),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: limiter.violations.length,
-            separatorBuilder: (_, __) => const Divider(color: cardBorder, height: 1),
-            itemBuilder: (context, idx) {
-              final v = limiter.violations[idx];
-              return ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: accentDanger.withOpacity(0.15), shape: BoxShape.circle),
-                  child: const Icon(Icons.speed, color: accentDanger, size: 16),
-                ),
-                title: Text(v.categoryName, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
-                subtitle: Text('${v.ipOrUser} • Blocked ${v.rejectedRequests} burst requests', style: const TextStyle(color: textMuted, fontSize: 11)),
-                trailing: Text('${DateTime.now().difference(v.timestamp).inMinutes}m ago', style: const TextStyle(color: accentGold, fontSize: 11, fontWeight: FontWeight.bold)),
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(height: 40),
+        if (violations.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(12), border: Border.all(color: cardBorder)),
+            child: const Center(
+              child: Text('No rate limit violations recorded.', style: TextStyle(color: textMuted, fontSize: 13)),
+            ),
+          )
+        else
+          for (final vio in violations.take(6)) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(12), border: Border.all(color: cardBorder)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.speed_outlined, color: accentDanger, size: 20),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${vio.categoryName} (${vio.ipOrUser})', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text('Target: ${vio.targetKey} • Rejected: ${vio.rejectedRequests} reqs', style: const TextStyle(color: textMuted, fontSize: 11)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  OutlinedButton(
+                    onPressed: () async {
+                      await SecurityVaultService.instance.addIpRule(vio.ipOrUser.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim(), 'BLOCK', 'Rate violation ${vio.id}');
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Blocked IP for violation ${vio.id}'), backgroundColor: accentDanger),
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(side: const BorderSide(color: accentDanger)),
+                    child: const Text('Block IP', style: TextStyle(color: accentDanger, fontSize: 11)),
+                  ),
+                ],
+              ),
+            ),
+          ],
       ],
     );
   }
 
-  Widget _buildRateLimitRow(RateLimitCategory cat, RateLimiterService limiter) {
-    final currentLimit = limiter.getCategoryLimit(cat);
-    final activeInWindow = limiter.getActiveRequestCountInWindow(cat);
-
-    Color badgeColor;
-    if (cat == RateLimitCategory.auth) {
-      badgeColor = accentDanger;
-    } else if (cat == RateLimitCategory.aiAssistant) {
-      badgeColor = accentBlue;
-    } else if (cat == RateLimitCategory.escrowPayment) {
-      badgeColor = accentGreen;
-    } else if (cat == RateLimitCategory.iotTelemetry) {
-      badgeColor = const Color(0xFF00B4D8);
-    } else if (cat == RateLimitCategory.marketplace) {
-      badgeColor = accentGold;
-    } else {
-      badgeColor = const Color(0xFF8B5CF6);
-    }
+  Widget _buildCategoryRateCard(RateLimitCategory category, RateLimiterService limiter) {
+    final activeCount = limiter.getActiveRequestCountInWindow(category);
+    final currentLimit = limiter.getCategoryLimit(category);
+    final ratio = limiter.getCategoryUsageRatio(category);
 
     return Container(
+      padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: cardDark, borderRadius: BorderRadius.circular(14), border: Border.all(color: cardBorder)),
-      child: Row(
+      decoration: BoxDecoration(
+        color: cardDark,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: ratio >= 1.0 ? accentDanger : cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(backgroundColor: badgeColor.withOpacity(0.15), radius: 18, child: Icon(Icons.tune, color: badgeColor, size: 18)),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(cat.name, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
-                Text('Active window traffic: $activeInWindow reqs in past 60s', style: const TextStyle(color: textMuted, fontSize: 11)),
-              ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(category.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: (ratio >= 1.0 ? accentDanger : accentBlue).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text('$activeCount / $currentLimit in window', style: TextStyle(color: ratio >= 1.0 ? accentDanger : accentBlue, fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 6,
+              backgroundColor: const Color(0xFF1E293B),
+              valueColor: AlwaysStoppedAnimation<Color>(ratio >= 1.0 ? accentDanger : (ratio > 0.7 ? accentGold : accentGreen)),
             ),
           ),
-          Expanded(
-            flex: 4,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Slider(
-                    value: currentLimit.toDouble(),
-                    min: 1,
-                    max: 120,
-                    divisions: 119,
-                    activeColor: badgeColor,
-                    inactiveColor: cardBorder,
-                    onChanged: (val) {
-                      setState(() {
-                        limiter.setCategoryLimit(cat, val.toInt());
-                      });
-                    },
-                  ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Text('Limit:', style: TextStyle(color: textMuted, fontSize: 12)),
+              Expanded(
+                child: Slider(
+                  value: currentLimit.toDouble().clamp(1.0, 200.0),
+                  min: 1.0,
+                  max: 200.0,
+                  divisions: 199,
+                  activeColor: accentGreen,
+                  onChanged: (val) {
+                    limiter.setCategoryLimit(category, val.toInt());
+                  },
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: badgeColor.withOpacity(0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: badgeColor.withOpacity(0.4))),
-                  child: Text('$currentLimit req/min', style: TextStyle(color: badgeColor, fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
+              ),
+              Text('$currentLimit reqs/min', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            ],
           ),
         ],
       ),

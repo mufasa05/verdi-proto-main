@@ -6,7 +6,7 @@ void main() {
     final notifier = PaymentsNotifier();
 
     notifier.updatePayment(
-      '#PAY-1001',
+      '#PAY-B2B-1001',
       status: 'Completed',
       note: 'Settled through instant transfer',
       riskLevel: 'Low',
@@ -15,7 +15,7 @@ void main() {
       timeline: ['Initiated', 'Captured', 'Settled'],
     );
 
-    final payment = notifier.state.firstWhere((p) => p.id == '#PAY-1001');
+    final payment = notifier.state.firstWhere((p) => p.id == '#PAY-B2B-1001');
 
     expect(payment.status, 'Completed');
     expect(payment.note, 'Settled through instant transfer');

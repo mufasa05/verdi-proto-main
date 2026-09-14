@@ -447,51 +447,74 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                                   const SizedBox(height: 16),
                                 ] else ...[
                                   // Location Quick Picker Bar
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.location_on_rounded, color: blue, size: 20),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Selected Region:',
-                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: dark),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: Row(
-                                              children: _locations.map((loc) {
-                                                final selected = loc == _selectedLocation;
-                                                return Padding(
-                                                  padding: const EdgeInsets.only(right: 6),
-                                                  child: ChoiceChip(
-                                                    label: Text(loc.split(',').first),
-                                                    selected: selected,
-                                                    selectedColor: blue,
-                                                    labelStyle: GoogleFonts.inter(
-                                                      color: selected ? Colors.white : dark,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 12,
-                                                    ),
-                                                    onSelected: (_) {
-                                                      setState(() => _selectedLocation = loc);
-                                                    },
-                                                  ),
-                                                );
-                                              }).toList(),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                   Container(
+                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                     decoration: BoxDecoration(
+                                       color: Colors.white,
+                                       borderRadius: BorderRadius.circular(16),
+                                       border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                                     ),
+                                     child: LayoutBuilder(
+                                       builder: (context, constraints) {
+                                         final isNarrow = constraints.maxWidth < 600;
+                                         final regionLabel = Row(
+                                           mainAxisSize: MainAxisSize.min,
+                                           children: [
+                                             const Icon(Icons.location_on_rounded, color: blue, size: 20),
+                                             const SizedBox(width: 8),
+                                             Text(
+                                               'Selected Region:',
+                                               style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: dark),
+                                             ),
+                                           ],
+                                         );
+
+                                         final chips = SingleChildScrollView(
+                                           scrollDirection: Axis.horizontal,
+                                           child: Row(
+                                             children: _locations.map((loc) {
+                                               final selected = loc == _selectedLocation;
+                                               return Padding(
+                                                 padding: const EdgeInsets.only(right: 6),
+                                                 child: ChoiceChip(
+                                                   label: Text(loc.split(',').first),
+                                                   selected: selected,
+                                                   selectedColor: blue,
+                                                   labelStyle: GoogleFonts.inter(
+                                                     color: selected ? Colors.white : dark,
+                                                     fontWeight: FontWeight.bold,
+                                                     fontSize: 12,
+                                                   ),
+                                                   onSelected: (_) {
+                                                     setState(() => _selectedLocation = loc);
+                                                   },
+                                                 ),
+                                               );
+                                             }).toList(),
+                                           ),
+                                         );
+
+                                         if (isNarrow) {
+                                           return Column(
+                                             crossAxisAlignment: CrossAxisAlignment.start,
+                                             children: [
+                                               regionLabel,
+                                               const SizedBox(height: 8),
+                                               chips,
+                                             ],
+                                           );
+                                         }
+
+                                         return Row(
+                                           children: [
+                                             regionLabel,
+                                             const SizedBox(width: 12),
+                                             Expanded(child: chips),
+                                           ],
+                                         );
+                                       },
+                                     ),
+                                   ),
                                   const SizedBox(height: 16),
 
                                   // Hero Weather Card
@@ -580,7 +603,7 @@ class _WeatherHeroCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0B132B)],
@@ -596,133 +619,163 @@ class _WeatherHeroCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 520;
+
+          final weatherIcon = Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              weather.temperature > 30 ? Icons.wb_sunny_rounded : Icons.cloud_outlined,
+              color: weather.temperature > 30 ? Colors.amber : Colors.lightBlueAccent,
+              size: 34,
+            ),
+          );
+
+          final locationDetails = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  weather.temperature > 30 ? Icons.wb_sunny_rounded : Icons.cloud_outlined,
-                  color: weather.temperature > 30 ? Colors.amber : Colors.lightBlueAccent,
-                  size: 40,
-                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    weather.location,
+                    style: GoogleFonts.inter(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: green.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: green),
+                    ),
+                    child: Text(
+                      'Live Station',
+                      style: GoogleFonts.inter(color: green, fontSize: 9.5, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
+              const SizedBox(height: 3),
+              Text(
+                weather.summary,
+                style: GoogleFonts.inter(color: Colors.grey.shade300, fontSize: 12.5),
+              ),
+            ],
+          );
+
+          final askAiBtn = ElevatedButton.icon(
+            onPressed: onAskAi,
+            icon: const Icon(Icons.smart_toy_rounded, size: 15),
+            label: const Text('Ask AI'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              if (isNarrow) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    weatherIcon,
+                    const SizedBox(width: 12),
+                    Expanded(child: locationDetails),
+                    const SizedBox(width: 8),
+                    askAiBtn,
+                  ],
+                ),
+              ] else ...[
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          weather.location,
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: green.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: green),
-                          ),
-                          child: Text(
-                            'Live Station',
-                            style: GoogleFonts.inter(color: green, fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                    weatherIcon,
+                    const SizedBox(width: 16),
+                    Expanded(child: locationDetails),
+                    const SizedBox(width: 12),
+                    askAiBtn,
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              // Temperature & Feels like
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 4,
+                children: [
+                  Text(
+                    '${weather.temperature}°C',
+                    style: GoogleFonts.inter(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      weather.summary,
-                      style: GoogleFonts.inter(color: Colors.grey.shade300, fontSize: 13),
+                  ),
+                  Text(
+                    'Feels like ${weather.feelsLike}°C • Rain Risk ${weather.rainChance}%',
+                    style: GoogleFonts.inter(color: Colors.grey.shade300, fontSize: 13.5),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Agronomic Metrics Bar
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _HeroSubMetric(
+                        label: 'Evapotranspiration',
+                        value: weather.temperature > 30 ? '6.5 mm/day' : '4.2 mm/day',
+                        icon: Icons.water_drop_outlined,
+                      ),
+                    ),
+                    Container(width: 1, height: 28, color: Colors.white24),
+                    Expanded(
+                      child: _HeroSubMetric(
+                        label: 'Spraying Window',
+                        value: weather.windSpeed > 15 ? 'Caution' : 'Optimal',
+                        icon: Icons.sanitizer_outlined,
+                      ),
+                    ),
+                    Container(width: 1, height: 28, color: Colors.white24),
+                    Expanded(
+                      child: _HeroSubMetric(
+                        label: 'UV Index',
+                        value: '7 High',
+                        icon: Icons.wb_sunny_outlined,
+                      ),
                     ),
                   ],
                 ),
               ),
-              ElevatedButton.icon(
-                onPressed: onAskAi,
-                icon: const Icon(Icons.smart_toy_rounded, size: 16),
-                label: const Text('Ask AI'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
             ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '${weather.temperature}°C',
-                style: GoogleFonts.inter(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Feels like ${weather.feelsLike}°C • Rain Risk ${weather.rainChance}%',
-                style: GoogleFonts.inter(color: Colors.grey.shade300, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Agronomic Metrics Bar
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _HeroSubMetric(
-                    label: 'Evapotranspiration',
-                    value: weather.temperature > 30 ? '6.5 mm/day' : '4.2 mm/day',
-                    icon: Icons.water_drop_outlined,
-                  ),
-                ),
-                Container(width: 1, height: 30, color: Colors.white24),
-                Expanded(
-                  child: _HeroSubMetric(
-                    label: 'Spraying Window',
-                    value: weather.windSpeed > 15 ? 'Caution (Windy)' : 'Optimal (06-10 AM)',
-                    icon: Icons.sanitizer_outlined,
-                  ),
-                ),
-                Container(width: 1, height: 30, color: Colors.white24),
-                Expanded(
-                  child: _HeroSubMetric(
-                    label: 'UV Index',
-                    value: '7 High',
-                    icon: Icons.wb_sunny_outlined,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -738,17 +791,32 @@ class _HeroSubMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white70, size: 14),
+            Icon(icon, color: Colors.white70, size: 13),
             const SizedBox(width: 4),
-            Text(label, style: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 11)),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 10.5),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(value, style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: GoogleFonts.inter(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+          ),
+        ),
       ],
     );
   }
@@ -963,32 +1031,39 @@ class _RadarCardState extends State<_RadarCard> with SingleTickerProviderStateMi
           // Header & Mode Selector
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.radar_rounded, color: Color(0xFF16A34A), size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Live Doppler & Satellite Radar',
-                        style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 600;
+                final titleWidget = Row(
+                  children: [
+                    const Icon(Icons.radar_rounded, color: Color(0xFF16A34A), size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Live Doppler & Satellite Radar',
+                            style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Real-Time High-Resolution Telemetry (${widget.weather.location})',
+                            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      Text(
-                        'Real-Time High-Resolution Telemetry (${widget.weather.location})',
-                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ),
-                SingleChildScrollView(
+                    ),
+                  ],
+                );
+
+                final chips = SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: modes.map((m) {
                       final selected = m == widget.selectedMode;
                       return Padding(
-                        padding: const EdgeInsets.only(left: 6),
+                        padding: const EdgeInsets.only(right: 6),
                         child: ChoiceChip(
                           label: Text(m.split(' ').first),
                           selected: selected,
@@ -1003,8 +1078,27 @@ class _RadarCardState extends State<_RadarCard> with SingleTickerProviderStateMi
                       );
                     }).toList(),
                   ),
-                ),
-              ],
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      titleWidget,
+                      const SizedBox(height: 12),
+                      chips,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: titleWidget),
+                    const SizedBox(width: 12),
+                    chips,
+                  ],
+                );
+              },
             ),
           ),
 
@@ -1321,14 +1415,19 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          title,
-          style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
         ),
-        const Spacer(),
+        const SizedBox(width: 8),
         TextButton(
           onPressed: onTap,
-          child: Text(actionText, style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+          style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)),
+          child: Text(actionText, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 12.5)),
         ),
       ],
     );

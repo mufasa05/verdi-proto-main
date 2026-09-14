@@ -1334,8 +1334,11 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 6,
                 children: [
                   Text('FLEET DIESEL SMART CARD POOL', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white70, letterSpacing: 1.0)),
                   Container(

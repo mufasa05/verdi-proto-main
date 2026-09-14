@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Verdi Agricultural & Logistics Command Platform">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- Content Security Policy (Hardened for Flutter Web) -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://unpkg.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com data:;
+    img-src 'self' data: blob: https:;
+    connect-src 'self' https://*.supabase.co wss://*.supabase.co http://localhost:3000 http://192.168.1.221:3000 https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org;
+    object-src 'none';
+    frame-ancestors 'none';
+    base-uri 'self';
+  ">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +31,7 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Verdi</title>
+  <title>Verdi - Sovereign Agricultural & Logistics Platform</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
