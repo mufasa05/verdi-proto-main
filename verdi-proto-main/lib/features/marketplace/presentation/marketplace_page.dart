@@ -2217,23 +2217,49 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _buildSearchBox()),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _showSellProductDialog,
-                icon: const Icon(Icons.add_circle_outline, size: 18),
-                label: const Text('Sell Produce'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: green,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isVeryNarrow = constraints.maxWidth < 380;
+              if (isVeryNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildSearchBox(),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: _showSellProductDialog,
+                      icon: const Icon(Icons.add_circle_outline, size: 18),
+                      label: const Text('Sell Produce'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: green,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: _buildSearchBox()),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _showSellProductDialog,
+                    icon: const Icon(Icons.add_circle_outline, size: 18),
+                    label: const Text('Sell Produce'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: green,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       );

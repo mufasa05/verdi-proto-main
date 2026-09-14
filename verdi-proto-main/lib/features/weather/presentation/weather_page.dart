@@ -330,25 +330,28 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                                             onTap: () => setState(() => _isTransporterView = true),
                                             borderRadius: BorderRadius.circular(12),
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(vertical: 10),
+                                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                                               decoration: BoxDecoration(
                                                 color: _isTransporterView ? const Color(0xFFF97316) : Colors.transparent,
                                                 borderRadius: BorderRadius.circular(12),
                                               ),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(Icons.local_shipping_rounded, size: 18, color: _isTransporterView ? Colors.white : dark),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    'Transporter Highway Corridors',
-                                                    style: GoogleFonts.inter(
-                                                      fontSize: 12.5,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: _isTransporterView ? Colors.white : dark,
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(Icons.local_shipping_rounded, size: 16, color: _isTransporterView ? Colors.white : dark),
+                                                    const SizedBox(width: 6),
+                                                    Text(
+                                                      'Transporter Corridors',
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: _isTransporterView ? Colors.white : dark,
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -358,25 +361,28 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                                             onTap: () => setState(() => _isTransporterView = false),
                                             borderRadius: BorderRadius.circular(12),
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(vertical: 10),
+                                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                                               decoration: BoxDecoration(
                                                 color: !_isTransporterView ? green : Colors.transparent,
                                                 borderRadius: BorderRadius.circular(12),
                                               ),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(Icons.agriculture_rounded, size: 18, color: !_isTransporterView ? Colors.white : dark),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    'Farm Agronomy & Crops',
-                                                    style: GoogleFonts.inter(
-                                                      fontSize: 12.5,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: !_isTransporterView ? Colors.white : dark,
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(Icons.agriculture_rounded, size: 16, color: !_isTransporterView ? Colors.white : dark),
+                                                    const SizedBox(width: 6),
+                                                    Text(
+                                                      'Farm Agronomy & Crops',
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: !_isTransporterView ? Colors.white : dark,
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -394,42 +400,65 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
                                     ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.alt_route_rounded, color: orange, size: 20),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Transit Corridor:',
-                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: dark),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: Row(
-                                              children: _corridors.map((corridor) {
-                                                final selected = corridor == _selectedCorridor;
-                                                return Padding(
-                                                  padding: const EdgeInsets.only(right: 6),
-                                                  child: ChoiceChip(
-                                                    label: Text('${corridor.split(':').first}: ${corridor.split('──▶').last}'),
-                                                    selected: selected,
-                                                    selectedColor: orange,
-                                                    labelStyle: GoogleFonts.inter(
-                                                      color: selected ? Colors.white : dark,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 11.5,
-                                                    ),
-                                                    onSelected: (_) {
-                                                      setState(() => _selectedCorridor = corridor);
-                                                    },
-                                                  ),
-                                                );
-                                              }).toList(),
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final isNarrow = constraints.maxWidth < 600;
+                                        final corridorLabel = Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.alt_route_rounded, color: orange, size: 20),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Transit Corridor:',
+                                              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: dark),
                                             ),
+                                          ],
+                                        );
+
+                                        final corridorChips = SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: _corridors.map((corridor) {
+                                              final selected = corridor == _selectedCorridor;
+                                              return Padding(
+                                                padding: const EdgeInsets.only(right: 6),
+                                                child: ChoiceChip(
+                                                  label: Text('${corridor.split(':').first}: ${corridor.split('──▶').last}'),
+                                                  selected: selected,
+                                                  selectedColor: orange,
+                                                  labelStyle: GoogleFonts.inter(
+                                                    color: selected ? Colors.white : dark,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 11.5,
+                                                  ),
+                                                  onSelected: (_) {
+                                                    setState(() => _selectedCorridor = corridor);
+                                                  },
+                                                ),
+                                              );
+                                            }).toList(),
                                           ),
-                                        ),
-                                      ],
+                                        );
+
+                                        if (isNarrow) {
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              corridorLabel,
+                                              const SizedBox(height: 8),
+                                              corridorChips,
+                                            ],
+                                          );
+                                        }
+
+                                        return Row(
+                                          children: [
+                                            corridorLabel,
+                                            const SizedBox(width: 12),
+                                            Expanded(child: corridorChips),
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ),
                                   const SizedBox(height: 16),

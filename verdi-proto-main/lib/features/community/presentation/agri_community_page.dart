@@ -139,7 +139,13 @@ class _AgriCommunityPageState extends ConsumerState<AgriCommunityPage> {
                                       children: [
                                         Row(
                                           children: [
-                                            Text(p.authorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                            Flexible(
+                                              child: Text(
+                                                p.authorName,
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
                                             const SizedBox(width: 6),
                                             if (p.isVerifiedByState)
                                               Container(

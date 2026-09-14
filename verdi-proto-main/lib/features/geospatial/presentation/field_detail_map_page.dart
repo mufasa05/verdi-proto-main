@@ -269,15 +269,18 @@ class _FieldDetailMapPageState extends ConsumerState<FieldDetailMapPage> {
           // Header info
           Row(
             children: [
-              Text(
-                field.name,
-                style: GoogleFonts.inter(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+              Expanded(
+                child: Text(
+                  field.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () => _showAddTaskDialog(field.id),
                 icon: const Icon(Icons.add, size: 18),

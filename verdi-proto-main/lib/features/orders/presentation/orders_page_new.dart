@@ -1685,38 +1685,76 @@ class _UpgradedOrderDetailPanel extends ConsumerWidget {
         const SizedBox(height: 16),
 
         // Primary Buttons (Repeat order, Update status)
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _showRepeatOrderDialog(context, ref, order),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Repeat Order'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _OrdersPageState.green,
-                  side: const BorderSide(color: _OrdersPageState.green, width: 1.5),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 360;
+            if (isNarrow) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _showRepeatOrderDialog(context, ref, order),
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('Repeat Order'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _OrdersPageState.green,
+                      side: const BorderSide(color: _OrdersPageState.green, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: () => _showUpdateStatusDialog(context, ref, order),
+                    icon: const Icon(Icons.edit_note_rounded, size: 20),
+                    label: const Text('Update Status'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _OrdersPageState.green,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shadowColor: _OrdersPageState.green.withValues(alpha: 0.4),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            return Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showRepeatOrderDialog(context, ref, order),
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('Repeat Order'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _OrdersPageState.green,
+                      side: const BorderSide(color: _OrdersPageState.green, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => _showUpdateStatusDialog(context, ref, order),
-                icon: const Icon(Icons.edit_note_rounded, size: 20),
-                label: const Text('Update Status'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _OrdersPageState.green,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shadowColor: _OrdersPageState.green.withValues(alpha: 0.4),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showUpdateStatusDialog(context, ref, order),
+                    icon: const Icon(Icons.edit_note_rounded, size: 20),
+                    label: const Text('Update Status'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _OrdersPageState.green,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shadowColor: _OrdersPageState.green.withValues(alpha: 0.4),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ],
     );

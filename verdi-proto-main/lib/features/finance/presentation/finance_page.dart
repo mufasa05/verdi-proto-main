@@ -581,49 +581,67 @@ class _FinancePageState extends ConsumerState<FinancePage> {
         const SizedBox(height: 20),
 
         // Quick Command Action Desk
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => _showBulkPaymentModal(),
-                icon: const Icon(Icons.flash_on, size: 16),
-                label: const Text('Execute Bulk Outgrower Payouts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 700;
+            final btn1 = ElevatedButton.icon(
+              onPressed: () => _showBulkPaymentModal(),
+              icon: const Icon(Icons.flash_on, size: 16),
+              label: const Text('Execute Bulk Outgrower Payouts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _showLiquiditySweepModal(),
-                icon: const Icon(Icons.sync_alt, size: 16, color: dark),
-                label: const Text('Trigger EOD Liquidity Sweep', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: dark)),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: dark),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+            );
+
+            final btn2 = OutlinedButton.icon(
+              onPressed: () => _showLiquiditySweepModal(),
+              icon: const Icon(Icons.sync_alt, size: 16, color: dark),
+              label: const Text('Trigger EOD Liquidity Sweep', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: dark)),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                side: const BorderSide(color: dark),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _exportTreasuryAuditReport,
-                icon: const Icon(Icons.picture_as_pdf, size: 16),
-                label: const Text('Export Audit Statement', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: dark,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+            );
+
+            final btn3 = ElevatedButton.icon(
+              onPressed: _exportTreasuryAuditReport,
+              icon: const Icon(Icons.picture_as_pdf, size: 16),
+              label: const Text('Export Audit Statement', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: dark,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-            ),
-          ],
+            );
+
+            if (isNarrow) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  btn1,
+                  const SizedBox(height: 8),
+                  btn2,
+                  const SizedBox(height: 8),
+                  btn3,
+                ],
+              );
+            }
+
+            return Row(
+              children: [
+                Expanded(child: btn1),
+                const SizedBox(width: 12),
+                Expanded(child: btn2),
+                const SizedBox(width: 12),
+                Expanded(child: btn3),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 24),
 
@@ -1143,7 +1161,13 @@ class _FinancePageState extends ConsumerState<FinancePage> {
               children: [
                 Row(
                   children: [
-                    Text(iban, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: dark)),
+                    Flexible(
+                      child: Text(
+                        iban,
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: dark),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
