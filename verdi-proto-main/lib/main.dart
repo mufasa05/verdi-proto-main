@@ -17,14 +17,26 @@ import 'features/traceability/models/repositories/supabase_traceability_reposito
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 1. Initialize centralized App Configuration
-  await AppConfig.instance.initialize();
+  try {
+    // 1. Initialize centralized App Configuration
+    await AppConfig.instance.initialize();
+  } catch (e) {
+    debugPrint('AppConfig init notice: $e');
+  }
 
-  // 2. Initialize hardened Supabase client & realtime listeners
-  await SupabaseService.instance.initialize();
+  try {
+    // 2. Initialize hardened Supabase client & realtime listeners
+    await SupabaseService.instance.initialize();
+  } catch (e) {
+    debugPrint('SupabaseService init notice: $e');
+  }
 
-  // 3. Initialize sovereign Security Vault (API keys, IP firewall, PIN & 2FA)
-  await SecurityVaultService.instance.initialize();
+  try {
+    // 3. Initialize sovereign Security Vault (API keys, IP firewall, PIN & 2FA)
+    await SecurityVaultService.instance.initialize();
+  } catch (e) {
+    debugPrint('SecurityVaultService init notice: $e');
+  }
 
   runApp(
     ProviderScope(
