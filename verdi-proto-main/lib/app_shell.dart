@@ -90,11 +90,14 @@ class AppShell extends ConsumerWidget {
 
     final isTransporter = state.role == UserRole.transporter;
     final isExpert = state.role == UserRole.expert;
+    final isGovernment = state.role == UserRole.government;
     final effectiveNavIndex = (isTransporter && state.navIndex == 0)
         ? 5
         : (isExpert && state.navIndex == 0)
             ? 29
-            : state.navIndex;
+            : (isGovernment && state.navIndex == 0)
+                ? 18
+                : state.navIndex;
 
     return ChangeNotifierProvider<WeatherProvider>(
       create: (_) {
@@ -358,7 +361,8 @@ class Sidebar extends ConsumerWidget {
           return item.index == 4 || item.index == 6;
 
         case UserRole.government:
-          return item.index == 3 || item.index == 7 || item.index == 17 || item.index == 18 || item.index == 20 || item.index == 24;
+          // Sovereign Government Role: Unified National Command Console (18) and Notifications (7)
+          return item.index == 18 || item.index == 7;
 
         default:
           return false;

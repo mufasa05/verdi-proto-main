@@ -18,6 +18,7 @@ import 'widgets/ask_verdi_fab.dart';
 import '../../agri_expert/data/agri_expert_models.dart';
 import '../../agri_expert/state/agri_expert_state.dart';
 import '../../agri_expert/presentation/expert_directory_page.dart';
+import '../../government/presentation/government_page.dart';
 import '../../../state/chat_state.dart';
 
 /// Clean Command Center Home Page.
@@ -1321,11 +1322,59 @@ class _RoleQuickActionsGrid extends ConsumerWidget {
 
 
     if (role == UserRole.government) {
-      return const [
-        _QuickActionConfig('Approve E-Vouchers', 'State subsidies', Icons.confirmation_number_outlined, Color(0xFF16A34A), 18),
-        _QuickActionConfig('Irrigation Schemes', 'National water dams', Icons.waves_outlined, Color(0xFF2563EB), 8),
-        _QuickActionConfig('ePhyto Clearances', 'Export compliance', Icons.verified_outlined, Color(0xFF7C3AED), 22),
-        _QuickActionConfig('National Grain Quotas', 'GMB reserves', Icons.account_balance_outlined, Color(0xFFF97316), 18),
+      return [
+        _QuickActionConfig(
+          'Approve E-Vouchers',
+          'Smallholder subsidies',
+          Icons.confirmation_number_outlined,
+          const Color(0xFF16A34A),
+          18,
+          onCustomTap: (context, ref) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const GovernmentPage(initialTab: 1)),
+            );
+          },
+        ),
+        _QuickActionConfig(
+          'Dams & Water Levels',
+          'Irrigation telemetry',
+          Icons.waves_outlined,
+          const Color(0xFF2563EB),
+          18,
+          onCustomTap: (context, ref) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const GovernmentPage(initialTab: 0)),
+            );
+          },
+        ),
+        _QuickActionConfig(
+          'ePhyto Clearances',
+          'Export certifications',
+          Icons.verified_outlined,
+          const Color(0xFF7C3AED),
+          18,
+          onCustomTap: (context, ref) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const GovernmentPage(initialTab: 2)),
+            );
+          },
+        ),
+        _QuickActionConfig(
+          'National Grain Quotas',
+          'Strategic GMB reserves',
+          Icons.account_balance_outlined,
+          const Color(0xFFF97316),
+          18,
+          onCustomTap: (context, ref) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const GovernmentPage(initialTab: 0)),
+            );
+          },
+        ),
       ];
     }
 
