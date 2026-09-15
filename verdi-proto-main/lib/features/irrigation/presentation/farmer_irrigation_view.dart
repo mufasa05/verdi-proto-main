@@ -1181,8 +1181,13 @@ class _WaterReportBlock extends StatelessWidget {
                 style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: FarmerIrrigationView.dark),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Water Consumption & Compliance Report downloaded.')),
+                  );
+                },
                 icon: const Icon(Icons.file_download_outlined, color: FarmerIrrigationView.green),
+                tooltip: 'Download Report',
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),

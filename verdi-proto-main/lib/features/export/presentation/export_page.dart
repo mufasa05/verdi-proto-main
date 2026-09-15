@@ -477,14 +477,20 @@ class _ExportPageState extends ConsumerState<ExportPage> with TickerProviderStat
                   ),
                 if (!cleared) const SizedBox(width: 8),
                 OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Export Dossier PDF for ${c['id']} compiled and downloaded.')),
+                    );
+                  },
                   icon: const Icon(Icons.picture_as_pdf_outlined, size: 14),
                   label: const Text('Download Dossier PDF', style: TextStyle(fontSize: 11)),
                   style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ref.read(appStateProvider.notifier).setNavIndex(5); // Verdi Logistics Carrier OS
+                  },
                   icon: const Icon(Icons.track_changes_outlined, size: 14),
                   label: const Text('Track Live', style: TextStyle(fontSize: 11)),
                   style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),

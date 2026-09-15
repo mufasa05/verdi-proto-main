@@ -466,9 +466,7 @@ class _SchemeDetailCard extends StatelessWidget {
             children: [
               Expanded(child: _MiniStat(label: 'Uptime', value: '${(scheme.uptime * 100).round()}%')),
               const SizedBox(width: 8),
-              Expanded(child: _MiniStat(label: 'Blocked Valves', value: '${scheme.blockedValves}')),
-              const SizedBox(width: 8),
-              Expanded(child: _MiniStat(label: 'Open Alerts', value: '${scheme.alerts}', color: scheme.alerts > 0 ? GovernmentIrrigationView.orange : null)),
+              Expanded(child: _MiniStat(label: 'Blocked Valves', value: '${scheme.blockedValves}', color: scheme.blockedValves > 0 ? GovernmentIrrigationView.red : null)),
             ],
           ),
           const SizedBox(height: 12),
@@ -476,13 +474,45 @@ class _SchemeDetailCard extends StatelessWidget {
             builder: (context, constraints) {
               final isNarrow = constraints.maxWidth < 400;
               final btnAudit = OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: Text('Audit Telemetry: ${scheme.name}'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Region: ${scheme.region} · ${scheme.crop}'),
+                          Text('Uptime: ${(scheme.uptime * 100).round()}%'),
+                          Text('Blocked Valves: ${scheme.blockedValves}'),
+                          const SizedBox(height: 8),
+                          const Text('Flow sensor calibration: Verified (+0.2% tolerance)', style: TextStyle(color: GovernmentIrrigationView.green)),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+                      ],
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.search_outlined, size: 16),
                 label: const Text('Audit Scheme', style: TextStyle(fontSize: 12)),
                 style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               );
               final btnSchedule = ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: Text('Water Allocation Schedule: ${scheme.name}'),
+                      content: const Text('Next rotation block: Zone A & B scheduled for 06:00 AM tomorrow (Capacity: 12,000 m³).'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+                      ],
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.schedule_outlined, size: 16),
                 label: const Text('Water Schedule', style: TextStyle(fontSize: 12)),
                 style: ElevatedButton.styleFrom(
@@ -599,7 +629,11 @@ class _ExportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
-      onPressed: () {},
+      onPressed: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('National Irrigation $label generated and exported.')),
+        );
+      },
       icon: Icon(icon, size: 16),
       label: Text(label, style: const TextStyle(fontSize: 12)),
       style: OutlinedButton.styleFrom(

@@ -1396,17 +1396,29 @@ class ManualControlScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Manual Takeoff Initiated. Telemetry active at 80m altitude.')),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
                         child: const Text('TAKEOFF'),
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Auto-Land Command Sent. Descending to safe landing pad.')),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
                         child: const Text('AUTO-LAND'),
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Emergency Return-To-Home (RTH) broadcasted.')),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
                         child: const Text('FORCE RTH'),
                       ),

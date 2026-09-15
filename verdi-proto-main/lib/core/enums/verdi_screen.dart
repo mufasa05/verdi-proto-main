@@ -30,7 +30,10 @@ enum VerdiScreen {
   news(24, 'Agri-News', Icons.newspaper_outlined, Icons.newspaper_rounded),
   processing(25, 'Value Addition Hub', Icons.factory_outlined, Icons.factory_rounded),
   adminActivity(26, 'User Activities & Logs', Icons.history_outlined, Icons.history_rounded),
-  adminHealth(27, 'System Health & Services', Icons.memory_outlined, Icons.memory_rounded);
+  adminHealth(27, 'System Health & Services', Icons.memory_outlined, Icons.memory_rounded),
+  aiCopilot(28, 'Sovereign AI Copilot', Icons.psychology_outlined, Icons.psychology_rounded),
+  agriExpert(29, 'Agri-Expert Console', Icons.medical_services_outlined, Icons.medical_services_rounded),
+  agriCommunity(30, 'Agri-Community Hub', Icons.forum_outlined, Icons.forum_rounded);
 
   final int pageIndex;
   final String title;

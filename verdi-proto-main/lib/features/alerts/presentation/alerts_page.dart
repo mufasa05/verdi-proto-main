@@ -202,8 +202,24 @@ class _AlertCard extends StatelessWidget {
                     color: Colors.grey.shade600,
                   ),
                 ),
-                const Spacer(),
-                TextButton(onPressed: () {}, child: const Text('View details')),
+                TextButton(
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: Text(alert.title),
+                        content: Text(alert.message),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  child: const Text('View details'),
+                ),
               ],
             ),
           ],

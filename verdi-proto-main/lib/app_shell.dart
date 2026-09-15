@@ -136,113 +136,111 @@ class AppShell extends ConsumerWidget {
             );
           }
 
+          final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
           final currentScreenTitle = VerdiScreen.fromIndex(state.navIndex).title;
 
           return GlobalVoiceAgentOverlay(
             child: Scaffold(
-            appBar: AppBar(
-              leading: state.navIndex != 0
-                  ? IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => notifier.setNavIndex(0),
-                      tooltip: 'Return to Home',
-                    )
-                  : Builder(
-                      builder: (scaffoldContext) => IconButton(
+              key: scaffoldKey,
+              appBar: AppBar(
+                leading: state.navIndex != 0
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => notifier.setNavIndex(0),
+                        tooltip: 'Return to Home',
+                      )
+                    : IconButton(
                         icon: const Icon(Icons.menu),
                         tooltip: 'All Modules',
-                        onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                        onPressed: () => scaffoldKey.currentState?.openDrawer(),
                       ),
-                    ),
-              title: Text(
-                currentScreenTitle,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold),
-              ),
-              actions: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        notifier.setNavIndex(7); // Go to notifications/alerts
-                      },
-                      icon: const Icon(Icons.notifications_none_outlined),
-                      tooltip: 'Notifications',
-                    ),
-                    if (alertCount > 0)
-                      Positioned(
-                        right: 6,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF16A34A),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white, width: 1.5),
-                          ),
-                          child: Text(
-                            '$alertCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                title: Text(
+                  currentScreenTitle,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold),
+                ),
+                actions: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          notifier.setNavIndex(7); // Go to notifications/alerts
+                        },
+                        icon: const Icon(Icons.notifications_none_outlined),
+                        tooltip: 'Notifications',
+                      ),
+                      if (alertCount > 0)
+                        Positioned(
+                          right: 6,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF16A34A),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.white, width: 1.5),
+                            ),
+                            child: Text(
+                              '$alertCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                if (state.navIndex != 0)
-                  Builder(
-                    builder: (scaffoldContext) => IconButton(
+                    ],
+                  ),
+                  if (state.navIndex != 0)
+                    IconButton(
                       icon: const Icon(Icons.grid_view_outlined),
                       tooltip: 'All Modules',
-                      onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                      onPressed: () => scaffoldKey.currentState?.openDrawer(),
                     ),
+                ],
+              ),
+              drawer: Drawer(child: sidebar),
+              body: IndexedStack(index: effectiveNavIndex, children: pages),
+              bottomNavigationBar: NavigationBar(
+                selectedIndex: state.navIndex > 3 ? 0 : state.navIndex,
+                onDestinationSelected: (idx) {
+                  if (idx == 3) {
+                    // Open full drawer menu for all modules
+                    scaffoldKey.currentState?.openDrawer();
+                  } else {
+                    notifier.setNavIndex(idx);
+                  }
+                },
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home_rounded),
+                    label: 'Home',
                   ),
-              ],
+                  NavigationDestination(
+                    icon: Icon(Icons.storefront_outlined),
+                    selectedIcon: Icon(Icons.storefront_rounded),
+                    label: 'Market',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.chat_bubble_outline),
+                    selectedIcon: Icon(Icons.chat_bubble_rounded),
+                    label: 'Chats',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.grid_view_outlined),
+                    selectedIcon: Icon(Icons.grid_view_rounded),
+                    label: 'Modules',
+                  ),
+                ],
+              ),
             ),
-            drawer: Drawer(child: sidebar),
-            body: IndexedStack(index: effectiveNavIndex, children: pages),
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: state.navIndex > 3 ? 0 : state.navIndex,
-              onDestinationSelected: (idx) {
-                if (idx == 3) {
-                  // Open full drawer menu for all modules
-                  Scaffold.of(context).openDrawer();
-                } else {
-                  notifier.setNavIndex(idx);
-                }
-              },
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: 'Home',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.storefront_outlined),
-                  selectedIcon: Icon(Icons.storefront_rounded),
-                  label: 'Market',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.chat_bubble_outline),
-                  selectedIcon: Icon(Icons.chat_bubble_rounded),
-                  label: 'Chats',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.grid_view_outlined),
-                  selectedIcon: Icon(Icons.grid_view_rounded),
-                  label: 'Modules',
-                ),
-              ],
-            ),
-          ),
-        );
+          );
       },
       ),
     );

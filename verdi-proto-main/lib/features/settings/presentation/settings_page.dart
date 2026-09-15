@@ -405,7 +405,11 @@ class _AiAccessRiskCard extends StatelessWidget {
             builder: (context, constraints) {
               final isNarrow = constraints.maxWidth < 360;
               final btnDismiss = OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Administrative suggestion dismissed.')),
+                  );
+                },
                 style: OutlinedButton.styleFrom(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   minimumSize: isNarrow ? const Size(double.infinity, 40) : null,
@@ -413,7 +417,11 @@ class _AiAccessRiskCard extends StatelessWidget {
                 child: const Text('Dismiss Alert', style: TextStyle(fontSize: 12, color: SettingsPage.muted)),
               );
               final btnConfirm = ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Cleanup confirmed: Scout Ndlovu scope updated to Read-only.')),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: SettingsPage.green,
                   foregroundColor: Colors.white,
@@ -499,7 +507,36 @@ class _UserAccessCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: Text('Edit Access Scope: ${user.name}'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Current Scope: ${user.scope}'),
+                            const SizedBox(height: 8),
+                            Text('Permission Level: ${user.permission}'),
+                            const SizedBox(height: 12),
+                            const Text('Select new target authorization zone:', style: TextStyle(fontSize: 12, color: SettingsPage.muted)),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Access scope updated for ${user.name}.')));
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: SettingsPage.green, foregroundColor: Colors.white),
+                            child: const Text('Save Changes'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                   child: const Text('Edit Scope', style: TextStyle(fontSize: 12)),
                 ),
@@ -642,7 +679,28 @@ class _PasskeyConsoleCard extends StatelessWidget {
                 style: ElevatedButton.styleFrom(backgroundColor: SettingsPage.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               );
               final btnActive = OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Active Temporary Passkeys (1)'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('Key ID: VERDI-9988-X', style: TextStyle(fontWeight: FontWeight.bold)),
+                          SizedBox(height: 4),
+                          Text('Granted To: Odzi Canal Upgrade Crew'),
+                          Text('Expires in: 3 hrs 42 mins'),
+                          Text('Permission: Field Valves Read-Write', style: TextStyle(color: SettingsPage.green)),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+                      ],
+                    ),
+                  );
+                },
                 style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                 child: const Text('Active Keys (1)', style: TextStyle(fontSize: 12)),
               );

@@ -2457,9 +2457,23 @@ class _MarketplacePageState extends ConsumerState<MarketplacePage>
           _filterDropdownPill('Sort by', _selectedSort, ['Recommended', 'Lowest Price', 'Highest Distance', 'Newest'], (v) => setState(() => _selectedSort = v)),
           const SizedBox(width: 12),
           OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list_rounded, size: 16, color: dark),
-            label: const Text('Filters'),
+            onPressed: () {
+              setState(() {
+                _selectedLocation = 'All regions';
+                _selectedCategoryFilter = 'All categories';
+                _selectedType = 'All types';
+                _selectedPriceRange = 'Any price';
+                _selectedSort = 'Recommended';
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('All marketplace filters reset to default.'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: const Icon(Icons.restart_alt_rounded, size: 16, color: dark),
+            label: const Text('Reset'),
             style: OutlinedButton.styleFrom(
               foregroundColor: dark,
               side: BorderSide(color: Colors.black.withValues(alpha: 0.12)),
@@ -2986,7 +3000,9 @@ class _ReferenceDesktopPanel extends ConsumerWidget {
                 ),
               ),
               OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  ref.read(appStateProvider.notifier).setNavIndex(3);
+                },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.orange.shade800,
                   side: BorderSide(color: Colors.orange.shade200),
@@ -3068,7 +3084,9 @@ class _ReferenceDesktopPanel extends ConsumerWidget {
                     style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: _MarketplacePageState.dark),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      ref.read(appStateProvider.notifier).setNavIndex(3);
+                    },
                     child: Text('View full report', style: GoogleFonts.inter(fontSize: 12, color: _MarketplacePageState.muted)),
                   ),
                 ],

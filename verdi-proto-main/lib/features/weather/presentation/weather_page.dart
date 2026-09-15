@@ -255,7 +255,7 @@ class _WeatherPageState extends ConsumerState<WeatherPage> {
           ],
         ),
       ),
-    );
+    ).then((_) => textController.dispose());
   }
 
   @override
