@@ -7,7 +7,29 @@ Thumbs.db
 # Environment and Secrets
 .env
 .env.*
+*.env
 !.env.example
+*.secret
+*.secrets
+secrets/
+*.key
+*.pem
+*.crt
+*.pfx
+*.p12
+*.keystore
+*.jks
+id_rsa*
+id_ed25519*
+serviceAccountKey*.json
+google-services.json
+GoogleService-Info.plist
+.aws/
+.gcp/
+
+# Local configurations containing private keys
+lib/core/ai/ai_config.dart
+**/ai_config.dart
 
 # Node / NestJS Dependencies & Build
 node_modules/
@@ -20,6 +42,8 @@ tsconfig.build.tsbuildinfo
 
 # Prisma
 /lib/generated/prisma
+prisma/*.db
+prisma/*.db-journal
 
 # Flutter / Dart
 .dart_tool/
@@ -33,6 +57,9 @@ build/
 *.log
 logcat_verdi.txt
 test_output.txt
+scratch/
+**/scratch/
+.gemini/
 
 # IDE / Editor Settings
 .idea/

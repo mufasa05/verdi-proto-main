@@ -3,6 +3,7 @@
 *.log
 *.pyc
 *.swp
+*.tmp
 .DS_Store
 .atom/
 .build/
@@ -11,6 +12,32 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+scratch/
+**/scratch/
+.gemini/
+
+# Environment and Secrets
+.env
+.env.*
+*.env
+!.env.example
+*.secret
+*.secrets
+secrets/
+*.key
+*.pem
+*.crt
+*.pfx
+*.p12
+*.keystore
+*.jks
+id_rsa*
+id_ed25519*
+serviceAccountKey*.json
+google-services.json
+GoogleService-Info.plist
+.aws/
+.gcp/
 
 # IntelliJ related
 *.iml
@@ -18,9 +45,7 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VS Code
 #.vscode/
 
 # Flutter/Dart/Pub related
@@ -41,6 +66,6 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
 # Local configurations containing private API keys
 /lib/core/ai/ai_config.dart
+**/ai_config.dart
