@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../state/app_state.dart';
+import '../../auth/state/auth_state.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // NATIONAL AGRICULTURAL ADMINISTRATION CONSOLE
 // Interactive 7-Tab Public Sector Portal matching exact government wireframes:
@@ -335,17 +338,103 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     return Scaffold(
       backgroundColor: bg,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: surfaceColor,
         elevation: 1,
-        title: Text(
-          'National Agricultural Administration Console',
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            color: textColor,
-          ),
+        title: Row(
+          children: [
+            const Icon(Icons.account_balance_rounded, color: GovernmentPage.green, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'National Agricultural Administration Console',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w900,
+                fontSize: 16,
+                color: textColor,
+              ),
+            ),
+          ],
         ),
         actions: [
+          // 1. STRATEGIC NOTIFICATION BELL ICON WITH LIVE BADGE
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                tooltip: 'Sovereign Alerts & Notifications',
+                onPressed: () => _showNotificationCenterModal(context),
+                icon: const Icon(Icons.notifications_active_rounded, color: GovernmentPage.green, size: 22),
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: GovernmentPage.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text(
+                    '3',
+                    style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 4),
+
+          // 2. ROLE & ACCOUNT SWITCHER POPUP MENU
+          PopupMenuButton<String>(
+            tooltip: 'Switch Stakeholder Role',
+            onSelected: (val) {
+              if (val == 'signout') {
+                ref.read(authStateProvider.notifier).signOut();
+              } else if (val == 'farmer') {
+                ref.read(appStateProvider.notifier).setRole(UserRole.farmer);
+              } else if (val == 'buyer') {
+                ref.read(appStateProvider.notifier).setRole(UserRole.buyer);
+              } else if (val == 'admin') {
+                ref.read(appStateProvider.notifier).setRole(UserRole.admin);
+              } else if (val == 'transporter') {
+                ref.read(appStateProvider.notifier).setRole(UserRole.transporter);
+              }
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: 'header',
+                enabled: false,
+                child: Text('Active Role: Government / NGO', style: TextStyle(fontWeight: FontWeight.bold, color: GovernmentPage.green, fontSize: 12)),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(value: 'farmer', child: Text('Switch to Farmer Role')),
+              const PopupMenuItem(value: 'buyer', child: Text('Switch to Commercial Buyer')),
+              const PopupMenuItem(value: 'transporter', child: Text('Switch to Logistics Transporter')),
+              const PopupMenuItem(value: 'admin', child: Text('Switch to System Admin')),
+              const PopupMenuDivider(),
+              const PopupMenuItem(value: 'signout', child: Text('Sign Out', style: TextStyle(color: GovernmentPage.red, fontWeight: FontWeight.bold))),
+            ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: GovernmentPage.green.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: GovernmentPage.green.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.account_balance_outlined, color: GovernmentPage.green, size: 16),
+                  const SizedBox(width: 6),
+                  Text('Government', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 12, color: GovernmentPage.green)),
+                  const Icon(Icons.arrow_drop_down, color: GovernmentPage.green, size: 18),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 3. REFRESH BUTTON
           IconButton(
             tooltip: 'Refresh Console',
             onPressed: _refresh,
@@ -353,6 +442,7 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: GovernmentPage.green))
                 : Icon(Icons.refresh_rounded, color: textColor),
           ),
+          const SizedBox(width: 8),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -1616,6 +1706,146 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
             child: const Text('Save Price'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showNotificationCenterModal(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.65,
+        maxChildSize: 0.9,
+        minChildSize: 0.4,
+        builder: (_, scrollController) => Padding(
+          padding: const EdgeInsets.all(20),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.notifications_active_rounded, color: GovernmentPage.green, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Sovereign Alert & Notification Center',
+                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: isDark ? Colors.white : GovernmentPage.dark),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+              const Divider(height: 20),
+              
+              // Notification Item 1: Biosecurity Alert
+              _buildNotificationTile(
+                title: 'CRITICAL BIOSECURITY EMERGENCY',
+                subtitle: 'Fall Armyworm Infestation detected in Domboshava Fields (340 Ha affected). Ring-fence quarantine ordered.',
+                time: '10 mins ago',
+                icon: Icons.bug_report_rounded,
+                iconColor: GovernmentPage.red,
+                isDark: isDark,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _tabController.animateTo(5); // Go to Biosecurity tab
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Notification Item 2: ePhyto Signing Request
+              _buildNotificationTile(
+                title: 'ePhyto Export Clearance Sign-off Pending',
+                subtitle: 'Consignment EXP-PEAS-9921 (8,400 kg Sugar Snaps to Rotterdam) requires official digital signature at Forbes Border.',
+                time: '25 mins ago',
+                icon: Icons.verified_outlined,
+                iconColor: GovernmentPage.blue,
+                isDark: isDark,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _tabController.animateTo(6); // Go to Trade & Prices tab
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Notification Item 3: GMB Reserve Update
+              _buildNotificationTile(
+                title: 'Strategic Maize Reserve Intake Update',
+                subtitle: 'GMB Silos recorded +12,400 metric tons intake from Mazowe outgrowers today. Stock level at 84.0% capacity.',
+                time: '1 hour ago',
+                icon: Icons.warehouse_outlined,
+                iconColor: GovernmentPage.green,
+                isDark: isDark,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _tabController.animateTo(0); // Go to Food Security tab
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Notification Item 4: Dam Telemetry
+              _buildNotificationTile(
+                title: 'Mazowe Dam Capacity Advisory',
+                subtitle: 'Mazowe Dam Complex reached 89.5% capacity. Downstream irrigation discharge optimized to 420 m³/s.',
+                time: '3 hours ago',
+                icon: Icons.water_drop_rounded,
+                iconColor: GovernmentPage.teal,
+                isDark: isDark,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _tabController.animateTo(0); // Go to Food Security tab
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationTile({
+    required String title,
+    required String subtitle,
+    required String time,
+    required IconData icon,
+    required Color iconColor,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        title: Row(
+          children: [
+            Expanded(child: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 12, color: iconColor))),
+            Text(time, style: GoogleFonts.inter(fontSize: 10, color: GovernmentPage.muted, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(subtitle, style: GoogleFonts.inter(fontSize: 11, color: isDark ? Colors.white70 : GovernmentPage.dark, fontWeight: FontWeight.w600)),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: GovernmentPage.muted),
       ),
     );
   }

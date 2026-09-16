@@ -288,6 +288,14 @@ class _TraceabilityPageState extends ConsumerState<TraceabilityPage> {
                           )).toList(),
                         );
                       }
+                      if (constraints.maxWidth < 420) {
+                        return Column(
+                          children: stats.map((s) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _StatCard(label: s['label'] as String, value: s['value'] as String, icon: s['icon'] as IconData),
+                          )).toList(),
+                        );
+                      }
                       return Column(
                         children: [
                           Row(

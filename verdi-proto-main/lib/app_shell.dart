@@ -122,6 +122,12 @@ class AppShell extends ConsumerWidget {
 
           final isDark = Theme.of(context).brightness == Brightness.dark;
 
+          if (state.role == UserRole.government) {
+            return const GlobalVoiceAgentOverlay(
+              child: GovernmentPage(),
+            );
+          }
+
           if (isDesktop) {
             return GlobalVoiceAgentOverlay(
               child: Scaffold(

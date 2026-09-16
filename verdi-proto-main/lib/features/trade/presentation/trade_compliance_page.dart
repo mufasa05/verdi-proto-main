@@ -244,20 +244,28 @@ class _CertCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 10,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              _CertMeta(label: 'Issued', value: cert.issuedDate),
-              const SizedBox(width: 24),
-              _CertMeta(
-                label: 'Expires',
-                value: cert.expiryDate,
-                valueColor: cert.status == 'Expired'
-                    ? TradeColors.red
-                    : cert.status == 'Expiring'
-                        ? TradeColors.orange
-                        : null,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _CertMeta(label: 'Issued', value: cert.issuedDate),
+                  const SizedBox(width: 20),
+                  _CertMeta(
+                    label: 'Expires',
+                    value: cert.expiryDate,
+                    valueColor: cert.status == 'Expired'
+                        ? TradeColors.red
+                        : cert.status == 'Expiring'
+                            ? TradeColors.orange
+                            : null,
+                  ),
+                ],
               ),
-              const Spacer(),
               if (cert.status == 'Expiring')
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -332,10 +340,12 @@ class _AuditEntry extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     TradeBadge(label: entry.action, color: actionColor),
-                    const SizedBox(width: 8),
                     Text(
                       '${entry.entityType} ${entry.entityId}',
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: TradeColors.dark),

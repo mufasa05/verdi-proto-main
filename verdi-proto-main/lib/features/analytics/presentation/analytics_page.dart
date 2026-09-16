@@ -816,15 +816,43 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> with SingleTicker
   Widget _arbitrageRow(String hub, String price, String margin, Color accent) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: accent)),
-          const SizedBox(width: 10),
-          Expanded(child: Text(hub, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AnalyticsPage.dark))),
-          Text(price, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: AnalyticsPage.dark)),
-          const SizedBox(width: 16),
-          Text(margin, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: accent)),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 360) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: accent)),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(hub, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AnalyticsPage.dark))),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 18, top: 4),
+                  child: Row(
+                    children: [
+                      Text(price, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: AnalyticsPage.dark)),
+                      const Spacer(),
+                      Text(margin, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: accent)),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: accent)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(hub, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AnalyticsPage.dark))),
+              Text(price, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: AnalyticsPage.dark)),
+              const SizedBox(width: 16),
+              Text(margin, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: accent)),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1108,8 +1136,14 @@ class _SuperAdminPerspectiveSelector extends StatelessWidget {
             children: [
               Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AnalyticsPage.green.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(Icons.admin_panel_settings_outlined, color: AnalyticsPage.green, size: 18)),
               const SizedBox(width: 8),
-              Text('Super Admin Perspective Switcher', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AnalyticsPage.dark)),
-              const Spacer(),
+              Expanded(
+                child: Text(
+                  'Super Admin Perspective Switcher',
+                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AnalyticsPage.dark),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: AnalyticsPage.green.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text('Full Chain Scope', style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.bold, color: AnalyticsPage.green))),
             ],
           ),
@@ -1823,14 +1857,29 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
           Text('Multi-Stage Escrow Vault & Working Capital Utilization', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
           const Text('Verdi Smart Contract Escrow balances, inspection milestones, and settlement clearance pipelines.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _escrowCard('Stage 1: Deposit In Custody', stage1, isDemo ? 'Funds locked pending dispatch' : 'No active deposits', Icons.lock_clock_outlined, const Color(0xFFF59E0B))),
-              const SizedBox(width: 12),
-              Expanded(child: _escrowCard('Stage 2: Transit & Inspection', stage2, isDemo ? 'En-route / Lab testing clearance' : 'No consignments in transit', Icons.local_shipping_outlined, const Color(0xFF3B82F6))),
-              const SizedBox(width: 12),
-              Expanded(child: _escrowCard('Stage 3: Settled Payouts', stage3, isDemo ? 'Disbursed to outgrowers in 30D' : 'No live settlements yet', Icons.task_alt, const Color(0xFF10B981))),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 650) {
+                return Column(
+                  children: [
+                    _escrowCard('Stage 1: Deposit In Custody', stage1, isDemo ? 'Funds locked pending dispatch' : 'No active deposits', Icons.lock_clock_outlined, const Color(0xFFF59E0B)),
+                    const SizedBox(height: 12),
+                    _escrowCard('Stage 2: Transit & Inspection', stage2, isDemo ? 'En-route / Lab testing clearance' : 'No consignments in transit', Icons.local_shipping_outlined, const Color(0xFF3B82F6)),
+                    const SizedBox(height: 12),
+                    _escrowCard('Stage 3: Settled Payouts', stage3, isDemo ? 'Disbursed to outgrowers in 30D' : 'No live settlements yet', Icons.task_alt, const Color(0xFF10B981)),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: _escrowCard('Stage 1: Deposit In Custody', stage1, isDemo ? 'Funds locked pending dispatch' : 'No active deposits', Icons.lock_clock_outlined, const Color(0xFFF59E0B))),
+                  const SizedBox(width: 12),
+                  Expanded(child: _escrowCard('Stage 2: Transit & Inspection', stage2, isDemo ? 'En-route / Lab testing clearance' : 'No consignments in transit', Icons.local_shipping_outlined, const Color(0xFF3B82F6))),
+                  const SizedBox(width: 12),
+                  Expanded(child: _escrowCard('Stage 3: Settled Payouts', stage3, isDemo ? 'Disbursed to outgrowers in 30D' : 'No live settlements yet', Icons.task_alt, const Color(0xFF10B981))),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
           Text('Recent Escrow Smart Contract Ledger Entries', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -1881,14 +1930,29 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
           Text('Cold-Chain Telemetry & EUDR Regulatory Audits', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
           const Text('Reefer ambient temperature conformity, in-transit shelf-life decay, and EU Deforestation Regulation polygon verification.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _b2bKpiCard('Reefer Temp Compliance', comp, compSub, Icons.ac_unit, const Color(0xFF3B82F6), double.infinity)),
-              const SizedBox(width: 12),
-              Expanded(child: _b2bKpiCard('In-Transit Loss Rate', loss, lossSub, Icons.trending_down, const Color(0xFF10B981), double.infinity)),
-              const SizedBox(width: 12),
-              Expanded(child: _b2bKpiCard('EUDR Geofenced Lots', eudr, eudrSub, Icons.forest_outlined, const Color(0xFF10B981), double.infinity)),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 650) {
+                return Column(
+                  children: [
+                    _b2bKpiCard('Reefer Temp Compliance', comp, compSub, Icons.ac_unit, const Color(0xFF3B82F6), double.infinity),
+                    const SizedBox(height: 12),
+                    _b2bKpiCard('In-Transit Loss Rate', loss, lossSub, Icons.trending_down, const Color(0xFF10B981), double.infinity),
+                    const SizedBox(height: 12),
+                    _b2bKpiCard('EUDR Geofenced Lots', eudr, eudrSub, Icons.forest_outlined, const Color(0xFF10B981), double.infinity),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: _b2bKpiCard('Reefer Temp Compliance', comp, compSub, Icons.ac_unit, const Color(0xFF3B82F6), double.infinity)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _b2bKpiCard('In-Transit Loss Rate', loss, lossSub, Icons.trending_down, const Color(0xFF10B981), double.infinity)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _b2bKpiCard('EUDR Geofenced Lots', eudr, eudrSub, Icons.forest_outlined, const Color(0xFF10B981), double.infinity)),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
           Container(
@@ -1897,8 +1961,11 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(isDemo ? 'EUDR Compliance Audit Certificate: ZIM-EXP-2026-LIVE' : 'EUDR Compliance Audit Engine: Active', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
                     ElevatedButton.icon(
@@ -2005,13 +2072,16 @@ class _B2BBuyerAnalyticsViewState extends ConsumerState<_B2BBuyerAnalyticsView> 
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(id, style: const TextStyle(color: Color(0xFF60A5FA), fontWeight: FontWeight.bold, fontSize: 12)),
-              Text(desc, style: const TextStyle(color: Colors.white, fontSize: 12.5)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(id, style: const TextStyle(color: Color(0xFF60A5FA), fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(desc, style: const TextStyle(color: Colors.white, fontSize: 12.5)),
+              ],
+            ),
           ),
+          const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
