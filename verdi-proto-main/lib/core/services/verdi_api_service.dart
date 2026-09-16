@@ -165,6 +165,32 @@ class VerdiApiService {
       _post('/marketplace/listings', data, category: RateLimitCategory.marketplace);
 
   // ──────────────────────────────────────────────
+  // Authentication & 2FA
+  // ──────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> verify2fa({
+    required String email,
+    required String code,
+    String? pendingToken,
+  }) =>
+      _post(
+        '/auth/2fa/verify',
+        {
+          'email': email,
+          'code': code,
+          'pendingToken': ?pendingToken,
+        },
+        category: RateLimitCategory.auth,
+      );
+
+  Future<Map<String, dynamic>> setup2fa(String email) =>
+      _post(
+        '/auth/2fa/setup',
+        {'email': email},
+        category: RateLimitCategory.auth,
+      );
+
+  // ──────────────────────────────────────────────
   // Notifications
   // ──────────────────────────────────────────────
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,8 @@ class Totp2faVerificationScreen extends ConsumerStatefulWidget {
 class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationScreen> {
   final TextEditingController _codeController = TextEditingController();
   bool _showSecretKey = false;
+  Timer? _countdownTimer;
+  int _secondsRemaining = 30;
 
   static const bgDark = Color(0xFF0B1120);
   static const cardDark = Color(0xFF161E2E);
@@ -24,7 +27,24 @@ class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationS
   static const textMuted = Color(0xFF94A3B8);
 
   @override
+  void initState() {
+    super.initState();
+    _updateRemainingTime();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) _updateRemainingTime();
+    });
+  }
+
+  void _updateRemainingTime() {
+    final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    setState(() {
+      _secondsRemaining = 30 - (nowSec % 30);
+    });
+  }
+
+  @override
   void dispose() {
+    _countdownTimer?.cancel();
     _codeController.dispose();
     super.dispose();
   }
@@ -41,6 +61,8 @@ class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationS
     final authState = ref.watch(authStateProvider);
     final pendingUser = authState.pendingUser;
     final secret = authState.totpSecret ?? 'VERDI2FASECRETKEY2026';
+    final userEmail = pendingUser?.email ?? 'operator@verdi.ag';
+    final otpauthUri = 'otpauth://totp/Verdi:$userEmail?secret=$secret&issuer=Verdi';
     final isLoading = authState.isLoading;
     final errorMessage = authState.errorMessage;
 
@@ -50,7 +72,7 @@ class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationS
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 460),
+            constraints: const BoxConstraints(maxWidth: 480),
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               color: cardDark,
@@ -84,11 +106,11 @@ class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationS
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter the 6-digit verification code from your Google Authenticator or Authy app for ${pendingUser?.fullName ?? "your account"}.',
+                  'Enter the 6-digit verification code from your Google Authenticator, Authy, or 1Password app for ${pendingUser?.fullName ?? "your account"}.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: textMuted, fontSize: 13, height: 1.5),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
                 // 6-digit Code Input
                 TextField(
@@ -121,8 +143,36 @@ class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationS
                   },
                 ),
 
+                const SizedBox(height: 12),
+
+                // Live TOTP Freshness Timer Indicator
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        value: _secondsRemaining / 30.0,
+                        strokeWidth: 2.2,
+                        backgroundColor: Colors.white12,
+                        color: _secondsRemaining <= 5 ? const Color(0xFFEF4444) : accentGreen,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Code refreshes in ${_secondsRemaining}s',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _secondsRemaining <= 5 ? const Color(0xFFEF4444) : textMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+
                 if (errorMessage != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
@@ -138,7 +188,7 @@ class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationS
                   ),
                 ],
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
                 SizedBox(
                   width: double.infinity,
@@ -163,37 +213,61 @@ class _Totp2faVerificationScreenState extends ConsumerState<Totp2faVerificationS
                 TextButton.icon(
                   onPressed: () => setState(() => _showSecretKey = !_showSecretKey),
                   icon: Icon(_showSecretKey ? Icons.visibility_off : Icons.key, size: 16, color: accentBlue),
-                  label: Text(_showSecretKey ? 'Hide Secret Key' : 'Setup Authenticator Key', style: const TextStyle(color: accentBlue, fontSize: 12)),
+                  label: Text(_showSecretKey ? 'Hide Setup Credentials' : 'Setup Authenticator Key', style: const TextStyle(color: accentBlue, fontSize: 12)),
                 ),
 
                 if (_showSecretKey) ...[
                   const SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: cardBorder),
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text('Base32 Secret for Authenticator App:', style: TextStyle(color: textMuted, fontSize: 11)),
-                        const SizedBox(height: 6),
-                        SelectableText(
-                          secret,
-                          style: const TextStyle(color: accentGreen, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2),
+                        const Text(
+                          'Base32 Secret for Authenticator App:',
+                          style: TextStyle(color: textMuted, fontSize: 11),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: secret));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('2FA Secret Key copied to clipboard!'), backgroundColor: accentGreen),
-                            );
-                          },
-                          icon: const Icon(Icons.copy, size: 14, color: textMuted),
-                          label: const Text('Copy Key', style: TextStyle(color: textMuted, fontSize: 11)),
-                          style: OutlinedButton.styleFrom(side: const BorderSide(color: cardBorder)),
+                        SelectableText(
+                          secret,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: accentGreen, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 2),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: secret));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('2FA Secret Key copied to clipboard!'), backgroundColor: accentGreen),
+                                );
+                              },
+                              icon: const Icon(Icons.copy, size: 13, color: Colors.white),
+                              label: const Text('Copy Secret Key', style: TextStyle(color: Colors.white, fontSize: 11)),
+                              style: OutlinedButton.styleFrom(side: const BorderSide(color: cardBorder)),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: otpauthUri));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Authenticator Setup URI copied to clipboard!'), backgroundColor: accentBlue),
+                                );
+                              },
+                              icon: const Icon(Icons.link, size: 13, color: accentBlue),
+                              label: const Text('Copy otpauth URI', style: TextStyle(color: accentBlue, fontSize: 11)),
+                              style: OutlinedButton.styleFrom(side: const BorderSide(color: cardBorder)),
+                            ),
+                          ],
                         ),
                       ],
                     ),

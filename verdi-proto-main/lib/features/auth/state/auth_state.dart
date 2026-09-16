@@ -524,7 +524,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return false;
     }
 
-    final isValid = await SecurityVaultService.instance.verifyUser2faCode(pending.email, code);
+    // 1. Attempt backend 2FA verification first if connected
+    bool isValid = false;
+    String? authenticatedToken = state.pendingToken;
+
+    try {
+      final backendRes = await VerdiApiService.instance.verify2fa(
+        email: pending.email,
+        code: code.trim(),
+        pendingToken: state.pendingToken,
+      );
+      if (backendRes.containsKey('token') && backendRes['token'] != null) {
+        isValid = true;
+        authenticatedToken = backendRes['token'].toString();
+      } else if (backendRes['success'] == true) {
+        isValid = true;
+      }
+    } catch (_) {
+      // Backend not running or in test environment
+    }
+
+    // 2. Fall back to local hardened SecurityVaultService verification
+    if (!isValid) {
+      isValid = await SecurityVaultService.instance.verifyUser2faCode(pending.email, code);
+    }
+
     if (!isValid && code.trim() != '123456') {
       state = state.copyWith(
         isLoading: false,
@@ -536,8 +560,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final isDemoActive = _ref?.read(isDemoModeProvider) ?? _container?.read(isDemoModeProvider) ?? false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_sessionKey, jsonEncode(pending.toJson()));
-    if (state.pendingToken != null && state.pendingToken!.isNotEmpty) {
-      await prefs.setString('verdi.auth.token', state.pendingToken!);
+    if (authenticatedToken != null && authenticatedToken.isNotEmpty) {
+      await prefs.setString('verdi.auth.token', authenticatedToken);
     }
     await prefs.setString('verdi.auth.last_email', pending.email);
     await prefs.setBool('verdi.app.is_demo_mode', isDemoActive);
