@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:latlong2/latlong.dart' hide Path;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -18,8 +16,10 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 class _GrainChartData {
   final String date;
-  final double tons;
-  _GrainChartData(this.date, this.tons);
+  final double maize;
+  final double wheat;
+  final double sorghum;
+  _GrainChartData(this.date, this.maize, this.wheat, this.sorghum);
 }
 
 class GovernmentPage extends ConsumerStatefulWidget {
@@ -27,26 +27,26 @@ class GovernmentPage extends ConsumerStatefulWidget {
   const GovernmentPage({super.key, this.initialTab = 0});
 
   // ── SOVEREIGN PALETTE ──────────────────────────────────────────────────────
-  static const green = Color(0xFF16A34A);
-  static const greenDark = Color(0xFF15803D);
-  static const dark = Color(0xFF0F172A);
-  static const darkBg = Color(0xFF070B14);
-  static const surface = Color(0xFF0F1629);
-  static const surfaceLight = Color(0xFF151D33);
-  static const border = Color(0xFF1E293B);
-  static const borderLight = Color(0xFF334155);
+  static const green = Color(0xFF10B981);
+  static const greenDark = Color(0xFF047857);
+  static const darkBg = Color(0xFF050B14);
+  static const surface = Color(0xFF0C1425);
+  static const surfaceLight = Color(0xFF111D35);
+  static const surfaceCard = Color(0xFF0E182D);
+  static const border = Color(0xFF1A2A48);
+  static const borderLight = Color(0xFF24395E);
   static const slate = Color(0xFF334155);
   static const muted = Color(0xFF64748B);
   static const mutedLight = Color(0xFF94A3B8);
   static const teal = Color(0xFF0D9488);
-  static const purple = Color(0xFF7C3AED);
+  static const purple = Color(0xFF8B5CF6);
   static const red = Color(0xFFEF4444);
   static const orange = Color(0xFFF97316);
-  static const blue = Color(0xFF2563EB);
+  static const blue = Color(0xFF3B82F6);
   static const amber = Color(0xFFF59E0B);
-  static const gold = Color(0xFFD4A017);
+  static const gold = Color(0xFFEAB308);
   static const cyan = Color(0xFF06B6D4);
-  static const background = Color(0xFFF8FAFC);
+  static const neonGreen = Color(0xFF22C55E);
 
   @override
   ConsumerState<GovernmentPage> createState() => _GovernmentPageState();
@@ -209,40 +209,23 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   final int _wheatReserveTons = 180000;
   final int _sorghumReserveTons = 82000;
 
-  // Grain chart data (last 30 days)
-  final List<_GrainChartData> _maizeChartData = [
-    _GrainChartData('Aug 04', 385), _GrainChartData('Aug 07', 392),
-    _GrainChartData('Aug 11', 398), _GrainChartData('Aug 14', 402),
-    _GrainChartData('Aug 18', 405), _GrainChartData('Aug 21', 408),
-    _GrainChartData('Aug 25', 410), _GrainChartData('Aug 28', 412),
-    _GrainChartData('Sep 01', 415), _GrainChartData('Sep 04', 418),
-    _GrainChartData('Sep 08', 420),
-  ];
-  final List<_GrainChartData> _wheatChartData = [
-    _GrainChartData('Aug 04', 172), _GrainChartData('Aug 07', 174),
-    _GrainChartData('Aug 11', 175), _GrainChartData('Aug 14', 176),
-    _GrainChartData('Aug 18', 177), _GrainChartData('Aug 21', 178),
-    _GrainChartData('Aug 25', 178), _GrainChartData('Aug 28', 179),
-    _GrainChartData('Sep 01', 179), _GrainChartData('Sep 04', 180),
-    _GrainChartData('Sep 08', 180),
-  ];
-  final List<_GrainChartData> _sorghumChartData = [
-    _GrainChartData('Aug 04', 96), _GrainChartData('Aug 07', 94),
-    _GrainChartData('Aug 11', 93), _GrainChartData('Aug 14', 91),
-    _GrainChartData('Aug 18', 90), _GrainChartData('Aug 21', 88),
-    _GrainChartData('Aug 25', 87), _GrainChartData('Aug 28', 85),
-    _GrainChartData('Sep 01', 84), _GrainChartData('Sep 04', 83),
-    _GrainChartData('Sep 08', 82),
+  // Grain chart data matching wireframe (30 Days)
+  final List<_GrainChartData> _reserveHistory = [
+    _GrainChartData('Aug 11', 370000, 185000, 110000),
+    _GrainChartData('Aug 18', 415000, 195000, 130000),
+    _GrainChartData('Aug 25', 395000, 180000, 120000),
+    _GrainChartData('Sep 01', 430000, 205000, 140000),
+    _GrainChartData('Sep 08', 420000, 180000, 82000),
   ];
 
-  // Dam telemetry data with real GPS coordinates
+  // Dam telemetry data with exact wireframe figures
   final List<Map<String, dynamic>> _dams = [
-    {'name': 'Lake Kariba Basin', 'level': 65.2, 'volume': '28,012 Mm³', 'capacity': 'of 42,300 Mm³', 'trend': 'Stable', 'lat': -16.5225, 'lng': 28.7583, 'statusColor': 0xFF16A34A},
-    {'name': 'Mazowe Dam Complex', 'level': 88.5, 'volume': '438 Mm³', 'capacity': 'of 495 Mm³', 'trend': 'High', 'lat': -17.4933, 'lng': 31.0522, 'statusColor': 0xFF2563EB},
-    {'name': 'Lake Mutirikwi (Masvingo)', 'level': 72.4, 'volume': '856 Mm³', 'capacity': 'of 1,183 Mm³', 'trend': 'Stable', 'lat': -20.1667, 'lng': 30.8667, 'statusColor': 0xFF16A34A},
-    {'name': 'Osborne Dam (Manicaland)', 'level': 61.0, 'volume': '410 Mm³', 'capacity': 'of 672 Mm³', 'trend': 'Stable', 'lat': -19.5667, 'lng': 32.4167, 'statusColor': 0xFF16A34A},
-    {'name': 'Manyame Dam', 'level': 54.0, 'volume': '736 Mm³', 'capacity': 'of 1,361 Mm³', 'trend': 'Monitor', 'lat': -17.8500, 'lng': 30.7167, 'statusColor': 0xFFF59E0B},
-    {'name': 'Chivero Dam', 'level': 48.0, 'volume': '204 Mm³', 'capacity': 'of 425 Mm³', 'trend': 'Watch', 'lat': -17.9000, 'lng': 30.8000, 'statusColor': 0xFFEF4444},
+    {'name': 'Lake Kariba Basin', 'level': 66.2, 'volume': '28,012 Mm³', 'capacity': 'of 42,300 Mm³', 'trend': '↗', 'trendUp': true, 'status': 'Stable', 'statusColor': 0xFF10B981, 'barColor': 0xFF06B6D4},
+    {'name': 'Mazowe Dam Complex', 'level': 88.5, 'volume': '438 Mm³', 'capacity': 'of 495 Mm³', 'trend': '↗', 'trendUp': true, 'status': 'High', 'statusColor': 0xFF10B981, 'barColor': 0xFF06B6D4},
+    {'name': 'Lake Mutirikwi (Masvingo)', 'level': 72.4, 'volume': '856 Mm³', 'capacity': 'of 1,183 Mm³', 'trend': '↗', 'trendUp': true, 'status': 'Stable', 'statusColor': 0xFF10B981, 'barColor': 0xFF06B6D4},
+    {'name': 'Osborne Dam (Manicaland)', 'level': 61.0, 'volume': '410 Mm³', 'capacity': 'of 672 Mm³', 'trend': '→', 'trendUp': null, 'status': 'Stable', 'statusColor': 0xFF10B981, 'barColor': 0xFF06B6D4},
+    {'name': 'Manyame Dam', 'level': 54.0, 'volume': '236 Mm³', 'capacity': 'of 436 Mm³', 'trend': '↘', 'trendUp': false, 'status': 'Monitor', 'statusColor': 0xFFF59E0B, 'barColor': 0xFFF59E0B},
+    {'name': 'Chivero Dam', 'level': 48.0, 'volume': '204 Mm³', 'capacity': 'of 425 Mm³', 'trend': '↘', 'trendUp': false, 'status': 'Watch', 'statusColor': 0xFFEF4444, 'barColor': 0xFFEF4444},
   ];
 
   // Risk scores per province
@@ -252,28 +235,28 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     'Manicaland': 58,
     'Midlands': 46,
     'Mashonaland East': 42,
-    'Mashonaland West': 35,
-    'Mashonaland Central': 28,
-    'Matabeleland North': 44,
-    'Harare': 22,
-    'Bulawayo': 38,
+    'Mashonaland West': 32,
+    'Mashonaland Central': 26,
+    'Matabeleland North': 38,
+    'Harare': 18,
+    'Bulawayo': 34,
   };
 
   // Crop production outlook
   final List<Map<String, dynamic>> _cropOutlook = [
-    {'crop': 'Maize', 'change': 12, 'up': true, 'volume': '2.1 MT', 'icon': Icons.grass_rounded},
-    {'crop': 'Wheat', 'change': 8, 'up': true, 'volume': '420K MT', 'icon': Icons.grain_rounded},
-    {'crop': 'Tobacco', 'change': 5, 'up': false, 'volume': '295K MT', 'icon': Icons.local_florist_rounded},
-    {'crop': 'Horticulture', 'change': 15, 'up': true, 'volume': '1.3M MT', 'icon': Icons.eco_rounded},
-    {'crop': 'Soya Beans', 'change': 10, 'up': true, 'volume': '310K MT', 'icon': Icons.spa_rounded},
+    {'crop': 'Maize', 'change': 12, 'up': true, 'volume': '2.1M MT', 'icon': Icons.grass_rounded, 'pct': 0.85},
+    {'crop': 'Wheat', 'change': 8, 'up': true, 'volume': '420K MT', 'icon': Icons.grain_rounded, 'pct': 0.72},
+    {'crop': 'Tobacco', 'change': 5, 'up': true, 'volume': '296K MT', 'icon': Icons.local_florist_rounded, 'pct': 0.65},
+    {'crop': 'Horticulture', 'change': 15, 'up': true, 'volume': '1.3M MT', 'icon': Icons.eco_rounded, 'pct': 0.90},
+    {'crop': 'Soya Beans', 'change': 10, 'up': true, 'volume': '310K MT', 'icon': Icons.spa_rounded, 'pct': 0.60},
   ];
 
   // Alerts & actions
   final List<Map<String, dynamic>> _actionAlerts = [
-    {'title': 'High drought risk – Masvingo Province', 'desc': 'Below average rainfall forecast for Oct - Dec 2025', 'time': '2 hours ago', 'severity': 'High', 'action': 'View Alert', 'category': 'Drought'},
-    {'title': 'Fall Armyworm outbreak reported', 'desc': 'New cases in Chimanimani and Chipinge', 'time': '5 hours ago', 'severity': 'Medium', 'action': 'Dispatch Officer', 'category': 'Pests'},
-    {'title': 'Chivero Dam below 50%', 'desc': 'Currently at 48% capacity', 'time': '8 hours ago', 'severity': 'Medium', 'action': 'Open Report', 'category': 'Water'},
-    {'title': 'Maize prices increasing', 'desc': '12% increase in major markets this month', 'time': '1 day ago', 'severity': 'Info', 'action': 'View Report', 'category': 'Markets'},
+    {'title': 'High drought risk – Masvingo Province', 'desc': 'Below average rainfall forecast for Oct - Dec 2025', 'time': '2 hours ago', 'severity': 'High', 'action': 'View Alert', 'category': 'Drought', 'icon': Icons.warning_amber_rounded, 'color': 0xFFEF4444},
+    {'title': 'Fall Armyworm outbreak reported', 'desc': 'New cases in Chimanimani and Chipinge', 'time': '5 hours ago', 'severity': 'Medium', 'action': 'Dispatch Officer', 'category': 'Pests', 'icon': Icons.pest_control_rounded, 'color': 0xFFF97316},
+    {'title': 'Chivero Dam below 50%', 'desc': 'Currently at 48% capacity', 'time': '8 hours ago', 'severity': 'Medium', 'action': 'Open Report', 'category': 'Water', 'icon': Icons.water_drop_rounded, 'color': 0xFF3B82F6},
+    {'title': 'Maize prices increasing', 'desc': '12% increase in major markets this month', 'time': '1 day ago', 'severity': 'Info', 'action': 'View Report', 'category': 'Markets', 'icon': Icons.trending_up_rounded, 'color': 0xFF06B6D4},
   ];
 
   // ── 7. SUBSIDIES STATE ──────────────────────────────────────────────────────
@@ -375,26 +358,30 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   Widget _buildSovereignHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: GovernmentPage.surface,
         border: Border(bottom: BorderSide(color: GovernmentPage.border, width: 1)),
       ),
       child: Row(
         children: [
-          // Coat of arms emblem
+          // Official Coat of Arms with fallback
           Container(
-            width: 40, height: 40,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1A472A), Color(0xFF0D331A)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              border: Border.all(color: GovernmentPage.gold, width: 1.5),
+              border: Border.all(color: GovernmentPage.gold.withValues(alpha: 0.6), width: 1.2),
             ),
-            child: const Center(
-              child: Icon(Icons.shield_rounded, color: GovernmentPage.gold, size: 22),
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              'assets/images/zim_coat_of_arms.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                color: const Color(0xFF15803D),
+                child: const Center(
+                  child: Icon(Icons.shield_rounded, color: GovernmentPage.gold, size: 22),
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -403,76 +390,92 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('GOVERNMENT OF ZIMBABWE', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: GovernmentPage.gold, letterSpacing: 1.5)),
-              Text('Ministry of Lands, Agriculture, Fisheries,\nWater and Rural Development', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight, height: 1.3)),
+              Text('GOVERNMENT OF ZIMBABWE', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.2)),
+              const SizedBox(height: 1),
+              Text('Ministry of Lands, Agriculture, Fisheries,\nWater and Rural Development', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight, height: 1.25)),
             ],
           ),
-          Container(width: 1, height: 36, margin: const EdgeInsets.symmetric(horizontal: 14), color: GovernmentPage.border),
+          Container(width: 1, height: 32, margin: const EdgeInsets.symmetric(horizontal: 14), color: GovernmentPage.border),
           // Console title
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('National Agricultural Administration Console', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
-                Text('Food Secure Zimbabwe  •  Productive Farmers  •  Prosperous Communities', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: GovernmentPage.green)),
+                Text('National Agricultural Administration Console', style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w900, color: Colors.white)),
+                const SizedBox(height: 2),
+                Text('Food Secure Zimbabwe  •  Productive Farmers  •  Prosperous Communities', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: GovernmentPage.cyan)),
               ],
             ),
           ),
           // Search bar
           Container(
-            width: 220,
+            width: 230,
             height: 32,
             margin: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
-              color: GovernmentPage.darkBg,
-              borderRadius: BorderRadius.circular(8),
+              color: GovernmentPage.surfaceLight,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: GovernmentPage.border),
             ),
             child: Row(
               children: [
-                const SizedBox(width: 8),
-                const Icon(Icons.search_rounded, size: 15, color: GovernmentPage.muted),
+                const SizedBox(width: 10),
+                const Icon(Icons.search_rounded, size: 14, color: GovernmentPage.muted),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text('Search systems, data, reports...', style: GoogleFonts.inter(fontSize: 10.5, color: GovernmentPage.muted, fontWeight: FontWeight.w500)),
+                  child: Text('Search systems, data, reports...', style: GoogleFonts.inter(fontSize: 10, color: GovernmentPage.muted, fontWeight: FontWeight.w500)),
                 ),
                 Container(
                   margin: const EdgeInsets.only(right: 6),
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(color: GovernmentPage.border, borderRadius: BorderRadius.circular(4)),
-                  child: Text('Ctrl+K', style: GoogleFonts.inter(fontSize: 9, color: GovernmentPage.mutedLight, fontWeight: FontWeight.w600)),
+                  decoration: BoxDecoration(color: GovernmentPage.surfaceCard, borderRadius: BorderRadius.circular(4), border: Border.all(color: GovernmentPage.border)),
+                  child: Text('Ctrl + K', style: GoogleFonts.inter(fontSize: 8.5, color: GovernmentPage.mutedLight, fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
           ),
-          // Live data badge
+          // Live Data badge with pulsing indicator
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            margin: const EdgeInsets.only(right: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            margin: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
               color: GovernmentPage.green.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: GovernmentPage.green.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 6, height: 6, decoration: const BoxDecoration(color: GovernmentPage.green, shape: BoxShape.circle)),
-                const SizedBox(width: 6),
-                Text('Live Data', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
+                Container(
+                  width: 7, height: 7,
+                  decoration: BoxDecoration(
+                    color: GovernmentPage.green,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: GovernmentPage.green.withValues(alpha: 0.8), blurRadius: 6, spreadRadius: 1)],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Live Data', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: GovernmentPage.green)),
+                    Text('All systems operational', style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
+                  ],
+                ),
               ],
             ),
           ),
-          // Notification bell
+          // Sovereign alert notification bell
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
                 tooltip: 'Sovereign Alerts',
                 onPressed: () => _showNotificationCenterModal(context),
-                icon: const Icon(Icons.notifications_active_rounded, color: GovernmentPage.mutedLight, size: 20),
-                constraints: const BoxConstraints(maxWidth: 36, maxHeight: 36),
+                icon: const Icon(Icons.notifications_none_rounded, color: GovernmentPage.mutedLight, size: 20),
+                constraints: const BoxConstraints(maxWidth: 34, maxHeight: 34),
                 padding: EdgeInsets.zero,
               ),
               Positioned(
@@ -480,15 +483,24 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(color: GovernmentPage.red, shape: BoxShape.circle),
-                  child: Text('3', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white)),
+                  child: Text('3', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white)),
                 ),
               ),
             ],
           ),
+          const SizedBox(width: 4),
+          // App Matrix 9-dots icon
+          IconButton(
+            tooltip: 'System Matrix',
+            onPressed: () {},
+            icon: const Icon(Icons.apps_rounded, color: GovernmentPage.mutedLight, size: 19),
+            constraints: const BoxConstraints(maxWidth: 34, maxHeight: 34),
+            padding: EdgeInsets.zero,
+          ),
           const SizedBox(width: 6),
           // User avatar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: GovernmentPage.surfaceLight,
               borderRadius: BorderRadius.circular(20),
@@ -498,40 +510,22 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 28, height: 28,
-                  decoration: BoxDecoration(
-                    color: GovernmentPage.green.withValues(alpha: 0.2),
+                  width: 26, height: 26,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1D4ED8),
                     shape: BoxShape.circle,
-                    border: Border.all(color: GovernmentPage.green, width: 1.5),
                   ),
-                  child: Center(child: Text('PS', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: GovernmentPage.green))),
+                  child: Center(child: Text('PS', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
                 ),
                 const SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Prince A. Shumba', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
-                    Text('National Administrator', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                    Text('Prince A. Shumba', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white)),
+                    Text('National Administrator', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Zimbabwe banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF1A472A), Color(0xFF0D331A)]),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: GovernmentPage.gold.withValues(alpha: 0.4)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('ZIMBABWE', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w900, color: GovernmentPage.gold, letterSpacing: 2)),
-                Text('FEEDS TOMORROW', style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w700, color: GovernmentPage.green, letterSpacing: 1)),
               ],
             ),
           ),
@@ -545,48 +539,109 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildNavTabBar() {
     const tabData = [
-      {'icon': Icons.grid_view_rounded, 'label': 'Food Security'},
-      {'icon': Icons.person_pin_rounded, 'label': 'Farmer Registry'},
-      {'icon': Icons.map_rounded, 'label': 'Farm Registration'},
-      {'icon': Icons.support_agent_rounded, 'label': 'Extension Officers'},
-      {'icon': Icons.card_giftcard_rounded, 'label': 'Subsidies & Advisory'},
-      {'icon': Icons.bug_report_rounded, 'label': 'Biosecurity'},
-      {'icon': Icons.show_chart_rounded, 'label': 'Trade & Prices'},
+      {'icon': Icons.eco_rounded, 'label': 'Food Security'},
+      {'icon': Icons.people_alt_outlined, 'label': 'Farmer Registry'},
+      {'icon': Icons.home_work_outlined, 'label': 'Farm Registration'},
+      {'icon': Icons.badge_outlined, 'label': 'Extension Officers'},
+      {'icon': Icons.volunteer_activism_outlined, 'label': 'Subsidies & Advisory'},
+      {'icon': Icons.verified_user_outlined, 'label': 'Biosecurity'},
+      {'icon': Icons.bar_chart_rounded, 'label': 'Trade & Prices'},
     ];
     return Container(
-      height: 44,
+      height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: GovernmentPage.surface,
         border: Border(bottom: BorderSide(color: GovernmentPage.border, width: 1)),
       ),
       child: Row(
-        children: List.generate(tabData.length, (i) {
-          final isActive = _tabController.index == i;
-          return Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () => _tabController.animateTo(i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  color: isActive ? GovernmentPage.green : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(tabData[i]['icon'] as IconData, size: 14, color: isActive ? Colors.white : GovernmentPage.muted),
-                    const SizedBox(width: 6),
-                    Text(tabData[i]['label'] as String, style: GoogleFonts.inter(fontSize: 11.5, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? Colors.white : GovernmentPage.muted)),
-                  ],
+        children: [
+          ...List.generate(tabData.length, (i) {
+            final isActive = _tabController.index == i;
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => _tabController.animateTo(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isActive ? GovernmentPage.green : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(tabData[i]['icon'] as IconData, size: 14, color: isActive ? Colors.white : GovernmentPage.mutedLight),
+                      const SizedBox(width: 6),
+                      Text(tabData[i]['label'] as String, style: GoogleFonts.inter(fontSize: 11, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? Colors.white : GovernmentPage.mutedLight)),
+                    ],
+                  ),
                 ),
               ),
+            );
+          }),
+          const Spacer(),
+          // Pictorial: Zimbabwe Feeds Tomorrow with Flag Ribbon & Lush Farm Photo
+          Container(
+            height: 34,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: GovernmentPage.borderLight),
             ),
-          );
-        }),
+            clipBehavior: Clip.antiAlias,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Flag ribbons
+                CustomPaint(
+                  size: const Size(28, 34),
+                  painter: _ZimFlagStripesPainter(),
+                ),
+                // Farm photo with overlay text
+                Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    Image.asset(
+                      'assets/images/zim_feeds_banner.jpg',
+                      width: 140,
+                      height: 34,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 140, height: 34,
+                        color: const Color(0xFF15803D),
+                      ),
+                    ),
+                    Container(
+                      width: 140,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.black.withValues(alpha: 0.85),
+                            Colors.black.withValues(alpha: 0.25),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('ZIMBABWE', style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w900, color: GovernmentPage.gold, letterSpacing: 1.5)),
+                          Text('FEEDS TOMORROW', style: GoogleFonts.inter(fontSize: 7, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.8)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -596,14 +651,14 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildFoodSecurityTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       children: [
         _buildCommandSubHeader(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildKpiRow(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildMiddleRow(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildBottomRow(),
       ],
     );
@@ -614,97 +669,125 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     final dateStr = DateFormat('EEE, dd MMM yyyy').format(_now);
     final timeStr = DateFormat('HH:mm').format(_now);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: GovernmentPage.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: GovernmentPage.border),
       ),
       child: Row(
         children: [
-          // Title
+          // Neon indicator bar + Title
+          Container(
+            width: 4, height: 26,
+            margin: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              color: GovernmentPage.neonGreen,
+              borderRadius: BorderRadius.circular(2),
+              boxShadow: [BoxShadow(color: GovernmentPage.neonGreen.withValues(alpha: 0.8), blurRadius: 6)],
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('National Food Security Command Center', style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
-                const SizedBox(height: 2),
-                Text('Real-time monitoring for a food secure and resilient Zimbabwe', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                Text('National Food Security Command Center', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                Text('Real-time monitoring for a food secure and resilient Zimbabwe', style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
               ],
             ),
           ),
           // Date + Time
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(8), border: Border.all(color: GovernmentPage.border)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.calendar_today_rounded, size: 13, color: GovernmentPage.muted),
-                const SizedBox(width: 6),
-                Text(dateStr, style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
-                Container(width: 1, height: 16, margin: const EdgeInsets.symmetric(horizontal: 8), color: GovernmentPage.border),
-                Text(timeStr, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
-                const SizedBox(width: 4),
-                Text('CAT', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: GovernmentPage.muted)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Weather
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(8), border: Border.all(color: GovernmentPage.border)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.wb_sunny_rounded, size: 16, color: GovernmentPage.amber),
+                const Icon(Icons.calendar_month_outlined, size: 14, color: GovernmentPage.mutedLight),
                 const SizedBox(width: 6),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Text(dateStr, style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
                     Row(
                       children: [
-                        Text('Harare', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                        Text(timeStr, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: GovernmentPage.cyan)),
+                        const SizedBox(width: 3),
+                        Text('CAT', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted)),
                       ],
                     ),
-                    Text('24°C', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
                   ],
                 ),
-                const SizedBox(width: 6),
-                Text('Clear Sky', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          // Scope selector
+          const SizedBox(width: 8),
+          // Weather widget
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(8), border: Border.all(color: GovernmentPage.border)),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedScope,
-                isDense: true,
-                dropdownColor: GovernmentPage.surface,
-                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
-                icon: const Icon(Icons.expand_more_rounded, size: 16, color: GovernmentPage.muted),
-                items: const [
-                  DropdownMenuItem(value: 'National Overview', child: Text('National Overview')),
-                  DropdownMenuItem(value: 'Manicaland', child: Text('Manicaland')),
-                  DropdownMenuItem(value: 'Masvingo', child: Text('Masvingo')),
-                  DropdownMenuItem(value: 'Mashonaland', child: Text('Mashonaland')),
-                  DropdownMenuItem(value: 'Midlands', child: Text('Midlands')),
-                  DropdownMenuItem(value: 'Matabeleland', child: Text('Matabeleland')),
-                ],
-                onChanged: (v) => setState(() => _selectedScope = v!),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.wb_sunny_rounded, size: 16, color: GovernmentPage.gold),
+                const SizedBox(width: 6),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Harare', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
+                    Row(
+                      children: [
+                        Text('24°C', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+                        const SizedBox(width: 4),
+                        Text('Clear Sky', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
+          // Scope dropdown
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(8), border: Border.all(color: GovernmentPage.border)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 14, height: 14,
+                  decoration: BoxDecoration(color: GovernmentPage.green, borderRadius: BorderRadius.circular(3)),
+                  child: const Center(child: Icon(Icons.location_on_rounded, size: 10, color: Colors.white)),
+                ),
+                const SizedBox(width: 6),
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedScope,
+                    isDense: true,
+                    dropdownColor: GovernmentPage.surface,
+                    style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white),
+                    icon: const Icon(Icons.expand_more_rounded, size: 14, color: GovernmentPage.mutedLight),
+                    items: const [
+                      DropdownMenuItem(value: 'National Overview', child: Text('National Overview')),
+                      DropdownMenuItem(value: 'Manicaland', child: Text('Manicaland')),
+                      DropdownMenuItem(value: 'Masvingo', child: Text('Masvingo')),
+                      DropdownMenuItem(value: 'Mashonaland', child: Text('Mashonaland')),
+                      DropdownMenuItem(value: 'Midlands', child: Text('Midlands')),
+                      DropdownMenuItem(value: 'Matabeleland', child: Text('Matabeleland')),
+                    ],
+                    onChanged: (v) => setState(() => _selectedScope = v!),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           // Time range pills
           ..._buildTimeRangePills(),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           // Refresh button
           _loading
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: GovernmentPage.green))
@@ -712,28 +795,29 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
                   borderRadius: BorderRadius.circular(8),
                   onTap: _refresh,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: GovernmentPage.green.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: GovernmentPage.green.withValues(alpha: 0.3)),
+                      border: Border.all(color: GovernmentPage.green.withValues(alpha: 0.4)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.refresh_rounded, size: 14, color: GovernmentPage.green),
+                        const Icon(Icons.refresh_rounded, size: 13, color: GovernmentPage.green),
                         const SizedBox(width: 4),
-                        Text('Refresh', style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('Refresh', style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
+                            Text('Live Data', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: GovernmentPage.green)),
+                          ],
+                        ),
                       ],
                     ),
                   ),
                 ),
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-            decoration: BoxDecoration(color: GovernmentPage.green.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
-            child: Text('Live Data', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: GovernmentPage.green)),
-          ),
         ],
       ),
     );
@@ -744,18 +828,18 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     return ranges.map((r) {
       final isActive = _selectedTimeRange == r;
       return Padding(
-        padding: const EdgeInsets.only(right: 4),
+        padding: const EdgeInsets.only(right: 3),
         child: InkWell(
           borderRadius: BorderRadius.circular(6),
           onTap: () => setState(() => _selectedTimeRange = r),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: isActive ? GovernmentPage.green : GovernmentPage.surfaceLight,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: isActive ? GovernmentPage.green : GovernmentPage.border),
             ),
-            child: Text(r, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: isActive ? Colors.white : GovernmentPage.muted)),
+            child: Text(r, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: isActive ? Colors.white : GovernmentPage.muted)),
           ),
         ),
       );
@@ -765,31 +849,32 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   // ── KPI ROW: 5 CARDS ──────────────────────────────────────────────────────
   Widget _buildKpiRow() {
     return LayoutBuilder(builder: (context, constraints) {
-      final w = (constraints.maxWidth - 48) / 5;
+      final w = (constraints.maxWidth - 40) / 5;
       return Row(
         children: [
-          _buildKpiCard(w, 'Strategic Grain Reserve', '420K', 'metric tons', '↑ 12%', 'vs last month', 'On Track', GovernmentPage.green, Icons.warehouse_rounded, [3.0, 3.5, 3.2, 3.8, 4.0, 3.9, 4.2]),
-          const SizedBox(width: 12),
-          _buildKpiCard(w, 'Registered Farmers', '1.24M', 'farmers', '↑ 6%', 'vs last month', 'Growing', GovernmentPage.blue, Icons.people_rounded, [1.0, 1.05, 1.1, 1.12, 1.15, 1.2, 1.24]),
-          const SizedBox(width: 12),
-          _buildKpiCard(w, 'Active Farms', '896K', 'farms', '↑ 4%', 'vs last month', 'Stable', GovernmentPage.teal, Icons.terrain_rounded, [8.2, 8.4, 8.5, 8.6, 8.7, 8.8, 8.96]),
-          const SizedBox(width: 12),
-          _buildKpiCard(w, 'National Food Production', '3.8M', 'metric tons', '↑ 8%', 'vs last season', 'Increasing', GovernmentPage.green, Icons.inventory_2_rounded, [3.0, 3.2, 3.3, 3.4, 3.5, 3.6, 3.8]),
-          const SizedBox(width: 12),
-          _buildKpiCard(w, 'Biosecurity Alerts', '12', 'active alerts', '↓ 25%', 'vs last month', 'Monitoring', GovernmentPage.orange, Icons.security_rounded, [18, 16, 15, 14, 13, 12, 12]),
+          _buildKpiCard(w, 'Strategic Grain Reserve', '420K', 'metric tons', '↑ 12%', 'vs last month', 'On Track', GovernmentPage.green, Icons.eco_rounded, [3.0, 3.2, 3.1, 3.5, 3.8, 3.9, 4.2]),
+          const SizedBox(width: 10),
+          _buildKpiCard(w, 'Registered Farmers', '1.24M', 'farmers', '↑ 6%', 'vs last month', 'Growing', GovernmentPage.cyan, Icons.people_alt_rounded, [1.0, 1.05, 1.08, 1.12, 1.15, 1.20, 1.24]),
+          const SizedBox(width: 10),
+          _buildKpiCard(w, 'Active Farms', '896K', 'farms', '↑ 4%', 'vs last month', 'Stable', GovernmentPage.blue, Icons.home_work_rounded, [8.2, 8.35, 8.45, 8.6, 8.7, 8.85, 8.96]),
+          const SizedBox(width: 10),
+          _buildKpiCard(w, 'National Food Production', '3.8M', 'metric tons', '↑ 8%', 'vs last season', 'Increasing', GovernmentPage.green, Icons.bar_chart_rounded, [3.0, 3.15, 3.3, 3.4, 3.55, 3.68, 3.8]),
+          const SizedBox(width: 10),
+          _buildKpiCard(w, 'Biosecurity Alerts', '12', 'active alerts', '↓ 25%', 'vs last month', 'Monitoring', GovernmentPage.purple, Icons.verified_user_rounded, [18, 16, 15, 14, 13, 12, 12], isUpGood: false),
         ],
       );
     });
   }
 
-  Widget _buildKpiCard(double width, String title, String value, String unit, String change, String changeLabel, String badge, Color color, IconData icon, List<double> sparkData) {
+  Widget _buildKpiCard(double width, String title, String value, String unit, String change, String changeLabel, String badge, Color color, IconData icon, List<double> sparkData, {bool isUpGood = true}) {
     final isUp = change.startsWith('↑');
+    final changeColor = (isUp == isUpGood) ? GovernmentPage.green : (isUp ? GovernmentPage.red : GovernmentPage.purple);
     return Container(
       width: width,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: GovernmentPage.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: GovernmentPage.border),
       ),
       child: Column(
@@ -798,20 +883,20 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-                child: Icon(icon, color: color, size: 16),
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: Icon(icon, color: color, size: 14),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-                child: Text(badge, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: color)),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+                child: Text(badge, style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w800, color: color)),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(title, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: GovernmentPage.muted)),
+          const SizedBox(height: 8),
+          Text(title, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
           const SizedBox(height: 4),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -824,17 +909,17 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(value, style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
-                        const SizedBox(width: 4),
-                        Flexible(child: Text(unit, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: GovernmentPage.muted))),
+                        Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
+                        const SizedBox(width: 3),
+                        Flexible(child: Text(unit, style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted))),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
-                        Text(change, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: isUp ? GovernmentPage.green : GovernmentPage.red)),
+                        Text(change, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: changeColor)),
                         const SizedBox(width: 4),
-                        Text(changeLabel, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                        Text(changeLabel, style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
                       ],
                     ),
                   ],
@@ -842,7 +927,7 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
               ),
               // Mini sparkline
               SizedBox(
-                width: 56, height: 28,
+                width: 52, height: 26,
                 child: LineChart(
                   LineChartData(
                     gridData: const FlGridData(show: false),
@@ -857,7 +942,13 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
                         isCurved: true,
                         color: color,
                         dotData: const FlDotData(show: false),
-                        belowBarData: BarAreaData(show: true, color: color.withValues(alpha: 0.08)),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            colors: [color.withValues(alpha: 0.25), color.withValues(alpha: 0.0)],
+                            begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                          ),
+                        ),
                         barWidth: 2,
                       ),
                     ],
@@ -880,25 +971,22 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 5, child: _buildGrainReservesPanel()),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(flex: 5, child: _buildDamTelemetryPanel()),
           ],
         );
       }
-      return Column(children: [_buildGrainReservesPanel(), const SizedBox(height: 16), _buildDamTelemetryPanel()]);
+      return Column(children: [_buildGrainReservesPanel(), const SizedBox(height: 12), _buildDamTelemetryPanel()]);
     });
   }
 
   // ── STRATEGIC GRAIN RESERVES PANEL ────────────────────────────────────────
   Widget _buildGrainReservesPanel() {
-    const totalReserve = 682000;
-    const totalTarget = 1200000;
-    final pct = (totalReserve / totalTarget * 100).round();
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: GovernmentPage.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: GovernmentPage.border),
       ),
       child: Column(
@@ -906,256 +994,99 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
         children: [
           Row(
             children: [
-              Text('Strategic Grain Reserves (GMB)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
-              const Spacer(),
-              Text('Total: 720K / 1.2M MT', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: GovernmentPage.muted)),
-              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: GovernmentPage.green.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-                child: Text('$pct%', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: GovernmentPage.green)),
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(color: GovernmentPage.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: const Icon(Icons.storage_rounded, color: GovernmentPage.green, size: 14),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Strategic Grain Reserves (GMB)', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text('Current reserves vs strategic targets', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                ],
+              ),
+              const Spacer(),
+              Text('Total: 720K / 1.2M MT', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(color: GovernmentPage.cyan.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: Text('60%', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w900, color: GovernmentPage.cyan)),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text('Current Reserves vs strategic targets', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+          const SizedBox(height: 12),
+          // Grain commodity rows
+          _buildGrainStockRow('Maize (GMB)', _maizeReserveTons, 600000, 'Adequate', GovernmentPage.green, Icons.grass_rounded, const [Color(0xFF10B981), Color(0xFF06B6D4)]),
+          const SizedBox(height: 8),
+          _buildGrainStockRow('Wheat Reserve', _wheatReserveTons, 300000, 'Moderate', GovernmentPage.orange, Icons.grain_rounded, const [Color(0xFFF97316), Color(0xFFF59E0B)]),
+          const SizedBox(height: 8),
+          _buildGrainStockRow('Sorghum & Small Grains', _sorghumReserveTons, 300000, 'Low', GovernmentPage.red, Icons.eco_rounded, const [Color(0xFFEF4444), Color(0xFFDC2626)]),
           const SizedBox(height: 14),
-          // Grain stock rows
-          _buildGrainStockRow('Maize (GMB)', _maizeReserveTons, 600000, 'Adequate', GovernmentPage.green),
-          const SizedBox(height: 10),
-          _buildGrainStockRow('Wheat Reserve', _wheatReserveTons, 300000, 'Moderate', GovernmentPage.orange),
-          const SizedBox(height: 10),
-          _buildGrainStockRow('Sorghum & Small Grains', _sorghumReserveTons, 300000, 'Low', GovernmentPage.red),
-          const SizedBox(height: 18),
           // Chart header
           Row(
             children: [
-              Text('Reserve Movement (Last 30 Days)', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: GovernmentPage.mutedLight)),
+              Text('Reserve Movement (Last 30 Days)', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: GovernmentPage.mutedLight)),
+              const SizedBox(width: 10),
+              _legendDot('Maize', GovernmentPage.cyan),
+              const SizedBox(width: 8),
+              _legendDot('Wheat', GovernmentPage.gold),
+              const SizedBox(width: 8),
+              _legendDot('Sorghum', GovernmentPage.purple),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(6), border: Border.all(color: GovernmentPage.border)),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(4), border: Border.all(color: GovernmentPage.border)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Metric Tons', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: GovernmentPage.muted)),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.expand_more_rounded, size: 12, color: GovernmentPage.muted),
+                    Text('Metric Tons', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
+                    const SizedBox(width: 3),
+                    const Icon(Icons.expand_more_rounded, size: 10, color: GovernmentPage.muted),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           // Grain trend chart
           SizedBox(
-            height: 180,
+            height: 160,
             child: SfCartesianChart(
               plotAreaBorderWidth: 0,
               margin: EdgeInsets.zero,
-              legend: Legend(
-                isVisible: true,
-                position: LegendPosition.top,
-                alignment: ChartAlignment.near,
-                textStyle: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight),
-              ),
               primaryXAxis: const CategoryAxis(
-                labelStyle: TextStyle(fontSize: 9, color: GovernmentPage.muted),
+                labelStyle: TextStyle(fontSize: 8.5, color: GovernmentPage.muted),
                 majorGridLines: MajorGridLines(width: 0),
                 axisLine: AxisLine(width: 0),
-                labelRotation: 0,
-                interval: 2,
               ),
               primaryYAxis: NumericAxis(
-                labelStyle: const TextStyle(fontSize: 9, color: GovernmentPage.muted),
-                majorGridLines: MajorGridLines(width: 0.3, color: GovernmentPage.border.withValues(alpha: 0.5)),
+                labelStyle: const TextStyle(fontSize: 8.5, color: GovernmentPage.muted),
+                majorGridLines: MajorGridLines(width: 0.3, color: GovernmentPage.border.withValues(alpha: 0.6)),
                 axisLine: const AxisLine(width: 0),
                 numberFormat: NumberFormat.compact(),
+                minimum: 0,
+                maximum: 800000,
+                interval: 200000,
               ),
               series: [
                 SplineSeries<_GrainChartData, String>(
-                  name: 'Maize', dataSource: _maizeChartData,
-                  xValueMapper: (d, _) => d.date, yValueMapper: (d, _) => d.tons,
-                  color: GovernmentPage.green, width: 2.5,
+                  dataSource: _reserveHistory,
+                  xValueMapper: (d, _) => d.date, yValueMapper: (d, _) => d.maize,
+                  color: GovernmentPage.cyan, width: 2.2,
                 ),
                 SplineSeries<_GrainChartData, String>(
-                  name: 'Wheat', dataSource: _wheatChartData,
-                  xValueMapper: (d, _) => d.date, yValueMapper: (d, _) => d.tons,
-                  color: GovernmentPage.amber, width: 2.5,
+                  dataSource: _reserveHistory,
+                  xValueMapper: (d, _) => d.date, yValueMapper: (d, _) => d.wheat,
+                  color: GovernmentPage.gold, width: 2.2,
                 ),
                 SplineSeries<_GrainChartData, String>(
-                  name: 'Sorghum', dataSource: _sorghumChartData,
-                  xValueMapper: (d, _) => d.date, yValueMapper: (d, _) => d.tons,
-                  color: GovernmentPage.purple, width: 2.5,
+                  dataSource: _reserveHistory,
+                  xValueMapper: (d, _) => d.date, yValueMapper: (d, _) => d.sorghum,
+                  color: GovernmentPage.purple, width: 2.2,
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGrainStockRow(String label, int tons, int target, String badge, Color color) {
-    final pct = (tons / target).clamp(0.0, 1.0);
-    final pctInt = (pct * 100).round();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-              child: Text(badge, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: color)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            Text('${(tons / 1000).toStringAsFixed(0)}K', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-            Text(' / ${(target / 1000).toStringAsFixed(0)}K MT', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(value: pct, backgroundColor: GovernmentPage.surfaceLight, color: color, minHeight: 8),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text('$pctInt%', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // ── DAM TELEMETRY PANEL ───────────────────────────────────────────────────
-  Widget _buildDamTelemetryPanel() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: GovernmentPage.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: GovernmentPage.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('National Water & Dam Telemetry', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
-              const Spacer(),
-              Text('View All ▾', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text('Live reservoir levels across Zimbabwe', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
-          const SizedBox(height: 12),
-          // Map
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
-              height: 200,
-              child: Stack(
-                children: [
-                  FlutterMap(
-                    options: const MapOptions(
-                      initialCenter: LatLng(-19.2, 29.9),
-                      initialZoom: 5.8,
-                      interactionOptions: InteractionOptions(flags: InteractiveFlag.none),
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      ),
-                      MarkerLayer(
-                        markers: _dams.map((dam) {
-                          final level = dam['level'] as double;
-                          final statusColor = Color(dam['statusColor'] as int);
-                          return Marker(
-                            point: LatLng(dam['lat'] as double, dam['lng'] as double),
-                            width: 26, height: 26,
-                            child: Tooltip(
-                              message: '${dam['name']}: ${level.toStringAsFixed(1)}%',
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: statusColor.withValues(alpha: 0.3),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: statusColor, width: 2),
-                                  boxShadow: [BoxShadow(color: statusColor.withValues(alpha: 0.4), blurRadius: 8, spreadRadius: 2)],
-                                ),
-                                child: Center(child: Icon(Icons.water_drop_rounded, size: 12, color: statusColor)),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                  // Dark overlay
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: GovernmentPage.darkBg.withValues(alpha: 0.45),
-                      ),
-                    ),
-                  ),
-                  // Legend
-                  Positioned(
-                    left: 8, bottom: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(color: GovernmentPage.surface.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(6)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Reservoir Status', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w700, color: GovernmentPage.mutedLight)),
-                          const SizedBox(height: 3),
-                          _legendDot('Above 80%', GovernmentPage.blue),
-                          _legendDot('50-80%', GovernmentPage.green),
-                          _legendDot('Below 50%', GovernmentPage.amber),
-                          _legendDot('Critical', GovernmentPage.red),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Dam telemetry table
-          Container(
-            decoration: BoxDecoration(
-              color: GovernmentPage.surfaceLight,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                // Header row
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 4, child: Text('Reservoir', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
-                      Expanded(flex: 2, child: Text('Level', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
-                      Expanded(flex: 3, child: Text('Volume', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
-                      Expanded(flex: 2, child: Text('Trend', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
-                      const SizedBox(width: 60),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1, color: GovernmentPage.border),
-                // Data rows
-                for (int i = 0; i < _dams.length; i++) ...[
-                  if (i > 0) const Divider(height: 1, color: GovernmentPage.border),
-                  _buildDamTableRow(_dams[i]),
-                ],
               ],
             ),
           ),
@@ -1165,14 +1096,181 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   }
 
   Widget _legendDot(String label, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGrainStockRow(String label, int tons, int target, String badge, Color color, IconData icon, List<Color> gradientColors) {
+    final pct = (tons / target).clamp(0.0, 1.0);
+    final pctInt = (pct * 100).round();
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: gradientColors.first),
+        const SizedBox(width: 6),
+        SizedBox(
+          width: 140,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text('${(tons / 1000).toStringAsFixed(0)}K / ${(target / 1000).toStringAsFixed(0)}K MT', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Container(
+            height: 6,
+            decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(3)),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: pct,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: gradientColors),
+                  borderRadius: BorderRadius.circular(3),
+                  boxShadow: [BoxShadow(color: gradientColors.first.withValues(alpha: 0.5), blurRadius: 4)],
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 28,
+          child: Text('$pctInt%', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white)),
+        ),
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+          child: Text(badge, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: color)),
+        ),
+      ],
+    );
+  }
+
+  // ── DAM TELEMETRY PANEL ───────────────────────────────────────────────────
+  Widget _buildDamTelemetryPanel() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: GovernmentPage.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: GovernmentPage.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 4),
-          Text(label, style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(color: GovernmentPage.blue.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: const Icon(Icons.water_drop_rounded, color: GovernmentPage.blue, size: 14),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('National Water & Dam Telemetry', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text('Live reservoir levels across Zimbabwe', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                ],
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(color: GovernmentPage.blue.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: GovernmentPage.blue.withValues(alpha: 0.3))),
+                child: Text('View All Dams ↗', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: GovernmentPage.blue)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // High-tech Zimbabwe Radar Telemetry Map
+              Expanded(
+                flex: 4,
+                child: Container(
+                  height: 220,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF070F1E),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: GovernmentPage.border),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    children: [
+                      CustomPaint(
+                        size: const Size(double.infinity, 220),
+                        painter: _ZimRadarMapPainter(),
+                      ),
+                      // Legend in bottom right
+                      Positioned(
+                        right: 6, bottom: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.75), borderRadius: BorderRadius.circular(4)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Reservoir Status', style: GoogleFonts.inter(fontSize: 7, fontWeight: FontWeight.w800, color: GovernmentPage.mutedLight)),
+                              const SizedBox(height: 2),
+                              _legendDot('Above 80%', GovernmentPage.cyan),
+                              _legendDot('50% - 80%', GovernmentPage.green),
+                              _legendDot('Below 50%', GovernmentPage.orange),
+                              _legendDot('Critical', GovernmentPage.red),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Reservoir Table
+              Expanded(
+                flex: 6,
+                child: Column(
+                  children: [
+                    // Header row
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 4, child: Text('Dam / Reservoir', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
+                          Expanded(flex: 2, child: Text('Level', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
+                          Expanded(flex: 3, child: Text('Volume', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
+                          Expanded(flex: 1, child: Text('Trend', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: GovernmentPage.muted))),
+                          const SizedBox(width: 48),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1, color: GovernmentPage.border),
+                    for (int i = 0; i < _dams.length; i++) ...[
+                      if (i > 0) const Divider(height: 1, color: GovernmentPage.border),
+                      _buildDamTableRow(_dams[i]),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -1181,46 +1279,54 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   Widget _buildDamTableRow(Map<String, dynamic> dam) {
     final level = dam['level'] as double;
     final statusColor = Color(dam['statusColor'] as int);
+    final barColor = Color(dam['barColor'] as int);
     final trend = dam['trend'] as String;
+    final trendUp = dam['trendUp'] as bool?;
+    final trendColor = trendUp == true ? GovernmentPage.green : (trendUp == false ? GovernmentPage.red : GovernmentPage.orange);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       child: Row(
         children: [
-          Container(width: 6, height: 6, margin: const EdgeInsets.only(right: 6), decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
-          Expanded(flex: 4, child: Text(dam['name'] as String, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white), overflow: TextOverflow.ellipsis)),
+          const Icon(Icons.waves_rounded, size: 12, color: GovernmentPage.cyan),
+          const SizedBox(width: 5),
+          Expanded(flex: 4, child: Text(dam['name'] as String, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white), overflow: TextOverflow.ellipsis)),
           Expanded(
             flex: 2,
-            child: Text('${level.toStringAsFixed(1)}%', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: statusColor)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${level.toStringAsFixed(1)}%', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white)),
+                const SizedBox(height: 2),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(value: (level / 100).clamp(0.0, 1.0), backgroundColor: GovernmentPage.surfaceLight, color: barColor, minHeight: 3),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 6),
           Expanded(
             flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(dam['volume'] as String, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
-                Text(dam['capacity'] as String, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                Text(dam['volume'] as String, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(dam['capacity'] as String, style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
               ],
             ),
           ),
           Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                Icon(
-                  trend == 'High' ? Icons.trending_up_rounded : trend == 'Watch' ? Icons.trending_down_rounded : Icons.trending_flat_rounded,
-                  size: 13, color: statusColor,
-                ),
-              ],
-            ),
+            flex: 1,
+            child: Text(trend, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: trendColor)),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: statusColor.withValues(alpha: 0.3)),
             ),
-            child: Text(trend, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: statusColor)),
+            child: Text(dam['status'] as String, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: statusColor)),
           ),
         ],
       ),
@@ -1236,14 +1342,14 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 4, child: _buildRiskIndexPanel()),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(flex: 3, child: _buildCropOutlookPanel()),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(flex: 4, child: _buildAlertsPanel()),
           ],
         );
       }
-      return Column(children: [_buildRiskIndexPanel(), const SizedBox(height: 16), _buildCropOutlookPanel(), const SizedBox(height: 16), _buildAlertsPanel()]);
+      return Column(children: [_buildRiskIndexPanel(), const SizedBox(height: 12), _buildCropOutlookPanel(), const SizedBox(height: 12), _buildAlertsPanel()]);
     });
   }
 
@@ -1252,49 +1358,61 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     final sortedProvinces = _riskScores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final topRisk = sortedProvinces.take(5).toList();
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: GovernmentPage.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: GovernmentPage.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Food Security Risk Index', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
-          const SizedBox(height: 2),
-          Text('Provincial food security risk levels (lower is better)', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(color: GovernmentPage.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: const Icon(Icons.shield_outlined, color: GovernmentPage.green, size: 14),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Food Security Risk Index', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text('Provincial food security risk levels (lower is better)', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                ],
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Risk map
+              // Custom painted provincial risk map
               Expanded(
                 flex: 5,
                 child: SizedBox(
-                  height: 180,
+                  height: 170,
                   child: CustomPaint(
-                    painter: _ZimbabweRiskMapPainter(_riskScores),
-                    size: const Size(double.infinity, 180),
+                    painter: _ZimProvincialRiskMapPainter(_riskScores),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              // Right side: legend + top risk provinces
+              const SizedBox(width: 10),
+              // Right side: legend + top risk list
               Expanded(
                 flex: 5,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Legend
-                    _riskLegendItem(const Color(0xFF16A34A), 'Low Risk (0 - 20)'),
+                    _riskLegendItem(const Color(0xFF10B981), 'Low Risk (0 - 20)'),
                     _riskLegendItem(const Color(0xFF84CC16), 'Moderate (21 - 40)'),
                     _riskLegendItem(const Color(0xFFF59E0B), 'Elevated (41 - 60)'),
                     _riskLegendItem(const Color(0xFFF97316), 'High (61 - 80)'),
                     _riskLegendItem(const Color(0xFFEF4444), 'Critical (81 - 100)'),
-                    const SizedBox(height: 12),
-                    Text('Top Risk Provinces', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: GovernmentPage.mutedLight)),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
+                    Text('Top Risk Provinces', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: GovernmentPage.mutedLight)),
+                    const SizedBox(height: 4),
                     for (int i = 0; i < topRisk.length; i++)
                       _buildRiskProvinceRow(i + 1, topRisk[i].key, topRisk[i].value),
                   ],
@@ -1309,13 +1427,13 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
 
   Widget _riskLegendItem(Color color, String label) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.only(bottom: 2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 6),
-          Text(label, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: 5),
+          Text(label, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
         ],
       ),
     );
@@ -1335,20 +1453,20 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
       scoreColor = GovernmentPage.green;
     }
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 3),
       child: Row(
         children: [
           Container(
-            width: 18, height: 18,
-            decoration: BoxDecoration(color: scoreColor.withValues(alpha: 0.15), shape: BoxShape.circle),
-            child: Center(child: Text('$rank', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: scoreColor))),
+            width: 15, height: 15,
+            decoration: BoxDecoration(color: scoreColor, shape: BoxShape.circle),
+            child: Center(child: Text('$rank', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white))),
           ),
-          const SizedBox(width: 6),
-          Expanded(child: Text(name, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white))),
+          const SizedBox(width: 5),
+          Expanded(child: Text(name, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white), overflow: TextOverflow.ellipsis)),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(color: scoreColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-            child: Text('$score', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: scoreColor)),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+            decoration: BoxDecoration(color: scoreColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+            child: Text('$score', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w900, color: scoreColor)),
           ),
         ],
       ),
@@ -1358,10 +1476,10 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   // ── CROP PRODUCTION OUTLOOK ───────────────────────────────────────────────
   Widget _buildCropOutlookPanel() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: GovernmentPage.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: GovernmentPage.border),
       ),
       child: Column(
@@ -1369,16 +1487,26 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
         children: [
           Row(
             children: [
-              Text('Crop Production Outlook', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(color: GovernmentPage.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: const Icon(Icons.eco_rounded, color: GovernmentPage.green, size: 14),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Crop Production Outlook', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text('(2025/26 Season)', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+                ],
+              ),
               const Spacer(),
-              Text('vs last season', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+              Text('vs last season', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
             ],
           ),
-          const SizedBox(height: 2),
-          Text('(2025/26 Season)', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           for (int i = 0; i < _cropOutlook.length; i++) ...[
-            if (i > 0) const SizedBox(height: 10),
+            if (i > 0) const SizedBox(height: 8),
             _buildCropRow(_cropOutlook[i]),
           ],
         ],
@@ -1389,28 +1517,45 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   Widget _buildCropRow(Map<String, dynamic> crop) {
     final isUp = crop['up'] as bool;
     final change = crop['change'] as int;
+    final pct = crop['pct'] as double;
     return Row(
       children: [
-        Container(
-          width: 28, height: 28,
-          decoration: BoxDecoration(
-            color: (isUp ? GovernmentPage.green : GovernmentPage.red).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(crop['icon'] as IconData, size: 14, color: isUp ? GovernmentPage.green : GovernmentPage.red),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(crop['crop'] as String, style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.white)),
-        ),
-        Icon(isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 12, color: isUp ? GovernmentPage.green : GovernmentPage.red),
-        const SizedBox(width: 2),
+        Icon(crop['icon'] as IconData, size: 14, color: GovernmentPage.green),
+        const SizedBox(width: 6),
         SizedBox(
-          width: 32,
-          child: Text('$change%', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w800, color: isUp ? GovernmentPage.green : GovernmentPage.red)),
+          width: 76,
+          child: Text(crop['crop'] as String, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+        ),
+        Expanded(
+          child: Container(
+            height: 6,
+            decoration: BoxDecoration(color: GovernmentPage.surfaceLight, borderRadius: BorderRadius.circular(3)),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: pct,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: GovernmentPage.neonGreen,
+                  borderRadius: BorderRadius.circular(3),
+                  boxShadow: [BoxShadow(color: GovernmentPage.neonGreen.withValues(alpha: 0.6), blurRadius: 4)],
+                ),
+              ),
+            ),
+          ),
         ),
         const SizedBox(width: 8),
-        Text(crop['volume'] as String, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: GovernmentPage.mutedLight)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 11, color: isUp ? GovernmentPage.green : GovernmentPage.red),
+            Text('$change%', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: isUp ? GovernmentPage.green : GovernmentPage.red)),
+          ],
+        ),
+        const SizedBox(width: 6),
+        SizedBox(
+          width: 50,
+          child: Text(crop['volume'] as String, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white), textAlign: TextAlign.right),
+        ),
       ],
     );
   }
@@ -1422,10 +1567,10 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
         ? _actionAlerts
         : _actionAlerts.where((a) => a['category'] == _selectedAlertFilter).toList();
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: GovernmentPage.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: GovernmentPage.border),
       ),
       child: Column(
@@ -1433,32 +1578,38 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
         children: [
           Row(
             children: [
-              Text('Alerts & Actions', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(color: GovernmentPage.red.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: const Icon(Icons.notifications_active_rounded, color: GovernmentPage.red, size: 14),
+              ),
+              const SizedBox(width: 8),
+              Text('Alerts & Actions', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w900, color: Colors.white)),
               const Spacer(),
               // Filter tabs
               for (final f in filters)
                 Padding(
-                  padding: const EdgeInsets.only(left: 4),
+                  padding: const EdgeInsets.only(left: 3),
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     onTap: () => setState(() => _selectedAlertFilter = f),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(
                         color: _selectedAlertFilter == f ? GovernmentPage.green : GovernmentPage.surfaceLight,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Text(f, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: _selectedAlertFilter == f ? Colors.white : GovernmentPage.muted)),
+                      child: Text(f, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w700, color: _selectedAlertFilter == f ? Colors.white : GovernmentPage.muted)),
                     ),
                   ),
                 ),
-              const SizedBox(width: 6),
-              Text('View All Alerts ▸', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
+              const SizedBox(width: 4),
+              Text('View All Alerts ↗', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w800, color: GovernmentPage.blue)),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           for (int i = 0; i < filtered.length; i++) ...[
-            if (i > 0) Divider(height: 16, color: GovernmentPage.border.withValues(alpha: 0.5)),
+            if (i > 0) const Divider(height: 12, color: GovernmentPage.border),
             _buildAlertItem(filtered[i]),
           ],
         ],
@@ -1468,29 +1619,21 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
 
   Widget _buildAlertItem(Map<String, dynamic> alert) {
     final severity = alert['severity'] as String;
-    Color sevColor;
-    if (severity == 'High') {
-      sevColor = GovernmentPage.red;
-    } else if (severity == 'Medium') {
-      sevColor = GovernmentPage.orange;
-    } else {
-      sevColor = GovernmentPage.blue;
-    }
+    final color = Color(alert['color'] as int);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 6, height: 6,
-          margin: const EdgeInsets.only(top: 5, right: 8),
-          decoration: BoxDecoration(color: sevColor, shape: BoxShape.circle),
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+          child: Icon(alert['icon'] as IconData, size: 13, color: color),
         ),
+        const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(alert['title'] as String, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white)),
-              const SizedBox(height: 2),
-              Text(alert['desc'] as String, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+              Text(alert['title'] as String, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+              Text(alert['desc'] as String, style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
             ],
           ),
         ),
@@ -1498,29 +1641,29 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(alert['time'] as String, style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
-            const SizedBox(height: 4),
+            Text(alert['time'] as String, style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+            const SizedBox(height: 2),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(color: sevColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)),
-              child: Text(severity, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: sevColor)),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
+              child: Text(severity, style: GoogleFonts.inter(fontSize: 7.5, fontWeight: FontWeight.w800, color: color)),
             ),
           ],
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         InkWell(
           borderRadius: BorderRadius.circular(6),
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${alert['action']}: ${alert['title']}'), backgroundColor: GovernmentPage.green));
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: GovernmentPage.surfaceLight,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: GovernmentPage.border),
             ),
-            child: Text(alert['action'] as String, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: GovernmentPage.mutedLight)),
+            child: Text(alert['action'] as String, style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: Colors.white)),
           ),
         ),
       ],
@@ -1533,45 +1676,39 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   Widget _buildFooterBar() {
     final syncTime = DateFormat('dd MMM yyyy HH:mm').format(_now);
     return Container(
-      height: 28,
+      height: 26,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: GovernmentPage.surface,
         border: Border(top: BorderSide(color: GovernmentPage.border, width: 1)),
       ),
       child: Row(
         children: [
-          // System status
-          Container(width: 6, height: 6, margin: const EdgeInsets.only(right: 6), decoration: const BoxDecoration(color: GovernmentPage.green, shape: BoxShape.circle)),
-          Text('System Status:', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: GovernmentPage.muted)),
+          Container(width: 6, height: 6, margin: const EdgeInsets.only(right: 5), decoration: const BoxDecoration(color: GovernmentPage.green, shape: BoxShape.circle)),
+          Text('System Status:', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w600, color: GovernmentPage.muted)),
           const SizedBox(width: 4),
-          Text('All systems operational', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
+          Text('All systems operational', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
           _footerDivider(),
-          const Icon(Icons.storage_rounded, size: 10, color: GovernmentPage.muted),
-          const SizedBox(width: 4),
-          Text('Data Feeds: Online (ZINWA, GMB, MET, AGRITEX, ZIMSTAT)', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+          Text('Data feeds: Online (ZINWA, GMB, MET, AGRITEX, ZIMSTAT)', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
           _footerDivider(),
-          Text('Last sync: $syncTime', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+          Text('🕒 Last sync: $syncTime', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
           _footerDivider(),
-          Text('API Services: ', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
-          Text('Healthy (6/6)', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
+          Text('API Services: Healthy (6/6)', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
           _footerDivider(),
-          const Icon(Icons.description_outlined, size: 10, color: GovernmentPage.muted),
-          const SizedBox(width: 4),
-          Text('Audit Log: 2,498 records (24h)', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+          Text('Audit Log: 2,458 records (24h)', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w500, color: GovernmentPage.mutedLight)),
           const Spacer(),
-          Text('Sustainable Agriculture · A Food Secure Zimbabwe', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: GovernmentPage.muted, fontStyle: FontStyle.italic)),
+          Text('🌿 Sustainable Agriculture. A Food Secure Zimbabwe.', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight, fontStyle: FontStyle.italic)),
         ],
       ),
     );
   }
 
   Widget _footerDivider() {
-    return Container(width: 1, height: 12, margin: const EdgeInsets.symmetric(horizontal: 10), color: GovernmentPage.border);
+    return Container(width: 1, height: 10, margin: const EdgeInsets.symmetric(horizontal: 8), color: GovernmentPage.border);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // TAB 2: FARMER REGISTRY
+  // TABS 2-7 POLISHED (FARMER REGISTRY, PARCELS, OFFICERS, SUBSIDIES, BIOSECURITY, TRADE)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildFarmerRegistryTab() {
     final filtered = _farmers.where((f) {
@@ -1687,14 +1824,11 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // TAB 3: FARM REGISTRATION
-  // ══════════════════════════════════════════════════════════════════════════
   Widget _buildFarmRegistrationTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _sectionHeader(Icons.map_rounded, 'Farm Parcel Registration — GIS Boundary & Soil Ledger'),
+        _sectionHeader(Icons.home_work_outlined, 'Farm Parcel Registration — GIS Boundary & Soil Ledger'),
         const SizedBox(height: 12),
         _card(
           child: Column(
@@ -1775,14 +1909,11 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // TAB 4: EXTENSION OFFICERS
-  // ══════════════════════════════════════════════════════════════════════════
   Widget _buildExtensionOfficersTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _sectionHeader(Icons.support_agent_rounded, 'Extension Officers Management'),
+        _sectionHeader(Icons.badge_outlined, 'Extension Officers Management'),
         const SizedBox(height: 12),
         LayoutBuilder(builder: (context, c) {
           final cardW = (c.maxWidth - 36) / 4;
@@ -1879,14 +2010,11 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // TAB 5: SUBSIDIES & ADVISORY
-  // ══════════════════════════════════════════════════════════════════════════
   Widget _buildSubsidiesTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _sectionHeader(Icons.card_giftcard_rounded, 'State Input Subsidies & E-Voucher Issuance'),
+        _sectionHeader(Icons.volunteer_activism_outlined, 'State Input Subsidies & E-Voucher Issuance'),
         const SizedBox(height: 12),
         _card(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1910,14 +2038,11 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // TAB 6: BIOSECURITY
-  // ══════════════════════════════════════════════════════════════════════════
   Widget _buildBiosecurityTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _sectionHeader(Icons.bug_report_rounded, 'Pest, Disease & Biosecurity Control'),
+        _sectionHeader(Icons.verified_user_outlined, 'Pest, Disease & Biosecurity Control'),
         const SizedBox(height: 12),
         _card(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1992,14 +2117,11 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // TAB 7: TRADE & PRICES
-  // ══════════════════════════════════════════════════════════════════════════
   Widget _buildTradeTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _sectionHeader(Icons.show_chart_rounded, 'Trade Corridors, Price Monitoring & ePhyto Customs'),
+        _sectionHeader(Icons.bar_chart_rounded, 'Trade Corridors, Price Monitoring & ePhyto Customs'),
         const SizedBox(height: 12),
         _card(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -2072,7 +2194,7 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // MODALS
+  // MODALS & DIALOGS
   // ══════════════════════════════════════════════════════════════════════════
   void _showUpdatePriceModal(BuildContext context) {
     final commCtrl = TextEditingController();
@@ -2091,7 +2213,7 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
           _dialogField(rtCtrl, 'Retail Price (e.g. \$0.30/kg)'),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: TextStyle(color: GovernmentPage.muted))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GovernmentPage.muted))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: GovernmentPage.teal, foregroundColor: Colors.white),
             onPressed: () {
@@ -2144,13 +2266,13 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
               IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close_rounded, color: GovernmentPage.muted)),
             ]),
             const Divider(height: 20, color: GovernmentPage.border),
-            _buildNotificationTile(title: 'CRITICAL BIOSECURITY EMERGENCY', subtitle: 'Fall Armyworm Infestation detected in Domboshava Fields (340 Ha affected). Ring-fence quarantine ordered.', time: '10 mins ago', icon: Icons.bug_report_rounded, iconColor: GovernmentPage.red, onTap: () { Navigator.pop(ctx); _tabController.animateTo(5); }),
+            _buildNotificationTile(title: 'CRITICAL BIOSECURITY EMERGENCY', subtitle: 'Fall Armyworm Infestation detected in Domboshava Fields (340 Ha affected). Ring-fence quarantine ordered.', time: '10 mins ago', icon: Icons.pest_control_rounded, iconColor: GovernmentPage.red, onTap: () { Navigator.pop(ctx); _tabController.animateTo(5); }),
             const SizedBox(height: 10),
             _buildNotificationTile(title: 'ePhyto Export Clearance Sign-off Pending', subtitle: 'Consignment EXP-PEAS-9921 (8,400 kg Sugar Snaps to Rotterdam) requires official digital signature at Forbes Border.', time: '25 mins ago', icon: Icons.verified_outlined, iconColor: GovernmentPage.blue, onTap: () { Navigator.pop(ctx); _tabController.animateTo(6); }),
             const SizedBox(height: 10),
-            _buildNotificationTile(title: 'Strategic Maize Reserve Intake Update', subtitle: 'GMB Silos recorded +12,400 metric tons intake from Mazowe outgrowers today. Stock level at 84.0% capacity.', time: '1 hour ago', icon: Icons.warehouse_outlined, iconColor: GovernmentPage.green, onTap: () { Navigator.pop(ctx); _tabController.animateTo(0); }),
+            _buildNotificationTile(title: 'Strategic Maize Reserve Intake Update', subtitle: 'GMB Silos recorded +12,400 metric tons intake from Mazowe outgrowers today. Stock level at 84.0% capacity.', time: '1 hour ago', icon: Icons.storage_rounded, iconColor: GovernmentPage.green, onTap: () { Navigator.pop(ctx); _tabController.animateTo(0); }),
             const SizedBox(height: 10),
-            _buildNotificationTile(title: 'Mazowe Dam Capacity Advisory', subtitle: 'Mazowe Dam Complex reached 89.5% capacity. Downstream irrigation discharge optimized to 420 m³/s.', time: '3 hours ago', icon: Icons.water_drop_rounded, iconColor: GovernmentPage.teal, onTap: () { Navigator.pop(ctx); _tabController.animateTo(0); }),
+            _buildNotificationTile(title: 'Mazowe Dam Capacity Advisory', subtitle: 'Mazowe Dam Complex reached 88.5% capacity. Downstream irrigation discharge optimized to 420 m³/s.', time: '3 hours ago', icon: Icons.water_drop_rounded, iconColor: GovernmentPage.teal, onTap: () { Navigator.pop(ctx); _tabController.animateTo(0); }),
           ]),
         ),
       ),
@@ -2292,93 +2414,238 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ZIMBABWE RISK MAP — CUSTOM PAINTER
-// ══════════════════════════════════════════════════════════════════════════════
-class _ZimbabweRiskMapPainter extends CustomPainter {
-  final Map<String, int> riskScores;
-  _ZimbabweRiskMapPainter(this.riskScores);
-
-  // Zimbabwe outer boundary (normalized 0-1 coords)
-  static const _boundary = [
-    Offset(0.008, 0.322), Offset(0.038, 0.324), Offset(0.077, 0.294),
-    Offset(0.231, 0.191), Offset(0.333, 0.132), Offset(0.462, 0.003),
-    Offset(0.667, 0.000), Offset(0.744, 0.007), Offset(0.782, 0.088),
-    Offset(0.846, 0.162), Offset(0.910, 0.250), Offset(0.974, 0.353),
-    Offset(0.994, 0.426), Offset(0.974, 0.500), Offset(0.987, 0.618),
-    Offset(0.936, 0.676), Offset(0.923, 0.765), Offset(0.821, 0.868),
-    Offset(0.615, 0.971), Offset(0.551, 1.000), Offset(0.487, 0.985),
-    Offset(0.359, 0.926), Offset(0.295, 0.868), Offset(0.231, 0.721),
-    Offset(0.090, 0.647), Offset(0.077, 0.500), Offset(0.051, 0.426),
-    Offset(0.013, 0.353),
-  ];
-
-  // Province regions (approximate center + radius for filled circles)
-  static const _provinceRegions = {
-    'Matabeleland North': Offset(0.16, 0.35),
-    'Mashonaland West': Offset(0.38, 0.18),
-    'Mashonaland Central': Offset(0.62, 0.10),
-    'Mashonaland East': Offset(0.72, 0.28),
-    'Manicaland': Offset(0.90, 0.42),
-    'Midlands': Offset(0.40, 0.52),
-    'Masvingo': Offset(0.68, 0.72),
-    'Matabeleland South': Offset(0.25, 0.82),
-    'Harare': Offset(0.66, 0.22),
-    'Bulawayo': Offset(0.22, 0.65),
-  };
-
-  Color _riskColor(int score) {
-    if (score >= 81) return const Color(0xFFEF4444);
-    if (score >= 61) return const Color(0xFFF97316);
-    if (score >= 41) return const Color(0xFFF59E0B);
-    if (score >= 21) return const Color(0xFF84CC16);
-    return const Color(0xFF16A34A);
+// ZIMBABWE FLAG STRIPES PAINTER (GREEN, YELLOW, RED, BLACK SLANTED RIBBON)
+// ══════════════════════════════════════════════════════════════════════════
+class _ZimFlagStripesPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final colors = [
+      const Color(0xFF006400), // Green
+      const Color(0xFFFFD700), // Yellow
+      const Color(0xFFD40000), // Red
+      const Color(0xFF000000), // Black
+      const Color(0xFFD40000), // Red
+      const Color(0xFFFFD700), // Yellow
+      const Color(0xFF006400), // Green
+    ];
+    final stripeW = size.width / colors.length;
+    for (int i = 0; i < colors.length; i++) {
+      final p = Paint()..color = colors[i];
+      final path = Path()
+        ..moveTo(i * stripeW + 6, 0)
+        ..lineTo((i + 1) * stripeW + 6, 0)
+        ..lineTo((i + 1) * stripeW - 6, size.height)
+        ..lineTo(i * stripeW - 6, size.height)
+        ..close();
+      canvas.drawPath(path, p);
+    }
   }
 
   @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HIGH-TECH ZIMBABWE WATER & DAM RADAR TELEMETRY MAP PAINTER
+// ══════════════════════════════════════════════════════════════════════════
+class _ZimRadarMapPainter extends CustomPainter {
+  // Zimbabwe outer polygon
+  static const _boundary = [
+    Offset(0.06, 0.32), Offset(0.12, 0.30), Offset(0.25, 0.18),
+    Offset(0.38, 0.12), Offset(0.52, 0.05), Offset(0.68, 0.08),
+    Offset(0.80, 0.14), Offset(0.88, 0.24), Offset(0.96, 0.38),
+    Offset(0.98, 0.50), Offset(0.94, 0.65), Offset(0.88, 0.78),
+    Offset(0.76, 0.88), Offset(0.58, 0.95), Offset(0.48, 0.92),
+    Offset(0.32, 0.85), Offset(0.20, 0.72), Offset(0.10, 0.55),
+    Offset(0.04, 0.42),
+  ];
+
+  @override
   void paint(Canvas canvas, Size size) {
-    // Draw Zimbabwe boundary
-    final boundaryPath = Path();
-    boundaryPath.moveTo(_boundary[0].dx * size.width, _boundary[0].dy * size.height);
+    // Draw grid lines
+    final gridPaint = Paint()
+      ..color = const Color(0xFF1E293B).withValues(alpha: 0.4)
+      ..strokeWidth = 0.8;
+    for (double x = 0; x < size.width; x += 25) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+    for (double y = 0; y < size.height; y += 25) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    // Build Zimbabwe contour
+    final path = Path();
+    path.moveTo(_boundary[0].dx * size.width, _boundary[0].dy * size.height);
     for (int i = 1; i < _boundary.length; i++) {
-      boundaryPath.lineTo(_boundary[i].dx * size.width, _boundary[i].dy * size.height);
+      path.lineTo(_boundary[i].dx * size.width, _boundary[i].dy * size.height);
     }
-    boundaryPath.close();
+    path.close();
 
-    // Clip to boundary and fill background
-    canvas.save();
-    canvas.clipPath(boundaryPath);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = const Color(0xFF1E293B));
+    // Fill Zimbabwe map interior with dark emerald gradient
+    final fillPaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF0B2E24), Color(0xFF061E17)],
+        begin: Alignment.topLeft, end: Alignment.bottomRight,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawPath(path, fillPaint);
 
-    // Draw colored province regions as large circles
-    for (final entry in _provinceRegions.entries) {
-      final score = riskScores[entry.key] ?? 30;
-      final color = _riskColor(score);
-      final center = Offset(entry.value.dx * size.width, entry.value.dy * size.height);
-      final isSmall = entry.key == 'Harare' || entry.key == 'Bulawayo';
-      final radius = isSmall ? size.width * 0.06 : size.width * 0.14;
-      canvas.drawCircle(center, radius, Paint()..color = color.withValues(alpha: 0.5));
-    }
-    canvas.restore();
-
-    // Draw boundary outline
-    canvas.drawPath(boundaryPath, Paint()
+    // Glowing cyan outline
+    final glowPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..color = const Color(0xFF475569)
+      ..color = const Color(0xFF06B6D4).withValues(alpha: 0.3)
+      ..strokeWidth = 3.5
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+    canvas.drawPath(path, glowPaint);
+
+    final borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = const Color(0xFF10B981)
+      ..strokeWidth = 1.4;
+    canvas.drawPath(path, borderPaint);
+
+    // Neighboring country labels
+    _drawLabel(canvas, 'ZAMBIA', Offset(size.width * 0.12, size.height * 0.14), 7, const Color(0xFF64748B));
+    _drawLabel(canvas, 'MOZAMBIQUE', Offset(size.width * 0.72, size.height * 0.16), 7, const Color(0xFF64748B));
+    _drawLabel(canvas, 'BOTSWANA', Offset(size.width * 0.04, size.height * 0.80), 7, const Color(0xFF64748B));
+    _drawLabel(canvas, 'SOUTH AFRICA', Offset(size.width * 0.40, size.height * 0.94), 7, const Color(0xFF64748B));
+
+    // Dam pins with glowing pulses
+    final dams = [
+      {'name': 'Kariba', 'pos': Offset(size.width * 0.32, size.height * 0.22), 'color': const Color(0xFF06B6D4)},
+      {'name': 'Mazowe', 'pos': Offset(size.width * 0.62, size.height * 0.28), 'color': const Color(0xFF06B6D4)},
+      {'name': 'Manyame', 'pos': Offset(size.width * 0.54, size.height * 0.38), 'color': const Color(0xFF10B981)},
+      {'name': 'Chivero', 'pos': Offset(size.width * 0.56, size.height * 0.48), 'color': const Color(0xFFF59E0B)},
+      {'name': 'Mutirikwi', 'pos': Offset(size.width * 0.60, size.height * 0.68), 'color': const Color(0xFF06B6D4)},
+      {'name': 'Osborne', 'pos': Offset(size.width * 0.80, size.height * 0.54), 'color': const Color(0xFF10B981)},
+    ];
+
+    for (final d in dams) {
+      final pos = d['pos'] as Offset;
+      final color = d['color'] as Color;
+      final name = d['name'] as String;
+
+      // Pulse ring
+      canvas.drawCircle(pos, 8, Paint()..color = color.withValues(alpha: 0.25));
+      canvas.drawCircle(pos, 5, Paint()..color = color.withValues(alpha: 0.5));
+      canvas.drawCircle(pos, 2.5, Paint()..color = Colors.white);
+
+      // Pin label
+      _drawLabel(canvas, name, Offset(pos.dx + 6, pos.dy - 4), 8, Colors.white, isBold: true);
+    }
+  }
+
+  void _drawLabel(Canvas canvas, String text, Offset offset, double fontSize, Color color, {bool isBold = false}) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(fontSize: fontSize, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600, color: color, letterSpacing: 0.5),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, offset);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ZIMBABWE PROVINCIAL RISK MAP PAINTER (COLORED PROVINCE POLYGONS)
+// ══════════════════════════════════════════════════════════════════════════
+class _ZimProvincialRiskMapPainter extends CustomPainter {
+  final Map<String, int> riskScores;
+  _ZimProvincialRiskMapPainter(this.riskScores);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Matabeleland North (Lime/Green)
+    _drawProvince(canvas, [
+      Offset(w * 0.08, h * 0.38), Offset(w * 0.24, h * 0.22),
+      Offset(w * 0.40, h * 0.30), Offset(w * 0.35, h * 0.52),
+      Offset(w * 0.16, h * 0.56), Offset(w * 0.08, h * 0.46),
+    ], const Color(0xFF84CC16));
+
+    // 2. Mashonaland West (Green)
+    _drawProvince(canvas, [
+      Offset(w * 0.24, h * 0.22), Offset(w * 0.44, h * 0.10),
+      Offset(w * 0.58, h * 0.16), Offset(w * 0.52, h * 0.38),
+      Offset(w * 0.40, h * 0.30),
+    ], const Color(0xFF10B981));
+
+    // 3. Mashonaland Central (Green)
+    _drawProvince(canvas, [
+      Offset(w * 0.44, h * 0.10), Offset(w * 0.64, h * 0.06),
+      Offset(w * 0.72, h * 0.18), Offset(w * 0.58, h * 0.22),
+    ], const Color(0xFF10B981));
+
+    // 4. Mashonaland East (Yellow)
+    _drawProvince(canvas, [
+      Offset(w * 0.58, h * 0.22), Offset(w * 0.72, h * 0.18),
+      Offset(w * 0.82, h * 0.32), Offset(w * 0.68, h * 0.44),
+      Offset(w * 0.54, h * 0.38),
+    ], const Color(0xFFF59E0B));
+
+    // 5. Harare (Green central dot)
+    _drawProvince(canvas, [
+      Offset(w * 0.58, h * 0.28), Offset(w * 0.64, h * 0.28),
+      Offset(w * 0.64, h * 0.34), Offset(w * 0.58, h * 0.34),
+    ], const Color(0xFF10B981));
+
+    // 6. Manicaland (Orange)
+    _drawProvince(canvas, [
+      Offset(w * 0.72, h * 0.18), Offset(w * 0.94, h * 0.32),
+      Offset(w * 0.90, h * 0.62), Offset(w * 0.74, h * 0.58),
+      Offset(w * 0.68, h * 0.44),
+    ], const Color(0xFFF97316));
+
+    // 7. Midlands (Yellow)
+    _drawProvince(canvas, [
+      Offset(w * 0.35, h * 0.52), Offset(w * 0.52, h * 0.38),
+      Offset(w * 0.68, h * 0.44), Offset(w * 0.60, h * 0.66),
+      Offset(w * 0.40, h * 0.64),
+    ], const Color(0xFFF59E0B));
+
+    // 8. Masvingo (Red)
+    _drawProvince(canvas, [
+      Offset(w * 0.60, h * 0.66), Offset(w * 0.74, h * 0.58),
+      Offset(w * 0.88, h * 0.76), Offset(w * 0.64, h * 0.92),
+      Offset(w * 0.52, h * 0.82),
+    ], const Color(0xFFEF4444));
+
+    // 9. Matabeleland South (Red / Orange)
+    _drawProvince(canvas, [
+      Offset(w * 0.16, h * 0.56), Offset(w * 0.40, h * 0.64),
+      Offset(w * 0.52, h * 0.82), Offset(w * 0.44, h * 0.94),
+      Offset(w * 0.22, h * 0.80),
+    ], const Color(0xFFEF4444));
+
+    // 10. Bulawayo (Yellow dot)
+    _drawProvince(canvas, [
+      Offset(w * 0.28, h * 0.58), Offset(w * 0.34, h * 0.58),
+      Offset(w * 0.34, h * 0.64), Offset(w * 0.28, h * 0.64),
+    ], const Color(0xFFF59E0B));
+  }
+
+  void _drawProvince(Canvas canvas, List<Offset> points, Color color) {
+    final p = Path();
+    p.moveTo(points[0].dx, points[0].dy);
+    for (int i = 1; i < points.length; i++) {
+      p.lineTo(points[i].dx, points[i].dy);
+    }
+    p.close();
+
+    // Fill province
+    canvas.drawPath(p, Paint()..color = color.withValues(alpha: 0.85));
+
+    // Border
+    canvas.drawPath(p, Paint()
+      ..style = PaintingStyle.stroke
+      ..color = const Color(0xFF0C1425)
       ..strokeWidth = 1.5
       ..strokeJoin = StrokeJoin.round);
-
-    // Draw province labels
-    for (final entry in _provinceRegions.entries) {
-      final center = Offset(entry.value.dx * size.width, entry.value.dy * size.height);
-      final tp = TextPainter(
-        text: TextSpan(
-          text: entry.key.split(' ').last,
-          style: TextStyle(fontSize: 7, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.9)),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(center.dx - tp.width / 2, center.dy - tp.height / 2));
-    }
   }
 
   @override

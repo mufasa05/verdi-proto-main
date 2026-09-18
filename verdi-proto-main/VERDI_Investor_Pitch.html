@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VERDI: Sovereign Agricultural Operating System — Investor Pitch & Architecture Prospectus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #16A34A;
+      --primary-dark: #15803D;
+      --primary-light: #DCFCE7;
+      --secondary: #2563EB;
+      --accent: #F59E0B;
+      --dark: #0F172A;
+      --surface: #FFFFFF;
+      --background: #F8FAFC;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--surface);
+      padding: 60px 64px;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--primary-light);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--primary-dark);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .logo-badge svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--primary-dark);
+    }
+
+    .action-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+    }
+
+    .action-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Outfit', sans-serif;
+      color: var(--dark);
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: 38px;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      font-weight: 500;
+    }
+
+    .hero-quote {
+      background: #F0FDF4;
+      border-left: 5px solid var(--primary);
+      padding: 24px 28px;
+      border-radius: 0 16px 16px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #166534;
+      margin-bottom: 48px;
+      line-height: 1.6;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 40px 0 18px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 24px 0 10px 0;
+      color: var(--dark);
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: #334155;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-text {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 13.5px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #F1F5F9;
+      color: var(--dark);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover td {
+      background: #F8FAFC;
+    }
+
+    .highlight-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .diagram-box {
+      background: var(--dark);
+      color: #E2E8F0;
+      font-family: 'Courier New', monospace;
+      padding: 24px;
+      border-radius: 16px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 24px 0;
+    }
+
+    .footer {
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .action-btn {
+        display: none;
+      }
+      .card {
+        break-inside: avoid;
+      }
+      tr {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header-bar">
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        VERDI AGRI-OS
+      </div>
+      <button class="action-btn" onclick="window.print()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+        Download / Print PDF
+      </button>
+    </div>
+
+    <h1>VERDI: Sovereign Agricultural Operating System</h1>
+    <div class="subtitle">Executive Investor Deck & Architectural Prospectus</div>
+
+    <div class="hero-quote">
+      "VERDI is Africa’s first end-to-end Sovereign Agricultural Operating System (Agri-OS). We interconnect smallholder and commercial farmers, B2B wholesale buyers, cold-chain transporters, financial institutions, and government ministries onto a single digital infrastructure. By unifying multi-currency smart contract escrow, real-time satellite & drone biosecurity telemetry, EUDR-compliant digital traceability, and multilingual AI voice copilots in Shona, Ndebele, and English, VERDI eliminates agricultural post-harvest loss, unlocks institutional credit, and transforms fragmented informal farm trades into a bankable, borderless value chain."
+    </div>
+
+    <h2>1. The Problem Statement: A $48 Billion Annual Leakage</h2>
+    <p>African agriculture sustains over <strong>60% of the continent’s population</strong>, yet loses massive economic value through 4 systemic structural failures:</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">1. Asymmetric Market Access</div>
+        <p class="card-text">Farmers sell into informal regional spot markets where predatory intermediaries discount Grade-A harvests by 30% to 50% due to zero real-time market price discovery.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">2. Settlement & Default Risk</div>
+        <p class="card-text">Buyers fear upfront prepayment; farmers fear delivering on credit (suffering 60–90 day payment delays or total default). Cash hyperinflation severely compounds losses.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">3. 30–40% Post-Harvest Decay</div>
+        <p class="card-text">Perishables (tomatoes, berries, citrus) spoil at the farm gate due to chaotic logistics coordination, absent refrigerated cold-chain tracking, and empty return hauls.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">4. EUDR & Export Gatekeeping</div>
+        <p class="card-text">EU Deforestation Regulation (EUDR 2023/1115) requires certified GPS polygon boundaries and zero-deforestation proof. 90% of smallholders face complete export exclusion.</p>
+      </div>
+    </div>
+
+    <h2>2. The Solution: The 6-Pillar Operating System</h2>
+    <div class="diagram-box">
++-------------------------------------------------------------------------+
+|                  VERDI UNIFIED VALUE CHAIN OS CORE                      |
+|       (Multi-Currency USD / EcoCash / ZiG, RBAC Security, AI Voice)     |
++-------------------------------------------------------------------------+
+       |                  |                  |                  |
+[ 1. COMMERCE ]    [ 2. FINANCE ]     [ 3. LOGISTICS ]   [ 4. BIOMASS ]
+  - Direct Mkt       - 3-Stage Escrow   - Cold-Chain IoT   - Sentinel-2 NDVI
+  - B2B Wholesale    - Input Credit     - Freight Match    - Autonomous Drone
+  - Arbitrage Desk   - Multi-Currency   - Weighbridge Slip - Weather Station
+       |                  |                  |                  |
+[ 5. TRACEABILITY ]                                     [ 6. SOVEREIGN ]
+  - EUDR Polygons                                         - GMB Silo Intake
+  - HMAC-SHA256 Seals                                     - Dam Telemetry
+  - ePhyto Clearance                                      - Biosecurity Ring
+    </div>
+
+    <h2>3. Comprehensive Module Breakdown</h2>
+    <p>Each module in VERDI addresses an essential workflow in the value chain:</p>
+
+    <h3>I. Commerce & Marketplace Engine</h3>
+    <p><strong>Farmer Direct Marketplace:</strong> Harvested lots cataloged with photo verification, crop variety, Grade-A/B rating, and minimum reserve price.<br>
+    <strong>B2B Wholesale Trade Desk:</strong> Commercial buyers (supermarkets, food processors, exporters) place bulk RFQs and lock forward contracts.<br>
+    <strong>Price Arbitrage Matrix:</strong> Live ticker comparing spot rates across Mbare Musika, GMB Concession, Mutare, and Beira Border.</p>
+
+    <h3>II. Financial Layer & 3-Stage Smart Escrow Vault</h3>
+    <p><strong>3-Stage Escrow:</strong> Stage 1 locks buyer deposit &bull; Stage 2 monitors transit cold-chain inspection &bull; Stage 3 executes instant instant payout upon buyer sign-off.<br>
+    <strong>Multi-Currency Settlement:</strong> Dual wallet engine supporting USD, EcoCash mobile money, and Zimbabwe Gold (ZiG).<br>
+    <strong>Underwritten Credit:</strong> Trade volume and NDVI biomass history provide algorithmic credit ratings for seasonal seed and fertilizer loans.</p>
+
+    <h3>III. Biomass, Geospatial & Drone Intelligence</h3>
+    <p><strong>Sentinel-2 Satellite NDVI:</strong> Weekly satellite passes track plant canopy vigour, chlorophyll absorption, and moisture deficit.<br>
+    <strong>Autonomous Drone Missions:</strong> Flight waypoint plans for multispectral drones detecting Fall Armyworm, fungal blight, and irrigation blockages.<br>
+    <strong>Micro-Climate Weather:</strong> High-precision frost alerts, heat stress advisories, and spraying windows powered by Open-Meteo telemetry.</p>
+
+    <h3>IV. End-to-End Traceability & EUDR Compliance Vault</h3>
+    <p><strong>Geofenced Farm Polygons:</strong> Satellite boundary polygon generation compliant with EUDR Regulation 2023/1115.<br>
+    <strong>Cryptographic QR Tamper Seals:</strong> HMAC-SHA256 digital seals stamped on every crate validating origin, harvest date, and lab safety.<br>
+    <strong>Digital ePhyto Export Manifest:</strong> Paperless border clearance with digital phytosanitary sign-off.</p>
+
+    <h3>V. Logistics & Cold-Chain Fleet OS</h3>
+    <p><strong>On-Demand Freight Matching:</strong> Connects harvesting estates with empty back-haul reefer trucks to eliminate deadhead miles.<br>
+    <strong>IoT Reefer Telemetry:</strong> Real-time in-transit cargo temperature logging with breach alarms (e.g. berries exceeding 4°C).<br>
+    <strong>Weighbridge & Digital Waybills:</strong> Checkpoint barcode validation at toll and scale stations.</p>
+
+    <h3>VI. Sovereign National Administration Console (Government & NGO)</h3>
+    <p><strong>Strategic Grain Reserve (GMB) Silo Monitor:</strong> National intake metrics and 6-month famine vulnerability forecasting.<br>
+    <strong>Biosecurity Command Center:</strong> One-touch quarantine dispatch and field officer alerts for pest outbreaks.<br>
+    <strong>Dam & Water Basin Telemetry:</strong> Storage percentage tracking to optimize downstream irrigation discharge.</p>
+
+    <h3>VII. Multilingual Vernacular Voice Copilot (Shona, Ndebele, English)</h3>
+    <p><strong>Voice First Interaction:</strong> Speech-to-text allowing illiterate smallholders to speak in Shona or Ndebele, diagnose crop symptoms, and trade without typing.<br>
+    <strong>Offline Resilience:</strong> Local offline database that syncs transactions and field scans once cellular connectivity resumes.</p>
+
+    <h2>4. Stakeholder ROI & Value Matrix</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Stakeholder</th>
+          <th>Primary Value Proposition</th>
+          <th>Measurable Economic Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Farmers</strong></td>
+          <td>Direct market access, guaranteed escrow payout, yield telemetry</td>
+          <td><span class="highlight-pill">+35% to +50% Net Income</span></td>
+        </tr>
+        <tr>
+          <td><strong>B2B Buyers</strong></td>
+          <td>Verified lot quality, contract certainty, automated settlement</td>
+          <td><span class="highlight-pill">60% Faster Procurement</span></td>
+        </tr>
+        <tr>
+          <td><strong>Transporters</strong></td>
+          <td>Guaranteed load matching, back-haul routing, cold-chain telemetry</td>
+          <td><span class="highlight-pill">+40% Fleet Utilization</span></td>
+        </tr>
+        <tr>
+          <td><strong>Exporters</strong></td>
+          <td>Automated EUDR polygon certificates, ePhyto clearance</td>
+          <td><span class="highlight-pill">Zero Border Turnaways</span></td>
+        </tr>
+        <tr>
+          <td><strong>Governments</strong></td>
+          <td>Real-time GMB silo tracking, dam basin levels, biosecurity command</td>
+          <td><span class="highlight-pill">Proactive Food Security</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>5. Revenue & Monetization Model</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">1. Wholesale Escrow Take-Rate</div>
+        <p class="card-text">1.5% to 2.5% transaction commission on settled B2B agricultural trades transacted through the multi-currency escrow vault.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">2. Logistics Freight Dispatch Fee</div>
+        <p class="card-text">5% commission on freight bookings and reefer load dispatches facilitated via the transport marketplace.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">3. Enterprise SaaS Subscriptions</div>
+        <p class="card-text">Monthly/annual SaaS tiers for commercial farming conglomerates, cooperatives, food processors, and NGOs utilizing satellite & drone analytics.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">4. EUDR Certification & Traceability Fees</div>
+        <p class="card-text">Per-batch compliance fee for generating authenticated EU Deforestation Regulation polygons and ePhyto digital export dossiers.</p>
+      </div>
+    </div>
+
+    <h2>6. Competitive Moat: Why VERDI Wins</h2>
+    <p>&bull; <strong>Hardware-to-Cloud Continuum:</strong> Connects satellite rasters, drone waypoints, physical IoT temperature sensors, and banking escrow into a single unified platform.<br>
+    &bull; <strong>Sovereign & Regulatory Integration:</strong> Built specifically to synchronize with national grain boards (GMB) and international phytosanitary authorities.<br>
+    &bull; <strong>Language & Literacy Inclusivity:</strong> Natural vernacular AI voice models (Shona/Ndebele) unlock adoption for millions of smallholders bypassed by conventional apps.<br>
+    &bull; <strong>Trustless Escrow Architecture:</strong> Removes counterparty default risk in markets historically impaired by delayed payments and currency fluctuations.</p>
+
+    <div class="footer">
+      <strong>VERDI Sovereign Agricultural Operating System</strong> &bull; Confidential Executive Briefing &bull; 2026
+    </div>
+  </div>
+
+</body>
+</html>
