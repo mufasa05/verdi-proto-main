@@ -367,21 +367,33 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
       child: Row(
         children: [
           // Official Coat of Arms with fallback
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: GovernmentPage.gold.withValues(alpha: 0.6), width: 1.2),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Image.asset(
-              'assets/images/zim_coat_of_arms.jpg',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: const Color(0xFF15803D),
-                child: const Center(
-                  child: Icon(Icons.shield_rounded, color: GovernmentPage.gold, size: 22),
+          Tooltip(
+            message: 'Republic of Zimbabwe Sovereign Crest',
+            child: Container(
+              width: 42,
+              height: 42,
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: GovernmentPage.gold, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: GovernmentPage.gold.withValues(alpha: 0.25),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.asset(
+                'assets/images/zim_coat_of_arms.jpg',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFF15803D),
+                  child: const Center(
+                    child: Icon(Icons.shield_rounded, color: GovernmentPage.gold, size: 22),
+                  ),
                 ),
               ),
             ),
