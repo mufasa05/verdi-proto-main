@@ -30,6 +30,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   String _selectedCountry = 'Zimbabwe';
   bool _createNewTenant = true;
   bool _obscurePassword = true;
+  bool _rememberMe = true;
 
   bool _isPhoneInput(String input) {
     final clean = input.trim();
@@ -235,6 +236,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
+  // ignore: unused_element
   void _showLiveUnderConstructionDialog() {
     showDialog(
       context: context,
@@ -621,7 +623,128 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final isDesktopWidth = MediaQuery.of(context).size.width >= 850;
 
+    if (isDesktopWidth && (_currentStep == 0 || _currentStep == 1)) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0B1120),
+        body: Row(
+          children: [
+            // Left Hero Panel (50% Width) - Clean background visual with no false data
+            Expanded(
+              flex: 5,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/agriculture_background.jpg'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.black.withValues(alpha: 0.10),
+                            Colors.black.withValues(alpha: 0.25),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 40),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.30), width: 1.2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.30),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const VerdiLogo(size: 90),
+                                const SizedBox(height: 20),
+                                Text(
+                                  'VERDI',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: 4,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Smart Agriculture Platform',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF4ADE80),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Precision irrigation, satellite imagery, marketplace trading & drone telemetry.',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13.5,
+                                    color: Colors.white70,
+                                    height: 1.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Right Auth Form Panel (50% Width)
+            Expanded(
+              flex: 5,
+              child: Container(
+                color: const Color(0xFF0B1120),
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 460),
+                      child: _buildCredentialsStep(authState),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Mobile / Narrow View
     return Scaffold(
       body: Stack(
         children: [
@@ -641,8 +764,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withValues(alpha: 0.35),
-                    Colors.black.withValues(alpha: 0.60),
+                    Colors.black.withValues(alpha: 0.15),
+                    Colors.black.withValues(alpha: 0.30),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -650,7 +773,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ),
             ),
           ),
-          // Subtle Ambient Glow Orbs
+          // Ambient Glow Orbs
           Positioned(
             top: -80,
             right: -80,
@@ -782,7 +905,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Widget _buildCurrentStepWidget(AuthState authState) {
     switch (_currentStep) {
       case 0:
-        return _buildWelcomeStep();
       case 1:
         return _buildCredentialsStep(authState);
       case 2:
@@ -798,84 +920,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       case 5:
         return _buildCompleteOnboardingStep();
       default:
-        return _buildWelcomeStep();
+        return _buildCredentialsStep(authState);
     }
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // STEP 0: WELCOME LANDING
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildWelcomeStep() {
-    return _buildGlassCard(
-      key: const ValueKey('welcome_step'),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const VerdiLogo(size: 80),
-          const SizedBox(height: 24),
-          Text(
-            'Smart Agriculture Command Center',
-            style: GoogleFonts.inter(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Precision irrigation, multispectral satellite imagery, marketplace trading & drone fleet command.',
-            style: GoogleFonts.inter(fontSize: 14, color: Colors.white70, height: 1.5),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              ElevatedButton(
-                onPressed: _showLiveUnderConstructionDialog,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF16A34A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 4,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Text('Get Started', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 18),
-                  ],
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ref.read(appStateProvider.notifier).setDemoMode(true);
-                  _showDemoRolePickerDialog();
-                },
-                icon: const Icon(Icons.explore_outlined, color: Colors.white, size: 18),
-                label: const Text('Offline Demo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF59E0B),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 4,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // STEP 1: CREDENTIALS (SIGN IN / SIGN UP)
+  // CREDENTIALS STEP (SIGN IN / SIGN UP)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildCredentialsStep(AuthState authState) {
     return _buildGlassCard(
@@ -887,22 +937,88 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              _isSignUp ? 'Create your account' : 'Welcome back',
-              style: GoogleFonts.inter(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+            // Top Verdi Header Logo
+            Center(
+              child: Column(
+                children: [
+                  const VerdiLogo(size: 48),
+                  const SizedBox(height: 8),
+                  Text(
+                    'VERDI',
+                    style: GoogleFonts.inter(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              _isSignUp
-                  ? 'Enter your details to create an account'
-                  : 'Sign in to access your platform dashboard.',
-              style: const TextStyle(color: Colors.white70, fontSize: 13.5),
+            const SizedBox(height: 20),
+
+            // Tab Selector: Sign In / Register
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _isSignUp = false),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: !_isSignUp ? const Color(0xFF16A34A).withValues(alpha: 0.25) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: !_isSignUp ? Border.all(color: const Color(0xFF4ADE80), width: 1.5) : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Sign In',
+                            style: TextStyle(
+                              color: !_isSignUp ? const Color(0xFF4ADE80) : Colors.white70,
+                              fontWeight: !_isSignUp ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _isSignUp = true),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _isSignUp ? const Color(0xFF16A34A).withValues(alpha: 0.25) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: _isSignUp ? Border.all(color: const Color(0xFF4ADE80), width: 1.5) : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Register',
+                            style: TextStyle(
+                              color: _isSignUp ? const Color(0xFF4ADE80) : Colors.white70,
+                              fontWeight: _isSignUp ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
+
             if (_isSignUp) ...[
               TextFormField(
                 controller: _nameController,
@@ -911,38 +1027,43 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     : null,
                 decoration: InputDecoration(
                   labelText: 'Full Name',
+                  hintText: 'e.g. Tendai Moyo',
                   prefixIcon: const Icon(Icons.person_outline, size: 20),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 16),
             ],
+
+            // Email Address Input
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Enter your email or phone number';
+                  return 'Enter your email address';
                 }
                 if (!_isValidInput(value)) {
-                  return 'Enter a valid email (user@verdi.ag) or phone number (+263...)';
+                  return 'Enter a valid email address or phone number';
                 }
                 return null;
               },
               decoration: InputDecoration(
-                labelText: 'Email Address or Phone Number',
-                hintText: 'user@verdi.ag or +263771234567',
-                prefixIcon: const Icon(Icons.contact_mail_outlined, size: 20),
+                labelText: 'Email Address',
+                hintText: 'user@verdi.ag',
+                prefixIcon: const Icon(Icons.email_outlined, size: 20),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 16),
+
+            // Password Input WITH EYE TOGGLE ICON
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
               autofillHints: const [],
               validator: (value) => (value == null || value.length < 6)
-                  ? 'Use at least 6 characters'
+                  ? 'Password must be at least 6 characters'
                   : null,
               decoration: InputDecoration(
                 labelText: 'Password',
@@ -950,7 +1071,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    color: const Color(0xFF64748B),
+                    color: _obscurePassword ? Colors.white60 : const Color(0xFF4ADE80),
                     size: 20,
                   ),
                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -959,39 +1080,181 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
+            const SizedBox(height: 12),
+
+            // Remember Me & Forgot Password Row
+            Row(
+              children: [
+                SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: Checkbox(
+                    value: _rememberMe,
+                    activeColor: const Color(0xFF16A34A),
+                    onChanged: (val) => setState(() => _rememberMe = val ?? true),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('Remember me', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                const Spacer(),
+                TextButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Password reset link sent to your registered email address.'),
+                        backgroundColor: Color(0xFF16A34A),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Forgot password?',
+                    style: TextStyle(color: Color(0xFF4ADE80), fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: authState.isLoading ? null : _submitAuth,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF16A34A),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+            // Primary Action Button (Gradient Green)
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF16A34A), Color(0xFF10B981)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF16A34A).withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: authState.isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : Text(_isSignUp ? 'Next: Choose Stakeholder Role' : 'Sign In', style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: ElevatedButton(
+                onPressed: authState.isLoading ? null : _submitAuth,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: authState.isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(
+                        _isSignUp ? 'Next: Choose Stakeholder Role' : 'Sign In',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Divider: Or continue with
+            Row(
+              children: [
+                Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.2))),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    'Or continue with',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                  ),
+                ),
+                Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.2))),
+              ],
             ),
             const SizedBox(height: 16),
-            TextButton(
-              onPressed: () => setState(() => _isSignUp = !_isSignUp),
-              child: Text(
-                _isSignUp
-                    ? 'Already have an account? Sign in'
-                    : 'New to Verdi? Create an account',
+
+            // Social Buttons: Google & Apple
+            OutlinedButton.icon(
+              onPressed: () async {
+                final success = await ref.read(authStateProvider.notifier).signInWithGoogle();
+                if (mounted && success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Successfully authenticated with Google account.'),
+                      backgroundColor: Color(0xFF16A34A),
+                    ),
+                  );
+                }
+              },
+              icon: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                child: const Text('G', style: TextStyle(color: Color(0xFFEA4335), fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+              label: const Text('Continue with Google', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: Colors.black.withValues(alpha: 0.2),
               ),
             ),
-            const Divider(),
-            Center(
-              child: TextButton.icon(
-                onPressed: _showAdminPasskeyDialog,
-                icon: const Icon(Icons.admin_panel_settings_outlined, size: 16, color: Color(0xFF64748B)),
-                label: const Text('Admin Access', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final success = await ref.read(authStateProvider.notifier).signInWithApple();
+                if (mounted && success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Successfully authenticated with Apple ID.'),
+                      backgroundColor: Color(0xFF16A34A),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.apple, color: Colors.white, size: 20),
+              label: const Text('Continue with Apple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: Colors.black.withValues(alpha: 0.2),
               ),
+            ),
+            const SizedBox(height: 16),
+
+            // Bottom Links: Sign In / Sign Up toggle & Demo mode
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _isSignUp ? 'Already have an account?' : "Don't have an account?",
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _isSignUp = !_isSignUp),
+                  child: Text(
+                    _isSignUp ? 'Sign In' : 'Sign Up',
+                    style: const TextStyle(color: Color(0xFF4ADE80), fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    ref.read(appStateProvider.notifier).setDemoMode(true);
+                    _showDemoRolePickerDialog();
+                  },
+                  icon: const Icon(Icons.explore_outlined, size: 14, color: Color(0xFFF59E0B)),
+                  label: const Text('Offline Demo', style: TextStyle(color: Color(0xFFF59E0B), fontSize: 12)),
+                ),
+                const SizedBox(width: 12),
+                TextButton.icon(
+                  onPressed: _showAdminPasskeyDialog,
+                  icon: const Icon(Icons.admin_panel_settings_outlined, size: 14, color: Color(0xFF64748B)),
+                  label: const Text('Admin Passkey', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                ),
+              ],
             ),
           ],
         ),

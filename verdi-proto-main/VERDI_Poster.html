@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VERDI — Sovereign Agricultural Operating System Poster</title>
+  
+  <!-- SEO & Fonts -->
+  <meta name="description" content="Official Promotional Poster for VERDI: Africa's Sovereign Agricultural Operating System (Agri-OS). Unifying commerce, 3-stage escrow, satellite telemetry, EUDR traceability, and multilingual voice AI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #16A34A;
+      --primary-dark: #15803D;
+      --primary-light: #DCFCE7;
+      --accent-gold: #F59E0B;
+      --accent-blue: #2563EB;
+      --dark-bg: #0B132B;
+      --dark-surface: #1C2541;
+      --dark-card: rgba(255, 255, 255, 0.05);
+      --light-bg: #F8FAFC;
+      --light-surface: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --border-color: rgba(226, 232, 240, 0.8);
+      --poster-width: 900px;
+      --poster-aspect: auto;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-glow: 0 20px 50px rgba(22, 163, 74, 0.15);
+    }
+
+    /* Reset & Base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0B0F19;
+      color: #E2E8F0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 60px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Top Control Bar (Hidden during Print) */
+    .controls-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #FFFFFF;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title span {
+      background: linear-gradient(135deg, #4ADE80, #22C55E);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .control-buttons {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: #1E293B;
+      color: #F8FAFC;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn:hover {
+      background: #334155;
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #16A34A, #15803D);
+      color: #FFFFFF;
+      border: none;
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #15803D, #166534);
+      box-shadow: 0 6px 20px rgba(22, 163, 74, 0.6);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, #D97706, #B45309);
+      color: #FFFFFF;
+      border: none;
+    }
+
+    .select-control {
+      background: #1E293B;
+      color: #F8FAFC;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Poster Wrapper & Container */
+    .poster-viewport {
+      margin-top: 30px;
+      padding: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .poster-card {
+      width: var(--poster-width);
+      max-width: 95vw;
+      background: #0F172A;
+      color: #F8FAFC;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Poster Themes */
+    .theme-light {
+      background: #FFFFFF !important;
+      color: #0F172A !important;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px #E2E8F0 !important;
+    }
+
+    .theme-light .pillar-card {
+      background: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+      color: #1E293B !important;
+    }
+
+    .theme-light .stat-card {
+      background: #F1F5F9 !important;
+      border-color: #CBD5E1 !important;
+    }
+
+    .theme-light .hero-banner-overlay {
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 100%) !important;
+    }
+
+    .theme-light .voice-badge {
+      background: #DCFCE7 !important;
+      color: #15803D !important;
+      border-color: #86EFAC !important;
+    }
+
+    .theme-light .text-highlight {
+      color: #16A34A !important;
+    }
+
+    .theme-light .subtitle-text {
+      color: #475569 !important;
+    }
+
+    /* Poster Header & Banner */
+    .poster-header {
+      padding: 40px 48px 24px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: radial-gradient(circle at top right, rgba(22, 163, 74, 0.25), transparent 60%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .header-branding {
+      max-width: 620px;
+    }
+
+    .country-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 163, 74, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ADE80;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .country-pill svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    .poster-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.2rem;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #FFFFFF 30%, #A7F3D0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .poster-subtitle {
+      font-size: 1.15rem;
+      line-height: 1.5;
+      color: #94A3B8;
+      font-weight: 400;
+    }
+
+    .qr-header-box {
+      background: #FFFFFF;
+      padding: 12px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      width: 120px;
+    }
+
+    .qr-header-box img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      display: block;
+    }
+
+    .qr-caption {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #0F172A;
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Main Poster Image Visual */
+    .hero-visual-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+    }
+
+    .hero-visual-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      display: block;
+    }
+
+    .hero-banner-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 1) 100%);
+    }
+
+    /* Core Content Body */
+    .poster-body {
+      padding: 0 48px 48px 48px;
+    }
+
+    /* Vision Banner Box */
+    .vision-callout {
+      background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), rgba(37, 99, 235, 0.15));
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: var(--radius-md);
+      padding: 24px 30px;
+      margin-bottom: 36px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      position: relative;
+      backdrop-filter: blur(10px);
+    }
+
+    .vision-icon {
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      background: linear-gradient(135deg, #16A34A, #15803D);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4);
+    }
+
+    .vision-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: #FFFFFF;
+    }
+
+    .vision-text {
+      font-size: 1.05rem;
+      line-height: 1.55;
+      font-weight: 500;
+    }
+
+    .vision-text strong {
+      color: #4ADE80;
+      font-weight: 700;
+    }
+
+    /* Section Headers */
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #FFFFFF;
+    }
+
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 24px;
+      background: #16A34A;
+      border-radius: 4px;
+    }
+
+    /* 6 Pillars Grid */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 36px;
+    }
+
+    .pillar-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.25 ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pillar-card:hover {
+      border-color: rgba(34, 197, 94, 0.4);
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .pillar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .pillar-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      background: rgba(22, 163, 74, 0.15);
+      color: #4ADE80;
+    }
+
+    .pillar-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #F8FAFC;
+    }
+
+    .pillar-desc {
+      font-size: 0.85rem;
+      color: #94A3B8;
+      line-height: 1.45;
+      flex-grow: 1;
+    }
+
+    /* Key Impact Stats Bar */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::top {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #16A34A, #2563EB);
+    }
+
+    .stat-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #4ADE80, #22C55E);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #CBD5E1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Multilingual Feature Highlight */
+    .feature-highlight-box {
+      background: radial-gradient(circle at left, rgba(37, 99, 235, 0.2), transparent 70%), rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: var(--radius-md);
+      padding: 24px 30px;
+      margin-bottom: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .highlight-info {
+      max-width: 500px;
+    }
+
+    .highlight-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+
+    .highlight-text {
+      font-size: 0.88rem;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    .languages-tags {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .voice-badge {
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #60A5FA;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Call to Action Footer */
+    .poster-footer {
+      background: linear-gradient(135deg, #16A34A, #15803D);
+      border-radius: var(--radius-md);
+      padding: 28px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #FFFFFF;
+      box-shadow: 0 15px 35px rgba(22, 163, 74, 0.3);
+    }
+
+    .footer-cta h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .footer-cta p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .contact-details {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .contact-item {
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .editable-field[contenteditable="true"] {
+      outline: 2px dashed #F59E0B;
+      padding: 2px 4px;
+      border-radius: 4px;
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    /* Print Optimization Rules */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+        padding: 0 !important;
+      }
+
+      .controls-bar {
+        display: none !important;
+      }
+
+      .poster-viewport {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+
+      .poster-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: #0F172A !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 850px) {
+      .pillars-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .poster-header {
+        padding: 24px 24px;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .poster-body {
+        padding: 0 24px 30px 24px;
+      }
+      .poster-title {
+        font-size: 2.3rem;
+      }
+      .feature-highlight-box {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .poster-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Interactive Control Bar -->
+  <header class="controls-bar">
+    <div class="brand-title">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#4ADE80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 17L12 22L22 17" stroke="#4ADE80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 12L12 17L22 12" stroke="#4ADE80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>VERDI Poster Studio</span>
+    </div>
+
+    <div class="control-buttons">
+      <!-- Layout Preset Selector -->
+      <select id="presetSelect" class="select-control" onchange="changePreset(this.value)">
+        <option value="900px">Standard A4/A3 Print Poster</option>
+        <option value="750px">Social Post Square (Aspect 1:1)</option>
+        <option value="1100px">Wide Display Banner</option>
+      </select>
+
+      <!-- Theme Selector -->
+      <button class="btn" onclick="toggleTheme()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Toggle Theme
+      </button>
+
+      <!-- Edit Mode Toggle -->
+      <button class="btn btn-accent" id="editBtn" onclick="toggleEditMode()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit Text
+      </button>
+
+      <!-- Print Button -->
+      <button class="btn btn-primary" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / Save PDF
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Poster Canvas -->
+  <div class="poster-viewport">
+    <div class="poster-card" id="posterCard">
+
+      <!-- Header Section -->
+      <div class="poster-header">
+        <div class="header-branding">
+          <div class="country-pill">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+            Sovereign Agri-OS Platform
+          </div>
+          <h1 class="poster-title editable-field">VERDI</h1>
+          <p class="poster-subtitle editable-field">Africa's End-to-End Sovereign Agricultural Operating System. Connecting Farmers, B2B Buyers, Reefer Logistics & Export Markets onto a Single Digital Infrastructure.</p>
+        </div>
+
+        <!-- QR Code Container -->
+        <div class="qr-header-box">
+          <!-- Generated SVG QR code representation -->
+          <svg viewBox="0 0 100 100" width="100" height="100">
+            <rect width="100" height="100" fill="#FFFFFF"/>
+            <!-- Outer Square 1 -->
+            <rect x="10" y="10" width="25" height="25" fill="#0F172A"/>
+            <rect x="15" y="15" width="15" height="15" fill="#FFFFFF"/>
+            <rect x="18" y="18" width="9" height="9" fill="#16A34A"/>
+            <!-- Outer Square 2 -->
+            <rect x="65" y="10" width="25" height="25" fill="#0F172A"/>
+            <rect x="70" y="15" width="15" height="15" fill="#FFFFFF"/>
+            <rect x="73" y="18" width="9" height="9" fill="#16A34A"/>
+            <!-- Outer Square 3 -->
+            <rect x="10" y="65" width="25" height="25" fill="#0F172A"/>
+            <rect x="15" y="70" width="15" height="15" fill="#FFFFFF"/>
+            <rect x="18" y="73" width="9" height="9" fill="#16A34A"/>
+            <!-- Data pattern -->
+            <rect x="42" y="12" width="12" height="6" fill="#0F172A"/>
+            <rect x="42" y="24" width="6" height="12" fill="#16A34A"/>
+            <rect x="70" y="42" width="18" height="6" fill="#0F172A"/>
+            <rect x="42" y="65" width="12" height="12" fill="#0F172A"/>
+            <rect x="60" y="65" width="10" height="25" fill="#16A34A"/>
+            <rect x="75" y="75" width="15" height="15" fill="#0F172A"/>
+          </svg>
+          <div class="qr-caption">Scan to Access</div>
+        </div>
+      </div>
+
+      <!-- Hero Visual Banner -->
+      <div class="hero-visual-container">
+        <img src="assets/images/verdi_poster_hero.jpg" alt="VERDI Agri-OS Satellite & Drone Telemetry Showcase">
+        <div class="hero-banner-overlay"></div>
+      </div>
+
+      <!-- Poster Main Body -->
+      <div class="poster-body">
+
+        <!-- Vision Statement Callout -->
+        <div class="vision-callout">
+          <div class="vision-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="vision-text editable-field">
+            Eliminating <strong>$48 Billion in annual African post-harvest loss</strong> through multi-currency smart contract escrow, satellite NDVI telemetry, EUDR export traceability, and multilingual AI voice copilots.
+          </div>
+        </div>
+
+        <!-- 6 Pillars Section -->
+        <div class="section-title">The 6 Core Architecture Pillars</div>
+        <div class="pillars-grid">
+          
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <div class="pillar-badge">🛒</div>
+              <div class="pillar-name editable-field">Commerce Desk</div>
+            </div>
+            <div class="pillar-desc editable-field">Direct farmer-to-B2B trade desk, live price arbitrage ticker, and forward outgrower contracts.</div>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <div class="pillar-badge">🔒</div>
+              <div class="pillar-name editable-field">3-Stage Escrow</div>
+            </div>
+            <div class="pillar-desc editable-field">Multi-currency vault in USD & local currencies with automated settlement on quality verification.</div>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <div class="pillar-badge">🛰️</div>
+              <div class="pillar-name editable-field">Satellite & Drone AI</div>
+            </div>
+            <div class="pillar-desc editable-field">Sentinel-2 weekly NDVI vegetation passes, drone pest surveys, and localized micro-climate advisories.</div>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <div class="pillar-badge">🚚</div>
+              <div class="pillar-name editable-field">Cold-Chain Fleet OS</div>
+            </div>
+            <div class="pillar-desc editable-field">On-demand refrigerated truck matching, continuous IoT temperature logging, and weighbridge proof.</div>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <div class="pillar-badge">📜</div>
+              <div class="pillar-name editable-field">EUDR Traceability</div>
+            </div>
+            <div class="pillar-desc editable-field">Geofenced field boundary polygon mapping, cryptographic HMAC-SHA256 seals, and ePhyto clearance.</div>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <div class="pillar-badge">🏛️</div>
+              <div class="pillar-name editable-field">Sovereign Admin</div>
+            </div>
+            <div class="pillar-desc editable-field">National grain reserve monitoring, biosecurity emergency dispatch, and dam water basin telemetry.</div>
+          </div>
+
+        </div>
+
+        <!-- Key Impact Metrics -->
+        <div class="section-title">Verified Value Chain Impact</div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-number editable-field">+35% to 50%</div>
+            <div class="stat-label editable-field">Farmer Net Income</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number editable-field">0% Risk</div>
+            <div class="stat-label editable-field">Payment Default Rate</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number editable-field">40% Fleet</div>
+            <div class="stat-label editable-field">Higher Utilization</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number editable-field">100% EUDR</div>
+            <div class="stat-label editable-field">Export Compliance</div>
+          </div>
+        </div>
+
+        <!-- Vernacular AI Highlight -->
+        <div class="feature-highlight-box">
+          <div class="highlight-info">
+            <div class="highlight-title editable-field">Multilingual Vernacular AI Copilot</div>
+            <div class="highlight-text editable-field">Inclusive offline-first voice interaction allowing smallholders to speak directly in native languages to manage listings, diagnose pests, and verify payments.</div>
+          </div>
+          <div class="languages-tags">
+            <div class="voice-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              Shona
+            </div>
+            <div class="voice-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              Ndebele
+            </div>
+            <div class="voice-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              English
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Banner Call To Action -->
+        <div class="poster-footer">
+          <div class="footer-cta">
+            <h3 class="editable-field">Transforming African Agriculture</h3>
+            <p class="editable-field">Join farmers, buyers, exporters, and institutions on the VERDI platform today.</p>
+          </div>
+          <div class="contact-details">
+            <div class="contact-item editable-field">
+              🌐 www.verdi.agri
+            </div>
+            <div class="contact-item editable-field">
+              ✉️ partner@verdi.agri
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle Light/Dark Theme
+    function toggleTheme() {
+      const card = document.getElementById('posterCard');
+      card.classList.toggle('theme-light');
+    }
+
+    // Change Preset Width / Layout Format
+    function changePreset(val) {
+      const card = document.getElementById('posterCard');
+      card.style.setProperty('--poster-width', val);
+    }
+
+    // Toggle Text Editability
+    let isEditing = false;
+    function toggleEditMode() {
+      isEditing = !isEditing;
+      const fields = document.querySelectorAll('.editable-field');
+      const btn = document.getElementById('editBtn');
+
+      fields.forEach(field => {
+        field.contentEditable = isEditing;
+      });
+
+      if (isEditing) {
+        btn.style.background = '#F59E0B';
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Save Edits`;
+      } else {
+        btn.style.background = 'linear-gradient(135deg, #D97706, #B45309)';
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Text`;
+      }
+    }
+  </script>
+</body>
+</html>

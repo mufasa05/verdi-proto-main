@@ -1,0 +1,15 @@
+{
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/backend",
+    "C:/Users/user/AppData/Roaming/Python/Python314/site-packages",
+    "C:/Users/user/AppData/Roaming/Python/site-packages"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/backend",
+    "C:/Users/user/AppData/Roaming/Python/Python314/site-packages",
+    "C:/Users/user/AppData/Roaming/Python/site-packages"
+  ],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none"
+  }
+}

@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import '../../auth/state/auth_state.dart';
+import '../../../state/app_state.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NATIONAL AGRICULTURAL ADMINISTRATION CONSOLE
@@ -498,38 +500,163 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
             padding: EdgeInsets.zero,
           ),
           const SizedBox(width: 6),
-          // User avatar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: GovernmentPage.surfaceLight,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: GovernmentPage.border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 26, height: 26,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1D4ED8),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(child: Text('PS', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
+          // User avatar with PopupMenu for Sign Out
+          _buildUserAvatarPopup(context),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // USER AVATAR WITH SIGN-OUT POPUP
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildUserAvatarPopup(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+    final user = authState.user;
+    final userName = user?.fullName ?? 'Government Officer';
+    final userInitials = userName.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase();
+    final roleLabel = user?.role.label ?? 'Government / NGO';
+
+    return PopupMenuButton<String>(
+      tooltip: 'Account Menu',
+      offset: const Offset(0, 42),
+      color: GovernmentPage.surfaceLight,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: GovernmentPage.border),
+      ),
+      onSelected: (value) {
+        if (value == 'signout') {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: GovernmentPage.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 22),
+                  const SizedBox(width: 10),
+                  Text('Sign Out', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                ],
+              ),
+              content: Text(
+                'Are you sure you want to sign out of the National Agricultural Administration Console?',
+                style: GoogleFonts.inter(fontSize: 13, color: GovernmentPage.mutedLight, height: 1.5),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text('Cancel', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: GovernmentPage.mutedLight)),
                 ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Prince A. Shumba', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white)),
-                    Text('National Administrator', style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
-                  ],
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ref.read(authStateProvider.notifier).signOut();
+                  },
+                  icon: const Icon(Icons.logout_rounded, size: 16),
+                  label: Text('Sign Out', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEF4444),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (value == 'settings') {
+          // Navigate to settings via app state
+          ref.read(appStateProvider.notifier).setNavIndex(21);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(userName, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
+                const SizedBox(height: 2),
+                Text(user?.email ?? '', style: GoogleFonts.inter(fontSize: 10, color: GovernmentPage.mutedLight)),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: GovernmentPage.green.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(roleLabel, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: GovernmentPage.green)),
                 ),
               ],
             ),
           ),
-        ],
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'profile',
+          child: Row(
+            children: [
+              const Icon(Icons.person_outline_rounded, color: GovernmentPage.mutedLight, size: 16),
+              const SizedBox(width: 10),
+              Text('My Profile', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'settings',
+          child: Row(
+            children: [
+              const Icon(Icons.settings_outlined, color: GovernmentPage.mutedLight, size: 16),
+              const SizedBox(width: 10),
+              Text('Settings', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'signout',
+          child: Row(
+            children: [
+              Icon(Icons.logout_rounded, color: Colors.red.shade400, size: 16),
+              const SizedBox(width: 10),
+              Text('Sign Out', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.red.shade400)),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: GovernmentPage.surfaceLight,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: GovernmentPage.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 26, height: 26,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1D4ED8),
+                shape: BoxShape.circle,
+              ),
+              child: Center(child: Text(userInitials, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(userName, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white)),
+                Text(roleLabel, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w500, color: GovernmentPage.muted)),
+              ],
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.keyboard_arrow_down_rounded, color: GovernmentPage.mutedLight, size: 16),
+          ],
+        ),
       ),
     );
   }

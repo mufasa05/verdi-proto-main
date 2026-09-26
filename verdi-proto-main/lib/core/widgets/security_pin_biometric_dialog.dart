@@ -47,7 +47,7 @@ class _SecurityPinBiometricDialogState extends State<SecurityPinBiometricDialog>
   static const cardBorder = Color(0xFF2D3748);
   static const accentGreen = Color(0xFF10B981);
   static const accentBlue = Color(0xFF3B82F6);
-  static const accentDanger = Color(0xFFEF4444);
+  static const accentDanger = Color.fromARGB(255, 190, 54, 54);
 
   @override
   void dispose() {

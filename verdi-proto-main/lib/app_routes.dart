@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:verdi/features/assistant/presentation/ai_copilot_page.dart';
 import 'package:verdi/features/drone_inspection/presentation/drone_inspection_view.dart';
 import 'package:verdi/features/farm_operations/presentation/farm_operations_page.dart';
 import 'package:verdi/features/marketplace/presentation/marketplace_page.dart';
@@ -71,10 +72,7 @@ class AppRouter {
         path: '/assistant',
         builder: (context, state) => ShellScaffold(
           currentRoute: '/assistant',
-          child: const PlaceholderScreen(
-            title: 'AI Assistant',
-            subtitle: 'Assistant page coming next.',
-          ),
+          child: const AiCopilotPage(),
         ),
       ),
       GoRoute(

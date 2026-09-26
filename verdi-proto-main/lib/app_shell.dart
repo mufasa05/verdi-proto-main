@@ -308,6 +308,7 @@ class Sidebar extends ConsumerWidget {
     _SidebarMenuItem(index: 24, label: 'News', icon: LucideIcons.newspaper),
     _SidebarMenuItem(index: 26, label: 'User Activities & Logs', icon: LucideIcons.history),
     _SidebarMenuItem(index: 27, label: 'System Health & Services', icon: LucideIcons.activity),
+    _SidebarMenuItem(index: 28, label: 'Verdi AI Assistant', icon: LucideIcons.sparkles),
     _SidebarMenuItem(index: 29, label: 'Agri-Expert Console', icon: LucideIcons.stethoscope),
     _SidebarMenuItem(index: 30, label: 'Community Hub', icon: LucideIcons.users),
   ];
@@ -332,10 +333,11 @@ class Sidebar extends ConsumerWidget {
       if (role == UserRole.admin) return true;
       if (isCreatorAdmin && item.index == 23) return true;
 
-      // Shared/Universal modules: Home, Marketplace, My Chats, Settings, Community Hub
+      // Shared/Universal modules: Home, Marketplace, My Chats, AI Assistant (28), Settings, Community Hub
       if (item.index == 0 ||
           item.index == 1 ||
           item.index == 2 ||
+          item.index == 28 ||
           item.index == 21 ||
           item.index == 30) {
         return true;
@@ -763,6 +765,7 @@ class Sidebar extends ConsumerWidget {
       const _SidebarMenuItem(index: 4, label: 'Waybills & Dispatches', icon: LucideIcons.fileText),
       const _SidebarMenuItem(index: 6, label: 'Fuel & Toll Settlements', icon: LucideIcons.creditCard),
       const _SidebarMenuItem(index: 7, label: 'Fleet Telemetry Alerts', icon: LucideIcons.bell),
+      const _SidebarMenuItem(index: 28, label: 'Verdi AI Assistant', icon: LucideIcons.sparkles),
     ];
 
     return Container(

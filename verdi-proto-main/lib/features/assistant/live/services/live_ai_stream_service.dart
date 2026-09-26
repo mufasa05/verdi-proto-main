@@ -478,6 +478,55 @@ class MockLiveAiStreamService implements LiveAiStreamService {
 • **Soil Moisture:** Maintain soil moisture between 65% and 85% field capacity during crop flowering and pod/fruit fill.''';
     }
 
+    // EUDR & Deforestation Compliance
+    if (t.contains('eudr') || t.contains('deforestation') || t.contains('compliance') || t.contains('certification')) {
+      return '''### 🛡️ EUDR & Deforestation Compliance Verification
+
+**1. Polygon Geofencing:**
+• GPS polygon coordinates mapped and cross-checked against 2020 baseline satellite imagery.
+• Zero deforestation detected across active production parcels.
+
+**2. Traceability Seals:**
+• QR Batch Certificates generated with anti-tamper SHA-256 signatures.
+• Due Diligence Statement (DDS) ready for EU Customs clearance portal submission.''';
+    }
+
+    // Livestock & Animal Husbandry
+    if (t.contains('cattle') || t.contains('livestock') || t.contains('poultry') || t.contains('animal')) {
+      return '''### 🐄 Livestock & Animal Health Protocol
+
+**1. Cattle & Small Stock:**
+• Vaccination: Ensure active coverage for Foot & Mouth (FMD) and Anthrax.
+• Dip Schedule: Weekly dipping or pour-on application to prevent Tick-Borne Diseases (Theileriosis/January Disease).
+
+**2. Poultry Management:**
+• Maintain strict biosecurity protocols at entry gates.
+• Ensure brooding temperature at 32°C for week 1 chicks with fresh clean water and starter mash.''';
+    }
+
+    // Soil Chemistry & Fertigation
+    if (t.contains('soil') || t.contains('ph') || t.contains('fertilizer') || t.contains('npk')) {
+      return '''### 🧪 Precision Soil Chemistry & Fertigation
+
+**1. Target pH Ranges:**
+• Maize / Wheat: **5.8 – 6.5**
+• Tobacco / Potatoes: **5.2 – 5.8**
+• Avocados / Citrus: **5.5 – 6.5**
+
+**2. Corrective Action:**
+• If pH < 5.0, apply Agricultural Dolomitic Lime at 1.5 – 2.5 tonnes/ha prior to tillage.
+• Split nitrogen top-dressing to prevent leaching during intense rainfall events.''';
+    }
+
+    // Cold-Chain Logistics & Telemetry
+    if (t.contains('truck') || t.contains('reefer') || t.contains('cold chain') || t.contains('transport')) {
+      return '''### 🚛 Cold-Chain Telemetry & Dispatch Status
+
+• **Active Fleets:** 4 Reefer trucks equipped with IoT thermal sensors operating on the Harare-Beira export corridor.
+• **Cargo Specs:** Setpoint +3.5°C, relative humidity 85–90%.
+• **Dispatches:** Zero thermal excursions logged in the last 48 hours.''';
+    }
+
     // Platform Live Summaries & Bids
     if (t.contains('what is happening') || t.contains('status')) {
       return 'Here is the live platform summary: 1 crop alert is active in Sector 3, 2 bulk buyer orders need confirmation, 1 payment is held in escrow, and trade compliance certificates are active.';
@@ -505,7 +554,7 @@ class MockLiveAiStreamService implements LiveAiStreamService {
 3. **Integrated Pest Management (IPM):** Combine biological controls, clean weeding, and economic threshold spraying to minimize chemical costs.
 4. **Market Connectivity:** Check real-time buyer bids on the Verdi Marketplace to secure optimal farmgate prices.
 
-*Ask any question about crop cultivation (Tea, Maize, Tomatoes, Avocados, Tobacco, Wheat), pest treatment, irrigation, or market prices!*''';
+*Ask any question about crop cultivation (Tea, Maize, Tomatoes, Avocados, Tobacco, Wheat), pest treatment, irrigation, EUDR compliance, or market prices!*''';
   }
 }
 
