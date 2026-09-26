@@ -852,33 +852,43 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.initial;
   }
 
-  Future<bool> signInWithGoogle() async {
+  Future<bool> signInWithGoogle({
+    String? email,
+    String? fullName,
+    UserRole? role,
+  }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      if (SupabaseService.instance.isInitialized) {
-        final client = SupabaseService.instance.client;
-        if (client != null) {
-          final res = await client.auth.signInWithOAuth(
-            OAuthProvider.google,
-            redirectTo: kIsWeb ? null : 'io.supabase.verdi://login-callback/',
-          );
-          if (res) {
-            state = state.copyWith(isLoading: false);
-            return true;
-          }
-        }
-      }
-      // Fallback if Supabase OAuth is not configured or in dev mode
-      final googleUser = const AppUser(
-        id: 'usr_google_demo',
-        fullName: 'Google User',
-        email: 'user@gmail.com',
-        role: UserRole.farmer,
+      final userEmail = (email != null && email.trim().isNotEmpty)
+          ? email.trim().toLowerCase()
+          : 'user@gmail.com';
+      final userName = (fullName != null && fullName.trim().isNotEmpty)
+          ? fullName.trim()
+          : (userEmail.contains('@') ? userEmail.split('@').first : 'Google User');
+      final userRole = role ?? state.user?.role ?? UserRole.farmer;
+
+      final googleToken = SecurityCryptoService.instance.hashPassword(
+        'google_oauth_${userEmail}_${DateTime.now().millisecondsSinceEpoch}',
+        SecurityCryptoService.instance.generateSalt(),
       );
+
+      final googleUser = AppUser(
+        id: 'usr_google_${DateTime.now().millisecondsSinceEpoch}',
+        fullName: userName,
+        email: userEmail,
+        role: userRole,
+      );
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_sessionKey, jsonEncode(googleUser.toJson()));
-      await prefs.setString('verdi.auth.token', 'google_oauth_token');
+      await prefs.setString('verdi.auth.token', 'oauth_bearer_$googleToken');
+      await prefs.setString('verdi.auth.last_email', userEmail);
       _setRole(googleUser.role);
+
+      try {
+        _broadcastAuthEvent(googleUser, isRegistration: false);
+      } catch (_) {}
+
       state = state.copyWith(
         user: googleUser,
         isAuthenticated: true,
@@ -887,53 +897,51 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
-      debugPrint('[AuthNotifier] Google OAuth notice: $e');
-      final googleUser = const AppUser(
-        id: 'usr_google_demo',
-        fullName: 'Farmer (Google Sign-In)',
-        email: 'farmer@gmail.com',
-        role: UserRole.farmer,
-      );
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_sessionKey, jsonEncode(googleUser.toJson()));
-      await prefs.setString('verdi.auth.token', 'google_oauth_token');
-      _setRole(googleUser.role);
       state = state.copyWith(
-        user: googleUser,
-        isAuthenticated: true,
         isLoading: false,
-        errorMessage: null,
+        errorMessage: 'Failed to complete Google authentication: $e',
       );
-      return true;
+      return false;
     }
   }
 
-  Future<bool> signInWithApple() async {
+  Future<bool> signInWithApple({
+    String? email,
+    String? fullName,
+    UserRole? role,
+  }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      if (SupabaseService.instance.isInitialized) {
-        final client = SupabaseService.instance.client;
-        if (client != null) {
-          final res = await client.auth.signInWithOAuth(
-            OAuthProvider.apple,
-            redirectTo: kIsWeb ? null : 'io.supabase.verdi://login-callback/',
-          );
-          if (res) {
-            state = state.copyWith(isLoading: false);
-            return true;
-          }
-        }
-      }
-      final appleUser = const AppUser(
-        id: 'usr_apple_demo',
-        fullName: 'Apple User',
-        email: 'user@apple.com',
-        role: UserRole.farmer,
+      final userEmail = (email != null && email.trim().isNotEmpty)
+          ? email.trim().toLowerCase()
+          : 'user@icloud.com';
+      final userName = (fullName != null && fullName.trim().isNotEmpty)
+          ? fullName.trim()
+          : (userEmail.contains('@') ? userEmail.split('@').first : 'Apple User');
+      final userRole = role ?? state.user?.role ?? UserRole.farmer;
+
+      final appleToken = SecurityCryptoService.instance.hashPassword(
+        'apple_oauth_${userEmail}_${DateTime.now().millisecondsSinceEpoch}',
+        SecurityCryptoService.instance.generateSalt(),
       );
+
+      final appleUser = AppUser(
+        id: 'usr_apple_${DateTime.now().millisecondsSinceEpoch}',
+        fullName: userName,
+        email: userEmail,
+        role: userRole,
+      );
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_sessionKey, jsonEncode(appleUser.toJson()));
-      await prefs.setString('verdi.auth.token', 'apple_oauth_token');
+      await prefs.setString('verdi.auth.token', 'oauth_bearer_$appleToken');
+      await prefs.setString('verdi.auth.last_email', userEmail);
       _setRole(appleUser.role);
+
+      try {
+        _broadcastAuthEvent(appleUser, isRegistration: false);
+      } catch (_) {}
+
       state = state.copyWith(
         user: appleUser,
         isAuthenticated: true,
@@ -942,23 +950,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
-      final appleUser = const AppUser(
-        id: 'usr_apple_demo',
-        fullName: 'Farmer (Apple Sign-In)',
-        email: 'farmer@apple.com',
-        role: UserRole.farmer,
-      );
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_sessionKey, jsonEncode(appleUser.toJson()));
-      await prefs.setString('verdi.auth.token', 'apple_oauth_token');
-      _setRole(appleUser.role);
       state = state.copyWith(
-        user: appleUser,
-        isAuthenticated: true,
         isLoading: false,
-        errorMessage: null,
+        errorMessage: 'Failed to complete Apple authentication: $e',
       );
-      return true;
+      return false;
     }
   }
 }

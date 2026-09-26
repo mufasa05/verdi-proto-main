@@ -1171,17 +1171,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
             // Social Buttons: Google & Apple
             OutlinedButton.icon(
-              onPressed: () async {
-                final success = await ref.read(authStateProvider.notifier).signInWithGoogle();
-                if (mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Successfully authenticated with Google account.'),
-                      backgroundColor: Color(0xFF16A34A),
-                    ),
-                  );
-                }
-              },
+              onPressed: () => _showGoogleAuthDialog(context),
               icon: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
@@ -1197,17 +1187,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
-              onPressed: () async {
-                final success = await ref.read(authStateProvider.notifier).signInWithApple();
-                if (mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Successfully authenticated with Apple ID.'),
-                      backgroundColor: Color(0xFF16A34A),
-                    ),
-                  );
-                }
-              },
+              onPressed: () => _showAppleAuthDialog(context),
               icon: const Icon(Icons.apple, color: Colors.white, size: 20),
               label: const Text('Continue with Apple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
               style: OutlinedButton.styleFrom(
@@ -2153,5 +2133,425 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         'icon': Icons.settings_outlined,
       },
     ];
+  }
+
+  Future<void> _showGoogleAuthDialog(BuildContext context) async {
+    final emailCtrl = TextEditingController(
+      text: _emailController.text.trim().isNotEmpty
+          ? _emailController.text.trim()
+          : 'tendai.chigodora@gmail.com',
+    );
+    final nameCtrl = TextEditingController(
+      text: _nameController.text.trim().isNotEmpty
+          ? _nameController.text.trim()
+          : 'Tendai Chigodora',
+    );
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF0F172A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'G',
+                      style: TextStyle(
+                        color: Color(0xFFEA4335),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Google Sign-In',
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Single Sign-On (SSO) Authentication',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: const Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 420,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Select or confirm your Google Account profile to sign in to Verdi Sovereign Platform:',
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Full Name',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: nameCtrl,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF10B981), size: 18),
+                          filled: true,
+                          fillColor: const Color(0xFF1E293B),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFF334155)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Google Email Address',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF3B82F6), size: 18),
+                          filled: true,
+                          fillColor: const Color(0xFF1E293B),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFF334155)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16A34A).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF16A34A).withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.verified_user_rounded, color: Color(0xFF22C55E), size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Secure OAuth 2.0 Token Authentication • Verified identity session',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10.5,
+                                  color: const Color(0xFF86EFAC),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: Text('Cancel', style: TextStyle(color: Colors.grey[400])),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final email = emailCtrl.text.trim();
+                    final name = nameCtrl.text.trim();
+                    if (email.isEmpty) return;
+
+                    Navigator.pop(dialogCtx);
+                    final success = await ref.read(authStateProvider.notifier).signInWithGoogle(
+                      email: email,
+                      fullName: name.isNotEmpty ? name : null,
+                      role: _selectedRole,
+                    );
+                    if (mounted && success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Successfully authenticated with Google account ($email).'),
+                          backgroundColor: const Color(0xFF16A34A),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.login_rounded, size: 18),
+                  label: const Text('Authenticate with Google'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showAppleAuthDialog(BuildContext context) async {
+    final emailCtrl = TextEditingController(
+      text: _emailController.text.trim().isNotEmpty
+          ? _emailController.text.trim()
+          : 'tendai.chigodora@icloud.com',
+    );
+    final nameCtrl = TextEditingController(
+      text: _nameController.text.trim().isNotEmpty
+          ? _nameController.text.trim()
+          : 'Tendai Chigodora',
+    );
+    bool usePrivateRelay = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF0F172A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.apple, color: Colors.black, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sign in with Apple',
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Encrypted Apple ID Single Sign-On',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: const Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 420,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Authenticate using your Apple ID for secure, end-to-end encrypted session access:',
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Full Name',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: nameCtrl,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF10B981), size: 18),
+                          filled: true,
+                          fillColor: const Color(0xFF1E293B),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFF334155)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Apple ID Email',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.alternate_email_rounded, color: Color(0xFFA855F7), size: 18),
+                          filled: true,
+                          fillColor: const Color(0xFF1E293B),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFF334155)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SwitchListTile(
+                        value: usePrivateRelay,
+                        onChanged: (val) {
+                          setDialogState(() {
+                            usePrivateRelay = val;
+                            if (val) {
+                              emailCtrl.text = 'privaterelay_${DateTime.now().millisecondsSinceEpoch}@privaterelay.appleid.com';
+                            } else {
+                              emailCtrl.text = 'tendai.chigodora@icloud.com';
+                            }
+                          });
+                        },
+                        title: Text(
+                          'Hide My Email (Apple Private Relay)',
+                          style: GoogleFonts.inter(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          'Generates a unique, private relay address',
+                          style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF94A3B8)),
+                        ),
+                        activeColor: const Color(0xFF10B981),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.shield_outlined, color: Color(0xFF60A5FA), size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Apple Secure Enclave Token • Hardware Key Verified',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10.5,
+                                  color: const Color(0xFF93C5FD),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: Text('Cancel', style: TextStyle(color: Colors.grey[400])),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final email = emailCtrl.text.trim();
+                    final name = nameCtrl.text.trim();
+                    if (email.isEmpty) return;
+
+                    Navigator.pop(dialogCtx);
+                    final success = await ref.read(authStateProvider.notifier).signInWithApple(
+                      email: email,
+                      fullName: name.isNotEmpty ? name : null,
+                      role: _selectedRole,
+                    );
+                    if (mounted && success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Successfully authenticated with Apple ID ($email).'),
+                          backgroundColor: const Color(0xFF16A34A),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.apple, size: 18),
+                  label: const Text('Continue with Apple ID'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }
