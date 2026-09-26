@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/state/auth_state.dart';
 import '../../../state/app_state.dart';
 
@@ -270,9 +271,28 @@ class _GovernmentPageState extends ConsumerState<GovernmentPage>
   // ══════════════════════════════════════════════════════════════════════════
   // LIFECYCLE
   // ══════════════════════════════════════════════════════════════════════════
+  final Set<String> _deletedUserIds = {};
+
+  Future<void> _loadPersistedDeletedUsers() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList('verdi.admin.deleted_user_ids') ?? [];
+      if (list.isNotEmpty && mounted) {
+        setState(() {
+          _deletedUserIds.addAll(list);
+          _farmers.removeWhere((f) {
+            final nameClean = f['name'].toString().toLowerCase().replaceAll(' ', '');
+            return _deletedUserIds.contains(f['id']) || _deletedUserIds.contains(nameClean);
+          });
+        });
+      }
+    } catch (_) {}
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadPersistedDeletedUsers();
     _tabController = TabController(
       length: 7,
       vsync: this,

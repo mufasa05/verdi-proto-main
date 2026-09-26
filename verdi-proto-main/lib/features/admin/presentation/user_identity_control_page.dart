@@ -1344,7 +1344,11 @@ class _UserIdentityControlPageState extends ConsumerState<UserIdentityControlPag
                                   _userDatabase.removeWhere((item) => item['id'] == deletedUserId || item['email'].toString().toLowerCase().replaceAll(' ', '') == cleanEmail);
                                 });
 
-                                // Persist deletion & purge auth session immediately
+                                // Persist deletion to disk & purge auth session immediately
+                                SharedPreferences.getInstance().then((prefs) {
+                                  prefs.setStringList('verdi.admin.deleted_user_ids', _deletedUserIds.toList());
+                                });
+
                                 ref.read(authStateProvider.notifier).deleteUserAccount(
                                   userId: deletedUserId,
                                   emailOrPhone: deletedUserEmail,

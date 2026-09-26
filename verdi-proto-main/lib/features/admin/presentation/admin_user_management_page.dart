@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/rate_limiter_service.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../state/app_state.dart';
 import '../../../state/platform_data_state.dart';
+import '../../auth/state/auth_state.dart';
 
 class AdminUserManagementPage extends ConsumerStatefulWidget {
   const AdminUserManagementPage({super.key});
@@ -46,6 +48,25 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
   String _searchQuery = '';
   UserRole? _selectedRoleFilter;
   String _selectedStatusFilter = 'All';
+  final Set<String> _deletedUserIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPersistedDeletedUsers();
+  }
+
+  Future<void> _loadPersistedDeletedUsers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList('verdi.admin.deleted_user_ids') ?? [];
+    if (list.isNotEmpty && mounted) {
+      setState(() {
+        _deletedUserIds.addAll(list);
+        _demoUsers.removeWhere((u) => _deletedUserIds.contains(u.id) || _deletedUserIds.contains(u.email.toLowerCase().replaceAll(' ', '')));
+        _createdLiveUsers.removeWhere((u) => _deletedUserIds.contains(u.id) || _deletedUserIds.contains(u.email.toLowerCase().replaceAll(' ', '')));
+      });
+    }
+  }
 
   final List<UserItem> _demoUsers = [
     UserItem(id: 'USR-001', name: 'Kudakwashe Moyo', email: 'kuda.moyo@farmnet.co.zw', role: UserRole.farmer, status: 'Active', location: 'Harare, ZW', joinedDate: '12 Jan 2024'),
@@ -60,46 +81,54 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
   final List<UserItem> _createdLiveUsers = [];
 
   List<UserItem> _getUsers(bool isDemo) {
-    if (isDemo) return _demoUsers;
+    List<UserItem> baseList = [];
+    if (isDemo) {
+      baseList = List.from(_demoUsers);
+    } else {
+      final sessions = ref.watch(liveUserSessionsProvider);
+      final List<UserItem> liveList = [];
 
-    final sessions = ref.watch(liveUserSessionsProvider);
-    final List<UserItem> liveList = [];
-
-    for (final s in sessions) {
-      liveList.add(
-        UserItem(
-          id: s.id,
-          name: s.name,
-          email: '${s.name.toLowerCase().replaceAll(' ', '.')}@verdi.live',
-          role: s.role,
-          status: s.isOnline ? 'Active' : 'Offline',
-          location: s.location,
-          joinedDate: 'Live Stakeholder',
-        ),
-      );
-    }
-
-    for (final u in _createdLiveUsers) {
-      if (!liveList.any((e) => e.id == u.id)) {
-        liveList.add(u);
+      for (final s in sessions) {
+        liveList.add(
+          UserItem(
+            id: s.id,
+            name: s.name,
+            email: '${s.name.toLowerCase().replaceAll(' ', '.')}@verdi.live',
+            role: s.role,
+            status: s.isOnline ? 'Active' : 'Offline',
+            location: s.location,
+            joinedDate: 'Live Stakeholder',
+          ),
+        );
       }
+
+      for (final u in _createdLiveUsers) {
+        if (!liveList.any((e) => e.id == u.id)) {
+          liveList.add(u);
+        }
+      }
+
+      if (liveList.isEmpty) {
+        liveList.add(
+          UserItem(
+            id: 'USR-ADM-CREATOR',
+            name: 'Verdi Creator (Super Admin)',
+            email: 'creator@verdi.ag',
+            role: UserRole.admin,
+            status: 'Active',
+            location: 'Harare Command Station',
+            joinedDate: 'Sovereign Root Node',
+          ),
+        );
+      }
+      baseList = liveList;
     }
 
-    if (liveList.isEmpty) {
-      liveList.add(
-        UserItem(
-          id: 'USR-ADM-CREATOR',
-          name: 'Verdi Creator (Super Admin)',
-          email: 'creator@verdi.ag',
-          role: UserRole.admin,
-          status: 'Active',
-          location: 'Harare Command Station',
-          joinedDate: 'Sovereign Root Node',
-        ),
-      );
-    }
-
-    return liveList;
+    // Filter out permanently deleted user IDs
+    return baseList.where((u) {
+      final cleanEmail = u.email.toLowerCase().replaceAll(' ', '');
+      return !_deletedUserIds.contains(u.id) && !_deletedUserIds.contains(cleanEmail);
+    }).toList();
   }
 
   List<UserItem> get _filteredUsers {
@@ -720,10 +749,26 @@ class _AdminUserManagementPageState extends ConsumerState<AdminUserManagementPag
                     onConfirmed: () {
                       final deletedName = u.name;
                       final deletedId = u.id;
+                      final deletedEmail = u.email;
+                      final cleanEmail = deletedEmail.toLowerCase().replaceAll(' ', '');
+
                       setState(() {
-                        _demoUsers.removeWhere((item) => item.id == deletedId);
-                        _createdLiveUsers.removeWhere((item) => item.id == deletedId);
+                        _deletedUserIds.add(deletedId);
+                        if (cleanEmail.isNotEmpty) _deletedUserIds.add(cleanEmail);
+                        _demoUsers.removeWhere((item) => item.id == deletedId || item.email.toLowerCase().replaceAll(' ', '') == cleanEmail);
+                        _createdLiveUsers.removeWhere((item) => item.id == deletedId || item.email.toLowerCase().replaceAll(' ', '') == cleanEmail);
                       });
+
+                      // Persist deletion to disk & purge session in AuthNotifier
+                      SharedPreferences.getInstance().then((prefs) {
+                        prefs.setStringList('verdi.admin.deleted_user_ids', _deletedUserIds.toList());
+                      });
+
+                      ref.read(authStateProvider.notifier).deleteUserAccount(
+                        userId: deletedId,
+                        emailOrPhone: deletedEmail,
+                      );
+
                       SupabaseService.instance.logActivity(
                         userName: deletedName,
                         userId: deletedId,

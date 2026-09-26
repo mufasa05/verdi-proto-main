@@ -956,6 +956,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return false;
     }
   }
+
+  Future<Set<String>> getDeletedUserIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList('verdi.admin.deleted_user_ids') ?? [];
+    return list.toSet();
+  }
 }
 
 final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>(
