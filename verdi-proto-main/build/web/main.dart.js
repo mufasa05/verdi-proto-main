@@ -166473,7 +166473,7 @@ m=j.length!==0?j:null
 s=3
 return A.A(n.wC(k,m,o.cy),$async$$0)
 case 3:l=b
-if(o.c!=null&&l)p.e.N(t.q).f.aB(A.bE(null,null,null,B.o,null,B.F,null,A.d("Successfully authenticated with Google account ("+k+").",null,null,null,null,null,null,null,null),null,B.ae,null,null,null,null,null,null,null,null,null,null))
+if(o.c!=null&&p.e.e!=null&&l)p.e.N(t.q).f.aB(A.bE(null,null,null,B.o,null,B.F,null,A.d("Successfully authenticated with Google account ("+k+").",null,null,null,null,null,null,null,null),null,B.ae,null,null,null,null,null,null,null,null,null,null))
 case 1:return A.L(q,r)}})
 return A.M($async$$0,r)},
 $S:10}
@@ -166518,7 +166518,7 @@ m=j.length!==0?j:null
 s=3
 return A.A(n.wB(k,m,o.cy),$async$$0)
 case 3:l=b
-if(o.c!=null&&l)p.e.N(t.q).f.aB(A.bE(null,null,null,B.o,null,B.F,null,A.d("Successfully authenticated with Apple ID ("+k+").",null,null,null,null,null,null,null,null),null,B.ae,null,null,null,null,null,null,null,null,null,null))
+if(o.c!=null&&p.e.e!=null&&l)p.e.N(t.q).f.aB(A.bE(null,null,null,B.o,null,B.F,null,A.d("Successfully authenticated with Apple ID ("+k+").",null,null,null,null,null,null,null,null),null,B.ae,null,null,null,null,null,null,null,null,null,null))
 case 1:return A.L(q,r)}})
 return A.M($async$$0,r)},
 $S:10}

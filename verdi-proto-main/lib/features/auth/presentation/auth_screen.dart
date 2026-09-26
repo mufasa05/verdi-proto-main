@@ -2311,7 +2311,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       fullName: name.isNotEmpty ? name : null,
                       role: _selectedRole,
                     );
-                    if (mounted && success) {
+                    if (mounted && context.mounted && success) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Successfully authenticated with Google account ($email).'),
@@ -2530,7 +2530,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       fullName: name.isNotEmpty ? name : null,
                       role: _selectedRole,
                     );
-                    if (mounted && success) {
+                    if (mounted && context.mounted && success) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Successfully authenticated with Apple ID ($email).'),
